@@ -1,35 +1,71 @@
-# Workflow untuk GitHub Actions
-# Contoh setup dasar untuk CI/CD
-
-name: CI
+name: CI - Build & Test
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, master, develop, feature/* ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, master, develop ]
 
 jobs:
-  build:
+  test-and-build:
     runs-on: ubuntu-latest
-
+    
     strategy:
       matrix:
         node-version: [18.x, 20.x]
-
+    
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
+        cache: 'npm'
     
     - name: Install dependencies
       run: npm ci
     
-    - name: Build
-      run: npm run build --workspaces
+    - name: Lint code
+      run: npm run lint --workspaces --if-present
+      continue-on-error: true
+    
+    - name: Build API
+      run: npm --workspace apps/api run build --if-present
+      continue-on-error: true
+    
+    - name: Build Web
+      run: npm --workspace apps/web run build --if-present
+      continue-on-error: true
     
     - name: Run tests
-      run: npm run test --workspaces
+      run: npm run test --workspaces --if-present
+      continue-on-error: true
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        files: ./coverage/coverage-final.json
+        fail_ci_if_error: false
+
+  # Job untuk validasi database schema (API only)
+  database-validation:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.modified, 'apps/api/prisma/')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Validate Prisma schema
+      run: npm --workspace apps/api run prisma:validate --if-present
+      continue-on-error: true

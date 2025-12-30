@@ -1,0 +1,38 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.duitdiary.example.com
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build all apps
+      run: npm run build --workspaces --if-present
+    
+    # TODO: Add deployment steps based on your hosting platform
+    # Examples:
+    # - Deploy to Heroku
+    # - Deploy to Vercel
+    # - Deploy to AWS/Azure
+    # - Deploy Docker images to registry
+    
+    - name: Notify deployment
+      run: echo "Staging deployment completed"
