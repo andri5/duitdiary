@@ -24,7 +24,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { MainLayout } from '@/components/layout';
+import { MainLayout, PageTransition } from '@/components/layout';
 import { Button, Loading, EmptyState } from '@/components/ui';
 import { useDashboard } from '@/hooks';
 import { useExpenses } from '@/hooks';
@@ -142,7 +142,8 @@ export function DashboardPage() {
   };
 
   return (
-    <MainLayout>
+    <PageTransition>
+      <MainLayout>
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -456,6 +457,7 @@ export function DashboardPage() {
           </motion.div>
         )}
       </motion.div>
-    </MainLayout>
+      </MainLayout>
+    </PageTransition>
   );
 }

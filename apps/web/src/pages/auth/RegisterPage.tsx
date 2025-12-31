@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Mail, Lock, Eye, EyeOff, User, AlertCircle, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { AuthLayout } from '@/components/layout';
+import { AuthLayout, PageTransition } from '@/components/layout';
 import { Button, Input } from '@/components/ui';
 import { registerSchema } from '@/lib/validations';
 import type { RegisterFormData } from '@/lib/validations';
@@ -102,7 +102,8 @@ export function RegisterPage() {
   const strengthLabels = ['Sangat Lemah', 'Lemah', 'Cukup', 'Kuat', 'Sangat Kuat'];
 
   return (
-    <AuthLayout
+    <PageTransition>
+      <AuthLayout
       title="Daftar DuitDiary"
       subtitle="Buat akun dan mulai catat pengeluaranmu"
     >
@@ -287,6 +288,7 @@ export function RegisterPage() {
           </Link>
         </motion.p>
       </motion.form>
-    </AuthLayout>
+      </AuthLayout>
+    </PageTransition>
   );
 }

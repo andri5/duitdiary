@@ -5,7 +5,8 @@
 
 import { User, Mail, Calendar, LogOut, Shield, Bell, Palette, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { MainLayout } from '@/components/layout';
+import { motion } from 'framer-motion';
+import { MainLayout, PageTransition } from '@/components/layout';
 import { useAuthStore } from '@/stores';
 import { ROUTES } from '@/lib/constants';
 import { formatDate, getInitials } from '@/lib/utils';
@@ -20,7 +21,8 @@ export function SettingsPage() {
   };
 
   return (
-    <MainLayout>
+    <PageTransition>
+      <MainLayout>
       {/* Hero Header with Avatar */}
       <div className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-900 via-blue-800 to-slate-900 p-6 text-white shadow-xl sm:p-8 border border-blue-700/50">
         <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
@@ -156,6 +158,7 @@ export function SettingsPage() {
           </button>
         </div>
       </div>
-    </MainLayout>
+      </MainLayout>
+    </PageTransition>
   );
 }

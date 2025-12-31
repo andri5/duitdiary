@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { AuthLayout } from '@/components/layout';
+import { AuthLayout, PageTransition } from '@/components/layout';
 import { Button, Input } from '@/components/ui';
 import { loginSchema } from '@/lib/validations';
 import type { LoginFormData } from '@/lib/validations';
@@ -73,12 +73,13 @@ export function LoginPage() {
   };
 
   return (
-    <AuthLayout
-      title="Masuk ke DuitDiary"
-      subtitle="Kelola pengeluaran harianmu dengan mudah"
-    >
-      <motion.form 
-        onSubmit={handleSubmit(onSubmit)} 
+    <PageTransition>
+      <AuthLayout
+        title="Masuk ke DuitDiary"
+        subtitle="Kelola pengeluaran harianmu dengan mudah"
+      >
+        <motion.form 
+          onSubmit={handleSubmit(onSubmit)} 
         className="space-y-4 sm:space-y-5"
         variants={containerVariants}
         initial="hidden"
@@ -180,6 +181,7 @@ export function LoginPage() {
           </Link>
         </motion.p>
       </motion.form>
-    </AuthLayout>
+      </AuthLayout>
+    </PageTransition>
   );
 }

@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Search, Filter, Calendar, Receipt, X, ChevronDown, Grid, List } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MainLayout } from '@/components/layout';
+import { MainLayout, PageTransition } from '@/components/layout';
 import {
   Button,
   Input,
@@ -102,7 +102,8 @@ export function ExpensesPage() {
   const hasActiveFilters = filters.categoryId || filters.startDate || filters.endDate;
 
   return (
-    <MainLayout>
+    <PageTransition>
+      <MainLayout>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -419,6 +420,7 @@ export function ExpensesPage() {
           </ModalFooter>
         </Modal>
       </motion.div>
-    </MainLayout>
+      </MainLayout>
+    </PageTransition>
   );
 }

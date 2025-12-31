@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, FolderOpen, Grid, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MainLayout } from '@/components/layout';
+import { MainLayout, PageTransition } from '@/components/layout';
 import {
   Button,
   Loading,
@@ -76,7 +76,8 @@ export function CategoriesPage() {
   };
 
   return (
-    <MainLayout>
+    <PageTransition>
+      <MainLayout>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -341,6 +342,7 @@ export function CategoriesPage() {
           </ModalFooter>
         </Modal>
       </motion.div>
-    </MainLayout>
+      </MainLayout>
+    </PageTransition>
   );
 }
