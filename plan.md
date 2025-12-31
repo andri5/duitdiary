@@ -26,80 +26,341 @@
 
 ---
 
-## 🎯 WEEK 1 SPRINT PLAN
+## 🎯 SOLO DEVELOPER ROADMAP
 
-### ⏰ Timeline: Jan 2-8, 2026 (5 Business Days)
-### 👥 Team: 4 People (Backend 1, Frontend 1, Mobile 1, DevOps 1)
-### 🎯 Goal: Setup MVP Foundation - All Development Infrastructure Ready
+### ⏰ Timeline: Jan 2 - Feb 28, 2026 (8 Weeks for Full MVP)
+### 👤 Developer: Solo (You + 8 hours/day)
+### 🎯 Goal: Complete MVP Foundation → Full Production Release
 
----
-
-### 📊 WEEK 1 OVERVIEW
-
-| Role | Developer | Primary Tasks | Status |
-|------|-----------|----------------|--------|
-| **Backend** | Dev 1 | API setup, auth, database migrations | 🟡 Ready |
-| **Frontend** | Dev 2 | Project setup, auth pages, layout components | 🟡 Ready |
-| **Mobile** | Dev 3 | Project setup, navigation structure, theme | 🟡 Ready |
-| **DevOps** | Dev 4 | GitHub Actions, Docker setup, databases | 🟡 Ready |
+**Note:** This is a **solo developer path**. Timeline adjusted for realistic 1-person capacity.
 
 ---
 
-### 📅 DAILY STANDUP
+### 📊 SOLO DEVELOPER OVERVIEW
 
-**Time:** 09:00 AM - 09:15 AM (Daily, Mon-Fri)  
-**Format:** Each person reports: What done, what today, blockers  
-**Platform:** Discord / Slack / Video Call  
-**Owner:** TBD (Recommended: Project Lead)
-
----
-
-### 🎯 WEEK 1 TASK BREAKDOWN
-
-#### **Day 1 (Jan 2) - SETUP & INITIALIZATION**
-
-##### Backend (Dev 1)
-- [ ] Task B1.1: Setup Express.js server with TypeScript (30 min)
-  - Install dependencies: `npm install express typescript ts-node @types/node`
-  - Create `src/index.ts` with basic server
-  - Test: `npm run dev` runs on port 3001
-  - Expected Output: "Server running on port 3001"
-
-- [ ] Task B1.2: Setup PostgreSQL database connection (45 min)
-  - Initialize Prisma: `npx prisma init`
-  - Configure `.env` with PostgreSQL credentials
-  - Create `schema.prisma` with User, Category, Expense models
-  - Test: `npx prisma migrate dev --name init`
-  - Expected Output: Database connected, tables created
-
-- [ ] Task B1.3: Setup JWT authentication infrastructure (45 min)
-  - Install: `npm install jsonwebtoken bcryptjs dotenv`
-  - Create `src/utils/jwt.ts` with sign/verify functions
-  - Create auth middleware in `src/middlewares/auth.middleware.ts`
-  - Test: Generate token, verify token
-  - Expected Output: JWT functions exported and tested
-
-**Daily Goal:** Backend infrastructure ready, database connected, JWT working
+| Phase | Duration | Focus | Status |
+|-------|----------|-------|--------|
+| **Phase 1: Backend Foundation** | Week 1-2 | API setup, auth, database, core endpoints | Starting |
+| **Phase 2: Frontend MVP** | Week 3-4 | Auth pages, dashboard, CRUD operations | Pending |
+| **Phase 3: Testing & Deployment** | Week 5-6 | Unit tests, E2E tests, staging deployment | Pending |
+| **Phase 4: Mobile App** | Week 7-8 | React Native setup, screens, sync with API | Pending |
 
 ---
 
-##### Frontend (Dev 2)
-- [ ] Task F1.1: Create React + Vite project (20 min)
-  - Run: `npm create vite@latest apps/web -- --template react`
-  - Configure TypeScript, install dependencies
-  - Test: `npm run dev` runs on port 5173
-  - Expected Output: Vite dev server running
+### 💡 SOLO DEVELOPER CAPACITY
 
-- [ ] Task F1.2: Setup routing and main layout (40 min)
-  - Install: `npm install react-router-dom`
-  - Create `src/router.tsx` with routes
-  - Create `src/components/layout/MainLayout.tsx`
-  - Create basic pages: Dashboard, Expenses, Categories, Settings
-  - Test: Navigate between pages
-  - Expected Output: All pages accessible
+**Daily Capacity:** 8 hours/day (Mon-Fri = 40 hours/week)
 
-- [ ] Task F1.3: Setup Tailwind CSS and theme (40 min)
-  - Install Tailwind: `npm install -D tailwindcss postcss autoprefixer`
+| Activity | Hours/Week | Notes |
+|----------|-----------|-------|
+| Active Coding | 6-7 hrs | Main development work |
+| Testing/Debugging | 1 hr | Verify features work |
+| Documentation | 30 min | Update README, comments |
+| Breaks | 1.5 hrs | Lunch + short breaks |
+| **Total** | **8-9 hrs** | Sustainable pace |
+
+---
+
+### 📋 SOLO DEVELOPER WORKFLOW
+
+**No standup needed!** But important to track:
+
+- ✅ Commit code **daily** to feature branches
+- ✅ Push to GitHub **every end of day**
+- ✅ Test locally before pushing
+- ✅ Update progress in `SOLO_PROGRESS.md`
+- ✅ Take breaks to avoid burnout
+
+---
+
+### 📅 SOLO DEVELOPER PHASE 1: Backend Foundation (Week 1-2)
+
+**Focus:** Complete backend API so frontend can integrate  
+**Duration:** 2 weeks (40-80 hours)  
+**Goal:** 12 API endpoints + auth + database ready
+
+#### **Week 1 (Jan 2-8): Backend Core Setup & API Endpoints**
+
+**Day 1 (Jan 2) - Backend Infrastructure (2-3 hours)**
+
+- [ ] Task B1: Setup Express.js + TypeScript (1 hour)
+  - Already started! Check `apps/api/src/index.ts`
+  - Dependencies installed: express, typescript, ts-node
+  - Test: `cd apps/api && npm run dev`
+  - Expected: Server on port 3001 ✅
+
+- [ ] Task B2: PostgreSQL + Prisma Setup (1 hour)
+  - Already done! Check `prisma/schema.prisma`
+  - Database models: User, Category, Expense
+  - Test: `npx prisma migrate dev`
+  - Expected: Database tables created ✅
+
+- [ ] Task B3: JWT Authentication (30-45 min)
+  - Already implemented! Check `src/utils/jwt.ts`
+  - Auth middleware: `src/middlewares/auth.middleware.ts`
+  - Test: Generate and verify tokens
+  - Expected: Auth working ✅
+
+**Day 1 Goal:** Backend infrastructure ready ✅ (Already mostly done!)
+
+---
+
+**Days 2-3 (Jan 3-4) - Core API Endpoints (4-5 hours)**
+
+- [ ] Task B4: Auth Endpoints (1.5 hours)
+  - POST `/auth/register` - Create user
+  - POST `/auth/login` - User login with JWT
+  - GET `/auth/me` - Get current user
+  - Test each with curl/Postman
+  - Expected: 3 auth endpoints working
+
+- [ ] Task B5: Expense CRUD Endpoints (1.5 hours)
+  - POST `/expenses` - Create
+  - GET `/expenses` - List with filters
+  - GET `/expenses/:id` - Get one
+  - PUT `/expenses/:id` - Update
+  - DELETE `/expenses/:id` - Delete
+  - Test: Full CRUD operations
+  - Expected: 5 expense endpoints working
+
+- [ ] Task B6: Category Endpoints (1 hour)
+  - POST `/categories` - Create
+  - GET `/categories` - List
+  - PUT `/categories/:id` - Update
+  - DELETE `/categories/:id` - Delete
+  - Test: Category CRUD working
+  - Expected: 4 category endpoints working
+
+- [ ] Task B7: Dashboard Endpoints (1 hour)
+  - GET `/dashboard/summary` - Income/expense/balance
+  - GET `/dashboard/breakdown` - Expenses by category
+  - GET `/dashboard/trends` - 30-day trends
+  - Test: Dashboard data correct
+  - Expected: 3 dashboard endpoints working
+
+**Days 2-3 Goal:** 12 API endpoints complete & tested ✅
+
+---
+
+**Days 4-5 (Jan 5-6) - Backend Testing & Polish (2-3 hours)**
+
+- [ ] Task B8: Error Handling & Validation (1 hour)
+  - Add input validation middleware
+  - Proper error messages
+  - Test invalid inputs rejected
+  - Expected: Validation working
+
+- [ ] Task B9: Unit & Integration Tests (1.5 hours)
+  - Test auth flow
+  - Test CRUD operations
+  - Test error handling
+  - Expected: 80%+ endpoints tested
+
+- [ ] Task B10: API Documentation (30 min)
+  - Create Swagger/OpenAPI docs
+  - Document all endpoints
+  - Expected: API docs accessible
+
+**Days 4-5 Goal:** Backend production-ready ✅
+
+**Week 1 Backend Result:** 12 endpoints ✅ All endpoints tested ✅ Deployed to staging ✅
+
+---
+
+#### **Week 2 (Jan 9-13): Backend Refinement + Frontend Integration Setup**
+
+**Days 1-3 (Jan 9-11) - Performance & Security (3-4 hours)**
+
+- [ ] Task B11: Database Optimization
+  - Add indexes on frequently queried fields
+  - Optimize queries
+  - Test response times < 200ms
+  - Expected: Fast queries
+
+- [ ] Task B12: Security Hardening
+  - Add rate limiting
+  - Input sanitization
+  - CORS properly configured
+  - Password validation rules
+  - Expected: Security audit passed
+
+**Days 4-5 (Jan 12-13) - Deployment Prep (2-3 hours)**
+
+- [ ] Task B13: Production Setup
+  - Deploy to Railway/Heroku
+  - Configure PostgreSQL remote
+  - Setup environment variables
+  - Expected: API live on production URL
+
+- [ ] Task B14: Error Monitoring
+  - Setup Sentry integration
+  - Configure alerts
+  - Expected: Error monitoring active
+
+**Week 2 Backend Result:** Backend production-ready ✅ Monitoring active ✅
+
+---
+
+### 📅 SOLO DEVELOPER PHASE 2: Frontend Web (Week 3-4)
+
+**Focus:** Build web interface for backend  
+**Duration:** 2 weeks  
+**Goal:** All 5 pages functional + API integrated
+
+#### **Week 3 (Jan 16-20): Frontend Core Pages**
+
+**Days 1-2 (Jan 16-17) - Auth Pages (2-3 hours)**
+
+- [ ] Task F1: Login Page
+  - Form with email/password
+  - API integration
+  - Error handling
+  - Expected: Login working end-to-end
+
+- [ ] Task F2: Register Page
+  - Form with email/password/confirm
+  - Form validation
+  - API integration
+  - Expected: Register working
+
+**Days 2-3 (Jan 18-19) - Dashboard & Data Pages (3-4 hours)**
+
+- [ ] Task F3: Dashboard Page
+  - Summary cards (income, expense, balance)
+  - Charts (breakdown, trends)
+  - Responsive layout
+  - Expected: Dashboard fully functional
+
+- [ ] Task F4: Expenses Page
+  - Expense list with pagination
+  - Filters (date, category, amount)
+  - Search functionality
+  - Expected: Expense browsing smooth
+
+- [ ] Task F5: Categories Page
+  - Category list
+  - Add/edit/delete forms
+  - Color picker
+  - Expected: Category management working
+
+**Days 4-5 (Jan 20) - Polish & Testing (2-3 hours)**
+
+- [ ] Task F6: Frontend Testing
+  - Unit tests for components
+  - E2E tests for user flows
+  - Responsive testing
+  - Expected: 70%+ coverage
+
+**Week 3 Frontend Result:** All 5 pages working ✅ API fully integrated ✅
+
+---
+
+#### **Week 4 (Jan 23-27): Frontend Refinement + Deployment**
+
+**Days 1-3 (Jan 23-25) - Advanced Features (3-4 hours)**
+
+- [ ] Task F7: Charts Library
+  - Install Chart.js or Recharts
+  - Real charts in dashboard
+  - Expected: Beautiful visualizations
+
+- [ ] Task F8: Data Export
+  - Export to CSV
+  - Export to PDF
+  - Expected: User can export data
+
+**Days 4-5 (Jan 26-27) - Production Deployment (2-3 hours)**
+
+- [ ] Task F9: Frontend Production
+  - Deploy to Vercel
+  - Production domain
+  - SSL configured
+  - Expected: Web app live
+
+**Week 4 Frontend Result:** Web app production-ready ✅ Live on Vercel ✅
+
+---
+
+### 📅 SOLO DEVELOPER PHASE 3: Testing & Stability (Week 5-6)
+
+**Focus:** Ensure quality, fix bugs, full testing  
+**Duration:** 2 weeks
+
+- [ ] Unit tests: 80%+ backend coverage
+- [ ] Unit tests: 70%+ frontend coverage
+- [ ] E2E tests: Critical user flows
+- [ ] Performance testing
+- [ ] Security audit
+- [ ] Cross-browser testing
+- [ ] Responsive testing
+- [ ] Bug fixes & optimization
+
+**Result:** Stable MVP ready for production ✅
+
+---
+
+### 📅 SOLO DEVELOPER PHASE 4: Mobile App (Week 7-8)
+
+**Focus:** React Native mobile app  
+**Duration:** 2 weeks
+
+- [ ] React Native + Expo setup (COMPLETED)
+- [ ] Navigation structure (1 week)
+- [ ] Auth screens (2-3 days)
+- [ ] Dashboard screen (2-3 days)
+- [ ] Expense management screens (2-3 days)
+- [ ] API integration (2-3 days)
+- [ ] Testing on iOS/Android (2-3 days)
+
+**Result:** Mobile app production-ready ✅
+
+---
+
+### 🎯 SOLO DEVELOPER SUCCESS CRITERIA
+
+**End of Week 2 (Backend Ready):**
+
+- [x] 12 API endpoints implemented
+- [x] All CRUD operations working
+- [x] Authentication working
+- [x] Database connected & migrated
+- [x] API tested manually
+- [ ] Unit tests added (80%+ coverage)
+- [ ] Error handling complete
+- [ ] Deployed to staging
+
+**End of Week 4 (Frontend Ready):**
+
+- [ ] All 5 pages functional
+- [ ] API integration complete
+- [ ] Charts working
+- [ ] Responsive on mobile
+- [ ] Unit tests added (70%+ coverage)
+- [ ] E2E tests for critical flows
+- [ ] Deployed to Vercel
+- [ ] Form validation working
+
+**End of Week 6 (Testing & Stability):**
+
+- [ ] 80%+ backend test coverage
+- [ ] 70%+ frontend test coverage
+- [ ] All critical bugs fixed
+- [ ] Performance targets met (< 2s load time)
+- [ ] Security audit passed
+- [ ] Cross-browser tested
+- [ ] Ready for production
+
+**End of Week 8 (Mobile Added):**
+
+- [ ] Mobile app fully functional
+- [ ] iOS & Android tested
+- [ ] API sync working
+- [ ] Full MVP complete
+- [ ] Ready for launch
+
+
+
+## EXECUTIVE SUMMARY
   - Initialize: `npx tailwindcss init -p`
   - Configure with deep blue colors from plan.md
   - Create `src/index.css` with global styles
