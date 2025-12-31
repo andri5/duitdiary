@@ -133,7 +133,7 @@ export const dashboardValidationRules = () => {
       .isISO8601()
       .withMessage('Invalid end date format (use YYYY-MM-DD)')
       .custom((value, { req }) => {
-        if (req.query.startDate && value) {
+        if (req?.query?.startDate && value) {
           const start = new Date(req.query.startDate as string);
           const end = new Date(value);
           if (start > end) {
