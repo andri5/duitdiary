@@ -1,9 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 // Mobile configuration
-const mobileTests = test.describe('Responsive Layout - Mobile (375px)', () => {
+test.describe('Responsive Layout - Mobile (375px)', () => {
   // Tests will set viewport manually
-});
 
   test('TC-061: Mobile Navigation Toggle', async ({ page }) => {
     // Set mobile viewport
