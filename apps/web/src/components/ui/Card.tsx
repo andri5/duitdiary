@@ -1,15 +1,19 @@
 /**
  * DuitDiary - Card Component
- * Container component with variants
+ * Enhanced card with shadow elevation, glow effects, and animations
  */
 
 import { forwardRef } from 'react';
 import type { HTMLAttributes } from 'react';
+import { motion, useMotionValue, useMotionTemplate } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'bordered' | 'elevated';
   padding?: 'none' | 'sm' | 'md' | 'lg';
+  hover?: boolean;
+  glowing?: boolean;
+  animated?: boolean;
 }
 
 const variantStyles = {
@@ -31,23 +35,79 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       className,
       variant = 'bordered',
       padding = 'md',
+      hover = true,
+      glowing = false,
+      animated = true,
       children,
       ...props
     },
     ref
   ) => {
-    return (
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      mouseX.set(e.clientX - rect.left);
+      mouseY.set(e.clientY - rect.top);
+    };
+
+    const backgroundImage = useMotionTemplate`
+      radial-gradient(
+        650px circle at ${mouseX}px ${mouseY}px,
+        rgba(59, 130, 246, 0.15),
+        transparent 80%
+      )
+    `;
+
+    const cardContent = (
       <div
         ref={ref}
         className={cn(
-          'rounded-xl',
+          'rounded-xl transition-all duration-300 relative overflow-hidden',
           variantStyles[variant],
           paddingStyles[padding],
+          hover && 'hover:shadow-xl',
           className
         )}
+        onMouseMove={glowing ? handleMouseMove : undefined}
         {...props}
       >
-        {children}
+        {/* Glow effect background */}
+        {glowing && (
+          <motion.div
+            className="pointer-events-none absolute inset-0 opacity-0"
+            style={{ backgroundImage: backgroundImage as any }}
+            whileHover={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          />
+        )}
+
+        {/* Content */}
+        <div className="relative z-10">
+          {children}
+        </div>
+      </div>
+    );
+
+    if (!animated) {
+      return cardContent;
+    }
+
+    return (
+      <motion.div
+        whileHover={hover ? { y: -4 } : {}}
+        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        {cardContent}
+      </motion.div>
+    );
+  }
+);
+
+Card.displayName = 'Card';
       </div>
     );
   }
