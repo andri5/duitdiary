@@ -1,6 +1,6 @@
 /**
  * DuitDiary - Button Component
- * Modern button with gradient and glass variants + micro-interactions
+ * Modern button with gradient and glass variants + responsive micro-interactions
  */
 
 import { forwardRef, useState } from 'react';
@@ -8,6 +8,7 @@ import type { ButtonHTMLAttributes } from 'react';
 import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useResponsiveAnimationConfig } from '@/hooks/useMediaQuery';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'gradient' | 'glass';
@@ -59,6 +60,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const [isPressed, setIsPressed] = useState(false);
+    const animConfig = useResponsiveAnimationConfig();
 
     const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
       if (!disabled && !isLoading) {
@@ -102,13 +104,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <motion.div
-        whileHover={disabled || isLoading ? {} : { scale: 1.02 }}
-        whileTap={disabled || isLoading ? {} : { scale: 0.95 }}
+        whileHover={disabled || isLoading || !animConfig.shouldAnimateHover ? {} : { scale: animConfig.hoverScale }}
+        whileTap={disabled || isLoading ? {} : { scale: animConfig.tapScale }}
         transition={{ 
           type: 'spring', 
           damping: 20, 
           stiffness: 300,
-          scale: { duration: 0.15 }
+          scale: { duration: animConfig.transitionDuration }
         }}
       >
         {buttonContent}
