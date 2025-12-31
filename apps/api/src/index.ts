@@ -15,7 +15,7 @@ import cors from 'cors';
 import { config } from './config/index.js';
 import routes from './routes/index.js';
 import { errorMiddleware } from './middlewares/index.js';
-import { rateLimitAuth, rateLimitAPI } from './middlewares/rateLimit.middleware.js';
+import { authRateLimiter, apiRateLimiter } from './middlewares/rateLimit.middleware.js';
 
 // Initialize Express application
 const app = express();
@@ -33,13 +33,48 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Rate limiting
-app.use('/api/v1/auth', rateLimitAuth);
-app.use('/api/v1', rateLimitAPI);
+app.use('/api/v1/auth', authRateLimiter);
+app.use('/api/v1', apiRateLimiter);
 
 // ==================== ROUTES ====================
 
 // API v1 routes
 app.use('/api/v1', routes);
+
+// API Documentation endpoint (static)
+app.get('/api/v1/docs', (req, res) => {
+  res.json({
+    success: true,
+    message: 'API Documentation',
+    endpoints: {
+      authentication: {
+        register: 'POST /api/v1/auth/register',
+        login: 'POST /api/v1/auth/login',
+        logout: 'POST /api/v1/auth/logout',
+        refresh: 'POST /api/v1/auth/refresh-token',
+      },
+      expenses: {
+        list: 'GET /api/v1/expenses',
+        create: 'POST /api/v1/expenses',
+        getOne: 'GET /api/v1/expenses/:id',
+        update: 'PUT /api/v1/expenses/:id',
+        delete: 'DELETE /api/v1/expenses/:id',
+      },
+      categories: {
+        list: 'GET /api/v1/categories',
+        create: 'POST /api/v1/categories',
+        update: 'PUT /api/v1/categories/:id',
+        delete: 'DELETE /api/v1/categories/:id',
+      },
+      dashboard: {
+        summary: 'GET /api/v1/dashboard/summary',
+        breakdown: 'GET /api/v1/dashboard/breakdown',
+        trends: 'GET /api/v1/dashboard/trends',
+      },
+    },
+    docs: 'See README.md for detailed endpoint documentation',
+  });
+});
 
 // Root endpoint - API info
 app.get('/', (req, res) => {

@@ -1,4 +1,4 @@
 export { authMiddleware } from './auth.middleware.js';
 export { validate } from './validate.middleware.js';
 export { errorMiddleware } from './error.middleware.js';
-export { rateLimitAuth, rateLimitAPI } from './rateLimit.middleware.js';
+export { authRateLimiter, apiRateLimiter } from './rateLimit.middleware.js';

@@ -6,9 +6,34 @@ import { registerSchema, loginSchema, refreshTokenSchema } from '../utils/valida
 const router = Router();
 
 /**
- * @route   POST /api/v1/auth/register
- * @desc    Register a new user
- * @access  Public
+ * @swagger
+ * /api/v1/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 example: SecurePassword123!
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *       400:
+ *         description: Invalid input
+ *       409:
+ *         description: Email already exists
  */
 router.post(
   '/register',
@@ -17,9 +42,29 @@ router.post(
 );
 
 /**
- * @route   POST /api/v1/auth/login
- * @desc    Login user
- * @access  Public
+ * @swagger
+ * /api/v1/auth/login:
+ *   post:
+ *     summary: Login user and get JWT token
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 example: SecurePassword123!
+ *     responses:
+ *       200:
+ *         description: Login successful, JWT token returned
+ *       401:
+ *         description: Invalid email or password
  */
 router.post(
   '/login',
@@ -28,9 +73,18 @@ router.post(
 );
 
 /**
- * @route   POST /api/v1/auth/logout
- * @desc    Logout user
- * @access  Private
+ * @swagger
+ * /api/v1/auth/logout:
+ *   post:
+ *     summary: Logout user
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ *       401:
+ *         description: Unauthorized
  */
 router.post(
   '/logout',
@@ -39,9 +93,26 @@ router.post(
 );
 
 /**
- * @route   POST /api/v1/auth/refresh-token
- * @desc    Refresh access token
- * @access  Public
+ * @swagger
+ * /api/v1/auth/refresh-token:
+ *   post:
+ *     summary: Refresh access token
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *     responses:
+ *       200:
+ *         description: New access token generated
+ *       401:
+ *         description: Invalid refresh token
  */
 router.post(
   '/refresh-token',
