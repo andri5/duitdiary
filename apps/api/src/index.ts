@@ -12,6 +12,7 @@
 
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import { config } from './config/index.js';
 import routes from './routes/index.js';
 import { errorMiddleware } from './middlewares/index.js';
@@ -19,6 +20,28 @@ import { authRateLimiter, apiRateLimiter } from './middlewares/rateLimit.middlew
 
 // Initialize Express application
 const app = express();
+
+// ==================== SECURITY MIDDLEWARE ====================
+
+// ✅ Security headers with helmet
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+    },
+  },
+  hsts: {
+    maxAge: 31536000, // 1 year in seconds
+    includeSubDomains: true,
+    preload: true,
+  },
+}));
+
+// ✅ Hide Express version
+app.disable('x-powered-by');
 
 // ==================== MIDDLEWARE ====================
 
