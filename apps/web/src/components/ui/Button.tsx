@@ -1,9 +1,9 @@
 /**
  * DuitDiary - Button Component
- * Modern button with gradient and glass variants + animations
+ * Modern button with gradient and glass variants + micro-interactions
  */
 
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
 import type { ButtonHTMLAttributes } from 'react';
 import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -53,10 +53,24 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       rightIcon,
       children,
       animated = true,
+      onMouseDown,
       ...props
     },
     ref
   ) => {
+    const [isPressed, setIsPressed] = useState(false);
+
+    const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (!disabled && !isLoading) {
+        setIsPressed(true);
+      }
+      onMouseDown?.(e);
+    };
+
+    const handleMouseUp = () => {
+      setIsPressed(false);
+    };
+
     const buttonContent = (
       <button
         ref={ref}
@@ -67,6 +81,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           sizeStyles[size],
           className
         )}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
         {...props}
       >
         {isLoading ? (
@@ -85,9 +102,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <motion.div
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+        whileHover={disabled || isLoading ? {} : { scale: 1.02 }}
+        whileTap={disabled || isLoading ? {} : { scale: 0.95 }}
+        transition={{ 
+          type: 'spring', 
+          damping: 20, 
+          stiffness: 300,
+          scale: { duration: 0.15 }
+        }}
       >
         {buttonContent}
       </motion.div>
@@ -95,4 +117,4 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   }
 );
 
-Button.displayName = 'Button';Button.displayName = 'Button';
+Button.displayName = 'Button';

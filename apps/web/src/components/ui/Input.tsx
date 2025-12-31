@@ -1,10 +1,11 @@
 /**
  * DuitDiary - Input Component
- * Modern glassmorphism input with icons
+ * Modern glassmorphism input with micro-interactions and animations
  */
 
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
 import type { InputHTMLAttributes } from 'react';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -27,81 +28,147 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       rightIcon,
       variant = 'default',
       id,
+      onFocus,
+      onBlur,
       ...props
     },
     ref
   ) => {
-    const inputId = id || props.name;
+    const [isFocused, setIsFocused] = useState(false);
+    const [hasValue, setHasValue] = useState(!!props.value);
 
+    const inputId = id || props.name;
     const isGlass = variant === 'glass';
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(true);
+      onFocus?.(e);
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(false);
+      setHasValue(!!e.target.value);
+      onBlur?.(e);
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setHasValue(!!e.target.value);
+      props.onChange?.(e);
+    };
 
     return (
       <div className="w-full">
         {label && (
-          <label
+          <motion.label
             htmlFor={inputId}
+            animate={isFocused ? { scale: 0.95, opacity: 0.8 } : { scale: 1, opacity: 1 }}
+            transition={{ duration: 0.2 }}
             className={cn(
-              'mb-1.5 block text-sm font-medium',
-              isGlass ? 'text-white/90' : 'text-gray-700'
+              'mb-1.5 block text-sm font-medium transition-colors',
+              isGlass ? 'text-white/90' : 'text-gray-700',
+              isFocused && (isGlass ? 'text-blue-300' : 'text-blue-600')
             )}
           >
             {label}
-          </label>
+          </motion.label>
         )}
         <div className="relative">
+          {/* Animated background glow on focus */}
+          {isFocused && (
+            <motion.div
+              className={cn(
+                'absolute -inset-0.5 rounded-xl opacity-0 blur',
+                isGlass 
+                  ? 'bg-gradient-to-r from-blue-500/50 to-purple-500/50' 
+                  : 'bg-blue-400/20'
+              )}
+              animate={{ opacity: 1 }}
+              initial={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            />
+          )}
+
           {leftIcon && (
-            <div
+            <motion.div
               className={cn(
                 'pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 transition-colors',
-                isGlass ? 'text-white/60' : 'text-gray-400'
+                isGlass ? 'text-white/60' : 'text-gray-400',
+                isFocused && (isGlass ? 'text-blue-300' : 'text-blue-500')
               )}
+              animate={isFocused ? { scale: 1.1 } : { scale: 1 }}
+              transition={{ duration: 0.2 }}
             >
               {leftIcon}
-            </div>
+            </motion.div>
           )}
+
           <input
             ref={ref}
             id={inputId}
             className={cn(
-              'w-full rounded-xl px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none disabled:cursor-not-allowed sm:py-3 sm:text-base',
+              'relative w-full rounded-xl px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none disabled:cursor-not-allowed sm:py-3 sm:text-base',
               leftIcon ? 'pl-10 sm:pl-11' : '',
               rightIcon ? 'pr-10 sm:pr-11' : '',
               isGlass
                 ? cn(
                     'border border-blue-400/40 bg-blue-950/30 text-white placeholder-blue-200/50 backdrop-blur-sm',
-                    'focus:border-blue-400/60 focus:bg-blue-950/40 focus:ring-2 focus:ring-blue-400/30',
-                    error && 'border-red-400/60 focus:border-red-400 focus:ring-red-400/30'
+                    isFocused && 'border-blue-400/80 bg-blue-950/50',
+                    error && 'border-red-400/60 focus:border-red-400',
+                    !error && isFocused && 'border-blue-400/80 bg-blue-950/50'
                   )
                 : cn(
                     'border border-gray-300 bg-white text-gray-900 placeholder-gray-400',
-                    'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
-                    error && 'border-red-500 focus:border-red-500 focus:ring-red-500/20',
+                    isFocused && 'border-blue-500 ring-2 ring-blue-500/20',
+                    error && 'border-red-500',
                     'disabled:bg-gray-50 disabled:text-gray-500'
                   ),
               className
             )}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onChange={handleChange}
             {...props}
           />
+
           {rightIcon && (
-            <div
+            <motion.div
               className={cn(
-                'absolute inset-y-0 right-0 flex items-center pr-3',
-                isGlass ? 'text-white/60' : 'text-gray-400'
+                'absolute inset-y-0 right-0 flex items-center pr-3 transition-colors',
+                isGlass ? 'text-white/60' : 'text-gray-400',
+                isFocused && (isGlass ? 'text-blue-300' : 'text-blue-500'),
+                hasValue && 'text-green-500'
               )}
+              animate={isFocused ? { scale: 1.1, rotate: 5 } : { scale: 1, rotate: 0 }}
+              transition={{ duration: 0.2 }}
             >
               {rightIcon}
-            </div>
+            </motion.div>
           )}
         </div>
+
+        {/* Error message with animation */}
         {error && (
-          <p className={cn('mt-1.5 text-sm', isGlass ? 'text-red-300' : 'text-red-600')}>
+          <motion.p 
+            className={cn('mt-1.5 text-sm', isGlass ? 'text-red-300' : 'text-red-600')}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
             {error}
-          </p>
+          </motion.p>
         )}
+
+        {/* Helper text with animation */}
         {helperText && !error && (
-          <p className={cn('mt-1.5 text-sm', isGlass ? 'text-white/60' : 'text-gray-500')}>
+          <motion.p 
+            className={cn('mt-1.5 text-sm', isGlass ? 'text-blue-200/70' : 'text-gray-500')}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
             {helperText}
-          </p>
+          </motion.p>
         )}
       </div>
     );
