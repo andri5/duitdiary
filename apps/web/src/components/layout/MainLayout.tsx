@@ -1,11 +1,12 @@
 /**
  * DuitDiary - Main Layout Component
- * Modern layout with gradient sidebar
+ * Modern layout with animated sidebar and smooth transitions
  */
 
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   LayoutDashboard,
   Receipt,
@@ -69,31 +70,49 @@ export function MainLayout({ children }: MainLayoutProps) {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-400/30 border border-blue-300/50 backdrop-blur-sm">
               <Wallet className="h-6 w-6" />
             </div>
-            {isSidebarOpen && (
-              <span className="text-xl font-bold">DuitDiary</span>
-            )}
+            <motion.span 
+              className="text-xl font-bold"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: isSidebarOpen ? 1 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              DuitDiary
+            </motion.span>
           </Link>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 px-3 py-4">
-          {navItems.map((item) => {
+          {navItems.map((item, idx) => {
             const isActive = location.pathname === item.path;
             return (
-              <Link
+              <motion.div
                 key={item.path}
-                to={item.path}
-                className={cn(
-                  'flex items-center gap-3 rounded-xl px-3 py-2.5 font-medium transition-all duration-200',
-                  isActive
-                    ? 'bg-blue-400/30 text-white shadow-lg backdrop-blur-sm border border-blue-300/50'
-                    : 'text-white/70 hover:bg-blue-500/20 hover:text-white',
-                  !isSidebarOpen && 'justify-center'
-                )}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.05, type: 'spring', damping: 20 }}
               >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
-                {isSidebarOpen && <span>{item.label}</span>}
-              </Link>
+                <Link
+                  to={item.path}
+                  className={cn(
+                    'flex items-center gap-3 rounded-xl px-3 py-2.5 font-medium transition-all duration-200',
+                    isActive
+                      ? 'bg-blue-400/30 text-white shadow-lg backdrop-blur-sm border border-blue-300/50'
+                      : 'text-white/70 hover:bg-blue-500/20 hover:text-white',
+                    !isSidebarOpen && 'justify-center'
+                  )}
+                >
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: isSidebarOpen ? 1 : 0, width: isSidebarOpen ? 'auto' : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    {item.label}
+                  </motion.span>
+                </Link>
+              </motion.div>
             );
           })}
         </nav>
