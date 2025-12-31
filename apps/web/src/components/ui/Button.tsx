@@ -1,6 +1,6 @@
 /**
  * DuitDiary - Button Component
- * Modern button with gradient and glass variants + responsive micro-interactions
+ * Modern button with gradient animations and responsive micro-interactions
  */
 
 import { forwardRef, useState } from 'react';
@@ -42,6 +42,12 @@ const sizeStyles = {
   lg: 'px-6 py-2.5 text-base sm:py-3 sm:text-lg',
 };
 
+// Gradient animation variants for gradient button
+const gradientVariants = {
+  initial: { backgroundPosition: '0% 50%' },
+  hover: { backgroundPosition: '100% 50%' },
+};
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
@@ -60,6 +66,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const [isPressed, setIsPressed] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
     const animConfig = useResponsiveAnimationConfig();
 
     const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -73,29 +80,49 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       setIsPressed(false);
     };
 
+    const handleFocus = () => {
+      setIsFocused(true);
+    };
+
+    const handleBlur = () => {
+      setIsFocused(false);
+    };
+
     const buttonContent = (
-      <button
+      <motion.button
         ref={ref}
         disabled={disabled || isLoading}
         className={cn(
           'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed',
+          variant === 'gradient' && 'bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 bg-[length:200%_auto]',
           variantStyles[variant],
           sizeStyles[size],
+          isFocused && 'shadow-lg',
           className
         )}
+        variants={variant === 'gradient' ? gradientVariants : undefined}
+        whileHover={variant === 'gradient' ? 'hover' : undefined}
+        transition={variant === 'gradient' ? { duration: 0.6, ease: 'easeInOut' } : undefined}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         {...props}
       >
         {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin sm:h-5 sm:w-5" />
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          >
+            <Loader2 className="h-4 w-4 sm:h-5 sm:w-5" />
+          </motion.div>
         ) : (
           leftIcon
         )}
         {children}
         {!isLoading && rightIcon}
-      </button>
+      </motion.button>
     );
 
     if (!animated) {
