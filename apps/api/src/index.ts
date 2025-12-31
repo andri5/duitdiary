@@ -15,6 +15,7 @@ import cors from 'cors';
 import { config } from './config/index.js';
 import routes from './routes/index.js';
 import { errorMiddleware } from './middlewares/index.js';
+import { rateLimitAuth, rateLimitAPI } from './middlewares/rateLimit.middleware.js';
 
 // Initialize Express application
 const app = express();
@@ -30,6 +31,10 @@ app.use(cors({
 // Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Rate limiting
+app.use('/api/v1/auth', rateLimitAuth);
+app.use('/api/v1', rateLimitAPI);
 
 // ==================== ROUTES ====================
 

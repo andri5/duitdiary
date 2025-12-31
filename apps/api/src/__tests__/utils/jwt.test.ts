@@ -3,7 +3,8 @@
  * Test sign, verify, and error handling
  */
 
-import { sign, verify, decode } from '../utils/jwt';
+import { describe, it, expect } from 'vitest';
+import { sign, verify, decode } from '../../utils/jwt.js';
 
 describe('JWT Utils', () => {
   const testPayload = { userId: 'test-user-123', email: 'test@example.com' };

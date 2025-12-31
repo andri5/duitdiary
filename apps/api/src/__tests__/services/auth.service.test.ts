@@ -3,19 +3,19 @@
  * Test authentication logic
  */
 
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock Prisma client
-jest.mock('../utils/prisma', () => ({
+vi.mock('../../utils/prisma', () => ({
   prisma: {
     user: {
-      findUnique: jest.fn(),
-      create: jest.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
     },
   },
 }));
 
-import { prisma } from '../utils/prisma';
+import { prisma } from '../../utils/prisma.js';
 
 describe('Auth Service', () => {
   const testUser = {
@@ -27,7 +27,7 @@ describe('Auth Service', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('registerUser()', () => {
