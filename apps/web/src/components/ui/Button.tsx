@@ -1,11 +1,12 @@
 /**
  * DuitDiary - Button Component
- * Modern button with gradient and glass variants
+ * Modern button with gradient and glass variants + animations
  */
 
 import { forwardRef } from 'react';
 import type { ButtonHTMLAttributes } from 'react';
 import { Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -14,13 +15,14 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  animated?: boolean;
 }
 
 const variantStyles = {
   primary:
     'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 disabled:bg-blue-300',
   secondary:
-    'bg-cyan-500 text-white hover:bg-cyan-600 focus:ring-cyan-500 disabled:bg-cyan-300',
+    'bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500 disabled:bg-purple-300',
   outline:
     'border-2 border-blue-300 text-blue-700 hover:bg-blue-50 focus:ring-blue-500 disabled:border-blue-200',
   ghost:
@@ -28,7 +30,7 @@ const variantStyles = {
   danger:
     'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 disabled:bg-red-300',
   gradient:
-    'bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] focus:ring-blue-500 disabled:opacity-50 disabled:hover:scale-100',
+    'bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 text-white shadow-lg hover:shadow-xl focus:ring-blue-500 disabled:opacity-50',
   glass:
     'border border-blue-400/50 bg-blue-500/20 text-white backdrop-blur-sm hover:bg-blue-500/30 focus:ring-blue-400/50 disabled:opacity-50',
 };
@@ -50,11 +52,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       leftIcon,
       rightIcon,
       children,
+      animated = true,
       ...props
     },
     ref
   ) => {
-    return (
+    const buttonContent = (
       <button
         ref={ref}
         disabled={disabled || isLoading}
@@ -75,7 +78,21 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {!isLoading && rightIcon}
       </button>
     );
+
+    if (!animated) {
+      return buttonContent;
+    }
+
+    return (
+      <motion.div
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+      >
+        {buttonContent}
+      </motion.div>
+    );
   }
 );
 
-Button.displayName = 'Button';
+Button.displayName = 'Button';Button.displayName = 'Button';

@@ -4,18 +4,40 @@
  * DuitDiary - Global Styles
  * ============================================ */
 
-/* CSS Variables for theming */
+/* CSS Variables for theming - Phase 4B Updated */
 :root {
-  --color-primary: #1E3A8A;
-  --color-primary-dark: #0F172A;
-  --color-secondary: #06B6D4;
-  --color-danger: #DC2626;
-  --color-warning: #FBBF24;
-  --color-background: #F8FAFC;
+  /* Brand Colors */
+  --color-primary: #0052CC;
+  --color-primary-dark: #003DA6;
+  --color-primary-light: #E8F0FF;
+  --color-secondary: #6B5B95;
+  --color-secondary-light: #F0EBF8;
+  --color-success: #27AE60;
+  --color-success-light: #E8F8F0;
+  --color-warning: #F39C12;
+  --color-warning-light: #FEF5E8;
+  --color-danger: #E74C3C;
+  --color-danger-light: #FDEDE8;
+  --color-neutral: #34495E;
+  --color-background: #F8F9FB;
   --color-surface: #FFFFFF;
   --color-text: #1F2937;
   --color-text-muted: #6B7280;
   --color-border: #E5E7EB;
+  
+  /* Spacing - 8px Grid System */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  
+  /* Shadows - Elevation System */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.2);
 }
 
 /* Base styles */
