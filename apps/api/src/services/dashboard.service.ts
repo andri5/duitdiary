@@ -5,22 +5,23 @@ export class DashboardService {
   async getSummary(userId: string): Promise<DashboardSummary> {
     const now = new Date();
     
-    // Calculate date ranges
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const todayEnd = new Date(todayStart);
-    todayEnd.setDate(todayEnd.getDate() + 1);
+    // Calculate date ranges - use proper date comparison
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
     const weekStart = new Date(todayStart);
     weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    const weekEnd = new Date(todayEnd);
+    weekEnd.setDate(weekEnd.getDate() + 6 - weekEnd.getDay());
 
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
     // Get today's expenses
     const todayExpenses = await this.getExpenseStats(userId, todayStart, todayEnd);
 
     // Get this week's expenses
-    const weekExpenses = await this.getExpenseStats(userId, weekStart, todayEnd);
+    const weekExpenses = await this.getExpenseStats(userId, weekStart, weekEnd);
 
     // Get this month's expenses
     const monthExpenses = await this.getExpenseStats(userId, monthStart, monthEnd);
