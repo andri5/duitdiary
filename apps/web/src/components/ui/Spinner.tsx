@@ -86,5 +86,4 @@ export function LoadingOverlay({ message = 'Loading...' }: LoadingProps) {
       </div>
     </motion.div>
   );
-}  );
 }

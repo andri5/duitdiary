@@ -182,8 +182,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 );
 
 Input.displayName = 'Input';
-          {/* Animated background glow on focus */}
-          {isFocused && (
             <motion.div
               className={cn(
                 'absolute -inset-0.5 rounded-xl opacity-0 blur',

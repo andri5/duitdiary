@@ -108,12 +108,6 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
 );
 
 Card.displayName = 'Card';
-      </div>
-    );
-  }
-);
-
-Card.displayName = 'Card';
 
 // Card Header
 export interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {}
