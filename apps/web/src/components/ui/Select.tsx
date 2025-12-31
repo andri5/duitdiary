@@ -1,12 +1,12 @@
 /**
  * DuitDiary - Select Component
- * Custom select dropdown with micro-interactions
+ * Custom select dropdown with advanced micro-interactions and animations
  */
 
 import { forwardRef, useState } from 'react';
 import type { SelectHTMLAttributes } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export interface SelectOption {
@@ -20,6 +20,7 @@ export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   helperText?: string;
   options: SelectOption[];
   placeholder?: string;
+  animated?: boolean;
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
@@ -34,6 +35,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       id,
       onFocus,
       onBlur,
+      animated = true,
       ...props
     },
     ref
@@ -68,16 +70,18 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         )}
         <div className="relative">
           {/* Animated focus glow */}
-          {isFocused && (
-            <motion.div
-              className="absolute -inset-0.5 rounded-lg bg-blue-400/20 opacity-0 blur"
-              animate={{ opacity: 1 }}
-              initial={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            />
-          )}
+          <AnimatePresence>
+            {isFocused && (
+              <motion.div
+                className="absolute -inset-0.5 rounded-lg bg-blue-400/20 opacity-0 blur"
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              />
+            )}
+          </AnimatePresence>
 
-          <select
+          <motion.select
             ref={ref}
             id={selectId}
             className={cn(
@@ -95,12 +99,14 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                 {placeholder}
               </option>
             )}
-            {options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            <AnimatePresence>
+              {options.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </AnimatePresence>
+          </motion.select>
 
           {/* Animated chevron icon */}
           <motion.div 
@@ -113,7 +119,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         </div>
 
         {/* Error message with animation */}
-        {error && (
+        {error && animated && (
           <motion.p 
             className="mt-1.5 text-sm text-red-600"
             initial={{ opacity: 0, y: -10 }}
@@ -124,9 +130,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             {error}
           </motion.p>
         )}
+        {error && !animated && <p className="mt-1.5 text-sm text-red-600">{error}</p>}
 
         {/* Helper text with animation */}
-        {helperText && !error && (
+        {helperText && !error && animated && (
           <motion.p 
             className="mt-1.5 text-sm text-gray-500"
             initial={{ opacity: 0 }}
@@ -136,6 +143,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             {helperText}
           </motion.p>
         )}
+        {helperText && !error && !animated && <p className="mt-1.5 text-sm text-gray-500">{helperText}</p>}
       </div>
     );
   }
