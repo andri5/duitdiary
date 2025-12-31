@@ -1,10 +1,14 @@
-import { test, expect, devices } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 // Mobile configuration
-test.describe('Responsive Layout - Mobile (375px)', () => {
-  test.use({ ...devices['Pixel 5'] });
+const mobileTests = test.describe('Responsive Layout - Mobile (375px)', () => {
+  // Tests will set viewport manually
+});
 
   test('TC-061: Mobile Navigation Toggle', async ({ page }) => {
+    // Set mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 });
+    
     await page.goto('/login');
     
     // On mobile, hamburger menu should be visible
@@ -24,6 +28,9 @@ test.describe('Responsive Layout - Mobile (375px)', () => {
   });
 
   test('TC-062: Mobile Form Layout', async ({ page }) => {
+    // Set mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 });
+    
     await page.goto('/login');
     
     // Form elements should be full width on mobile
@@ -39,6 +46,9 @@ test.describe('Responsive Layout - Mobile (375px)', () => {
   });
 
   test('TC-063: Mobile Button Size', async ({ page }) => {
+    // Set mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 });
+    
     await page.goto('/login');
     
     const submitBtn = page.locator('button[type="submit"]');
@@ -49,6 +59,9 @@ test.describe('Responsive Layout - Mobile (375px)', () => {
   });
 
   test('TC-064: Mobile Expense List Display', async ({ page }) => {
+    // Set mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 });
+    
     // Login
     await page.goto('/login');
     await page.fill('input[name="email"]', 'test@example.com');
@@ -72,6 +85,9 @@ test.describe('Responsive Layout - Mobile (375px)', () => {
   });
 
   test('TC-065: Mobile Keyboard Input', async ({ page }) => {
+    // Set mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 });
+    
     await page.goto('/login');
     
     const emailInput = page.locator('input[name="email"]');
@@ -86,9 +102,9 @@ test.describe('Responsive Layout - Mobile (375px)', () => {
 
 // Tablet configuration
 test.describe('Responsive Layout - Tablet (768px)', () => {
-  test.use({ viewport: { width: 768, height: 1024 } });
-
   test('TC-071: Tablet Sidebar Behavior', async ({ page }) => {
+    // Set tablet viewport
+    await page.setViewportSize({ width: 768, height: 1024 });
     await page.goto('/login');
     await page.fill('input[name="email"]', 'test@example.com');
     await page.fill('input[name="password"]', 'Test@12345');
@@ -103,6 +119,9 @@ test.describe('Responsive Layout - Tablet (768px)', () => {
   });
 
   test('TC-072: Tablet Grid Layout', async ({ page }) => {
+    // Set tablet viewport
+    await page.setViewportSize({ width: 768, height: 1024 });
+    
     await page.goto('/login');
     await page.fill('input[name="email"]', 'test@example.com');
     await page.fill('input[name="password"]', 'Test@12345');
@@ -119,6 +138,9 @@ test.describe('Responsive Layout - Tablet (768px)', () => {
   });
 
   test('TC-073: Tablet Form Rendering', async ({ page }) => {
+    // Set tablet viewport
+    await page.setViewportSize({ width: 768, height: 1024 });
+    
     await page.goto('/register');
     
     // Form should be properly sized for tablet
@@ -130,6 +152,9 @@ test.describe('Responsive Layout - Tablet (768px)', () => {
   });
 
   test('TC-074: Tablet Touch Interactions', async ({ page }) => {
+    // Set tablet viewport
+    await page.setViewportSize({ width: 768, height: 1024 });
+    
     await page.goto('/login');
     
     const button = page.locator('button[type="submit"]');
@@ -143,9 +168,9 @@ test.describe('Responsive Layout - Tablet (768px)', () => {
 
 // Desktop configuration
 test.describe('Responsive Layout - Desktop (1024px+)', () => {
-  test.use({ viewport: { width: 1440, height: 900 } });
-
   test('TC-081: Desktop Sidebar Layout', async ({ page }) => {
+    // Set desktop viewport
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/login');
     await page.fill('input[name="email"]', 'test@example.com');
     await page.fill('input[name="password"]', 'Test@12345');
@@ -158,6 +183,9 @@ test.describe('Responsive Layout - Desktop (1024px+)', () => {
   });
 
   test('TC-082: Desktop Multi-Column Layout', async ({ page }) => {
+    // Set desktop viewport
+    await page.setViewportSize({ width: 1440, height: 900 });
+    
     await page.goto('/login');
     await page.fill('input[name="email"]', 'test@example.com');
     await page.fill('input[name="password"]', 'Test@12345');
@@ -171,6 +199,9 @@ test.describe('Responsive Layout - Desktop (1024px+)', () => {
   });
 
   test('TC-083: Desktop Grid Multi-Column', async ({ page }) => {
+    // Set desktop viewport
+    await page.setViewportSize({ width: 1440, height: 900 });
+    
     await page.goto('/login');
     await page.fill('input[name="email"]', 'test@example.com');
     await page.fill('input[name="password"]', 'Test@12345');
@@ -200,6 +231,9 @@ test.describe('Responsive Layout - Desktop (1024px+)', () => {
   });
 
   test('TC-084: Desktop Form Width', async ({ page }) => {
+    // Set desktop viewport
+    await page.setViewportSize({ width: 1440, height: 900 });
+    
     await page.goto('/login');
     
     const form = page.locator('form').first();
@@ -210,6 +244,9 @@ test.describe('Responsive Layout - Desktop (1024px+)', () => {
   });
 
   test('TC-085: Desktop Hover Effects Visible', async ({ page }) => {
+    // Set desktop viewport
+    await page.setViewportSize({ width: 1440, height: 900 });
+    
     await page.goto('/login');
     
     const button = page.locator('button[type="submit"]');
