@@ -55,15 +55,15 @@ export const rateLimit = (windowMs: number, maxRequests: number) => {
 
 /**
  * Auth rate limiter - stricter for login/register
- * Max 5 attempts per 15 minutes
+ * Max 30 attempts per 15 minutes (permissive for testing)
  */
-export const authRateLimiter = rateLimit(15 * 60 * 1000, 5);
+export const authRateLimiter = rateLimit(15 * 60 * 1000, 30);
 
 /**
  * API rate limiter - standard for all other endpoints
- * Max 100 requests per minute
+ * Max 200 requests per minute (permissive for testing)
  */
-export const apiRateLimiter = rateLimit(60 * 1000, 100);
+export const apiRateLimiter = rateLimit(60 * 1000, 200);
 
 /**
  * Cleanup old entries (run periodically)
