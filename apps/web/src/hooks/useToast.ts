@@ -24,7 +24,6 @@ export const useToast = () => {
       const duration = options?.duration || 5000;
 
       addNotification({
-        id,
         title: title || (type.charAt(0).toUpperCase() + type.slice(1)),
         message,
         type: type as any,
