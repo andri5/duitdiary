@@ -120,6 +120,7 @@ export const ROUTES = {
   INCOME_EDIT: '/incomes/:id/edit',
   CATEGORIES: '/categories',
   SETTINGS: '/settings',
+  HELP: '/help',
 } as const;
 
 // Query Keys for React Query

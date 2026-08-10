@@ -202,7 +202,7 @@ export function AmountCalculator({
     {
       label: <Equal className="mx-auto h-5 w-5" />,
       onClick: equals,
-      className: 'bg-ink text-white hover:bg-ink/90 ring-ink/20',
+      className: 'bg-accent text-white hover:brightness-95 ring-accent/20',
     },
     { label: '0', onClick: () => inputDigit('0'), wide: true },
     { label: '000', onClick: () => appendDigits('000'), className: 'text-sm' },

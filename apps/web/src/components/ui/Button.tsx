@@ -20,7 +20,7 @@ const variantStyles = {
   primary:
     'bg-accent text-white hover:brightness-95 shadow-md shadow-accent/20 focus-visible:ring-accent disabled:bg-accent/40',
   secondary:
-    'bg-ink text-white hover:bg-ink-soft focus-visible:ring-ink disabled:bg-ink/40',
+    'bg-[var(--color-sidebar)] text-white hover:brightness-110 focus-visible:ring-accent disabled:opacity-40',
   outline:
     'border border-line bg-surface text-ink hover:border-accent/40 hover:bg-accent-soft/50 focus-visible:ring-accent disabled:opacity-50',
   ghost:

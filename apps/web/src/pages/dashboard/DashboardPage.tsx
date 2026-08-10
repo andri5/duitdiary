@@ -13,8 +13,11 @@ import {
   ArrowRight,
   Activity,
   PieChart as PieChartIcon,
+  FileSpreadsheet,
+  FileText,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import {
   PieChart,
   Pie,
@@ -44,8 +47,12 @@ import { ROUTES } from '@/lib/constants';
 import { useAuthStore } from '@/stores';
 import type { CategoryBreakdown } from '@/types';
 import { DashboardInsights } from './components/DashboardInsights';
+import { CollapsibleSection } from './components/CollapsibleSection';
+import { fetchAllTransactionsForRange } from '@/lib/fetchTransactions';
+import { exportReportToExcel, exportReportToPdf } from '@/lib/exportReport';
 
 type Period = 'week' | 'month' | 'year';
+type ExportFormat = 'excel' | 'pdf';
 
 const tooltipStyle = {
   borderRadius: '12px',
@@ -181,6 +188,7 @@ function CategorySummaryPanel({
 export function DashboardPage() {
   const { user } = useAuthStore();
   const [period, setPeriod] = useState<Period>('month');
+  const [isExporting, setIsExporting] = useState<ExportFormat | null>(null);
 
   const { data: summary, isLoading: isSummaryLoading } = useDashboard({ period });
   const { data: recentExpenses, isLoading: isExpensesLoading } = useExpenses({
@@ -200,6 +208,39 @@ export function DashboardPage() {
     week: 'Minggu',
     month: 'Bulan',
     year: 'Tahun',
+  };
+
+  const handleExport = async (format: ExportFormat) => {
+    if (!summary) {
+      toast.error('Data ringkasan belum siap');
+      return;
+    }
+
+    setIsExporting(format);
+    try {
+      const transactions = await fetchAllTransactionsForRange(
+        summary.periodStart,
+        summary.periodEnd
+      );
+
+      const payload = {
+        summary,
+        transactions,
+        periodLabel: periodLabels[period],
+      };
+
+      if (format === 'excel') {
+        exportReportToExcel(payload);
+        toast.success('Laporan Excel berhasil diunduh');
+      } else {
+        exportReportToPdf(payload);
+        toast.success('Laporan PDF berhasil diunduh');
+      }
+    } catch {
+      toast.error('Gagal mengekspor laporan. Coba lagi.');
+    } finally {
+      setIsExporting(null);
+    }
   };
 
   const getGreeting = () => {
@@ -284,21 +325,48 @@ export function DashboardPage() {
           }
         />
 
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
-          {(['week', 'month', 'year'] as Period[]).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={cn(
-                'rounded-xl px-4 py-2 text-sm font-semibold whitespace-nowrap transition',
-                period === p
-                  ? 'bg-ink text-white shadow-md'
-                  : 'bg-surface/80 text-muted ring-1 ring-line hover:text-ink'
-              )}
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {(['week', 'month', 'year'] as Period[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={cn(
+                  'rounded-xl px-4 py-2 text-sm font-semibold whitespace-nowrap transition',
+                  period === p
+                    ? 'bg-accent text-white shadow-md shadow-accent/25'
+                    : 'bg-surface text-muted ring-1 ring-line hover:text-ink hover:bg-mist'
+                )}
+              >
+                {periodLabels[p]}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              leftIcon={<FileSpreadsheet className="h-4 w-4" />}
+              isLoading={isExporting === 'excel'}
+              disabled={!summary || !!isExporting}
+              onClick={() => handleExport('excel')}
             >
-              {periodLabels[p]}
-            </button>
-          ))}
+              Export Excel
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              leftIcon={<FileText className="h-4 w-4" />}
+              isLoading={isExporting === 'pdf'}
+              disabled={!summary || !!isExporting}
+              onClick={() => handleExport('pdf')}
+            >
+              Export PDF
+            </Button>
+          </div>
         </div>
 
         {isSummaryLoading ? (
@@ -328,6 +396,44 @@ export function DashboardPage() {
                 </motion.div>
               ))}
             </div>
+
+            <CollapsibleSection
+              title="Ringkasan Pemasukan & Pengeluaran"
+              defaultOpen
+              icon={
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                  <PieChartIcon className="h-4 w-4" />
+                </span>
+              }
+              headerExtra={
+                <p className="mt-0.5 text-xs font-medium text-muted">
+                  Breakdown kategori beserta nominal periode ini
+                </p>
+              }
+            >
+              <div className="grid gap-4 lg:grid-cols-2">
+                <CategorySummaryPanel
+                  title="Ringkasan Pengeluaran"
+                  icon={TrendingDown}
+                  iconClass="text-coral"
+                  items={expenseBreakdown}
+                  total={summary?.totalExpenses || 0}
+                  emptyTitle="Belum ada pengeluaran"
+                  emptyDescription="Tambahkan pengeluaran untuk melihat breakdown kategori"
+                  amountTone="text-coral"
+                />
+                <CategorySummaryPanel
+                  title="Ringkasan Pemasukan"
+                  icon={TrendingUp}
+                  iconClass="text-lime"
+                  items={incomeBreakdown}
+                  total={summary?.totalIncome || 0}
+                  emptyTitle="Belum ada pemasukan"
+                  emptyDescription="Tambahkan pemasukan untuk melihat breakdown kategori"
+                  amountTone="text-lime"
+                />
+              </div>
+            </CollapsibleSection>
 
             <DashboardInsights summary={summary} />
 
@@ -385,29 +491,6 @@ export function DashboardPage() {
                 />
               )}
             </Card>
-
-            <div className="mb-4 grid gap-4 lg:grid-cols-2">
-              <CategorySummaryPanel
-                title="Ringkasan Pengeluaran"
-                icon={TrendingDown}
-                iconClass="text-coral"
-                items={expenseBreakdown}
-                total={summary?.totalExpenses || 0}
-                emptyTitle="Belum ada pengeluaran"
-                emptyDescription="Tambahkan pengeluaran untuk melihat breakdown kategori"
-                amountTone="text-coral"
-              />
-              <CategorySummaryPanel
-                title="Ringkasan Pemasukan"
-                icon={TrendingUp}
-                iconClass="text-lime"
-                items={incomeBreakdown}
-                total={summary?.totalIncome || 0}
-                emptyTitle="Belum ada pemasukan"
-                emptyDescription="Tambahkan pemasukan untuk melihat breakdown kategori"
-                amountTone="text-lime"
-              />
-            </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
               <Card padding="md">

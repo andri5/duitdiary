@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { Button, Input, ModalFooter, CategoryIcon, CATEGORY_ICON_OPTIONS } from '@/components/ui';
+import { Button, Input, ModalFooter, CategoryIcon, CATEGORY_ICON_OPTIONS, FieldTooltip } from '@/components/ui';
 import { categorySchema } from '@/lib/validations';
 import type { CategoryFormData } from '@/lib/validations';
 import { useCategoryMutations } from '@/hooks';
@@ -76,13 +76,17 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <Input
         label="Nama Kategori"
+        tooltip="Nama singkat yang mudah dikenali, misalnya Makanan atau Gaji."
         placeholder="Contoh: Makanan, Transport, dll"
         error={errors.name?.message}
         {...register('name')}
       />
 
       <div>
-        <label className="mb-2 block text-sm font-semibold text-ink">Jenis</label>
+        <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-ink">
+          <span>Jenis</span>
+          <FieldTooltip content="Pilih Pemasukan atau Pengeluaran. Jenis menentukan form transaksi mana yang bisa memakai kategori ini." />
+        </label>
         <div className="grid grid-cols-2 gap-2">
           {[
             { value: 'EXPENSE', label: 'Pengeluaran' },
@@ -107,7 +111,10 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-semibold text-ink">Warna</label>
+        <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-ink">
+          <span>Warna</span>
+          <FieldTooltip content="Warna dipakai di daftar transaksi dan grafik kategori agar mudah dibedakan." />
+        </label>
         <div className="flex flex-wrap gap-2">
           {CATEGORY_COLORS.map((color) => (
             <button
@@ -129,7 +136,10 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-semibold text-ink">Ikon</label>
+        <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-ink">
+          <span>Ikon</span>
+          <FieldTooltip content="Pilih ikon yang mewakili kategori. Ikon tampil di daftar dan form transaksi." />
+        </label>
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
           {CATEGORY_ICON_OPTIONS.map((icon) => {
             const active = selectedIcon === icon;
@@ -155,7 +165,10 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-semibold text-ink">Preview</label>
+        <label className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-ink">
+          <span>Preview</span>
+          <FieldTooltip content="Pratinjau tampilan kategori sebelum disimpan." />
+        </label>
         <div className="flex items-center gap-3 rounded-2xl border border-line bg-mist/50 p-4">
           <div
             className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl"

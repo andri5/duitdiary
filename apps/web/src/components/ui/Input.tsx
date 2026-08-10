@@ -5,9 +5,11 @@
 import { forwardRef, useState } from 'react';
 import type { InputHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
+import { FieldTooltip } from './FieldTooltip';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
+  tooltip?: string;
   error?: string;
   helperText?: string;
   leftIcon?: React.ReactNode;
@@ -20,6 +22,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     {
       className,
       label,
+      tooltip,
       error,
       helperText,
       leftIcon,
@@ -42,11 +45,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <label
             htmlFor={inputId}
             className={cn(
-              'mb-1.5 block text-sm font-semibold',
+              'mb-1.5 flex items-center gap-1.5 text-sm font-semibold',
               isGlass ? 'text-white/85' : 'text-ink'
             )}
           >
-            {label}
+            <span>{label}</span>
+            {tooltip && <FieldTooltip content={tooltip} />}
           </label>
         )}
         <div className="relative">

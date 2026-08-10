@@ -12,7 +12,7 @@ import {
   Lightbulb,
   ArrowRight,
 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, Button } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { ROUTES } from '@/lib/constants';
 import {
@@ -21,6 +21,7 @@ import {
   type InsightTone,
 } from '@/lib/dashboardInsights';
 import type { DashboardSummary } from '@/types';
+import { CollapsibleSection } from './CollapsibleSection';
 
 const toneStyles: Record<
   InsightTone,
@@ -68,10 +69,7 @@ function InsightItem({ insight, index }: { insight: DashboardInsight; index: num
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.05 + index * 0.06 }}
-      className={cn(
-        'rounded-2xl border p-4 shadow-sm',
-        style.card
-      )}
+      className={cn('rounded-2xl border p-4 shadow-sm', style.card)}
     >
       <div className="flex items-start gap-3">
         <div className={cn('rounded-xl p-2.5', style.iconWrap)}>
@@ -119,17 +117,18 @@ export function DashboardInsights({
   const showIncomeCta = primary.id === 'no-income' || primary.id === 'empty';
 
   return (
-    <Card padding="md" className="mb-4 overflow-hidden">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-ink text-white">
-            <Sparkles className="h-4 w-4" />
-          </span>
-          AI Saran & Notice
-        </CardTitle>
-        <span className="text-xs font-medium text-muted">Berdasarkan data periode ini</span>
-      </CardHeader>
-
+    <CollapsibleSection
+      title="AI Saran & Notice"
+      defaultOpen
+      icon={
+        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent text-white">
+          <Sparkles className="h-4 w-4" />
+        </span>
+      }
+      headerExtra={
+        <p className="mt-0.5 text-xs font-medium text-muted">Berdasarkan data periode ini</p>
+      }
+    >
       <div className="space-y-3">
         {insights.map((insight, index) => (
           <InsightItem key={insight.id} insight={insight} index={index} />
@@ -139,26 +138,38 @@ export function DashboardInsights({
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         {showIncomeCta && (
           <Link to={ROUTES.INCOME_NEW} className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full" rightIcon={<ArrowRight className="h-4 w-4" />}>
+            <Button
+              variant="outline"
+              className="w-full"
+              rightIcon={<ArrowRight className="h-4 w-4" />}
+            >
               Catat Pemasukan
             </Button>
           </Link>
         )}
         {showExpenseCta && (
           <Link to={ROUTES.EXPENSES} className="w-full sm:w-auto">
-            <Button variant="ghost" className="w-full" rightIcon={<ArrowRight className="h-4 w-4" />}>
+            <Button
+              variant="ghost"
+              className="w-full"
+              rightIcon={<ArrowRight className="h-4 w-4" />}
+            >
               Review Pengeluaran
             </Button>
           </Link>
         )}
         {primary.tone === 'success' && (
           <Link to={ROUTES.INCOME_NEW} className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full" rightIcon={<ArrowRight className="h-4 w-4" />}>
+            <Button
+              variant="outline"
+              className="w-full"
+              rightIcon={<ArrowRight className="h-4 w-4" />}
+            >
               Tambah Pemasukan
             </Button>
           </Link>
         )}
       </div>
-    </Card>
+    </CollapsibleSection>
   );
 }

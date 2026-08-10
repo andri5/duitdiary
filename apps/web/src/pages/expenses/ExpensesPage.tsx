@@ -31,6 +31,7 @@ import {
   Card,
   EmptyState,
   CategoryIcon,
+  ReceiptPreviewModal,
 } from '@/components/ui';
 import { useExpenses, useExpenseMutations, useCategories } from '@/hooks';
 import { formatCurrency, formatDate, cn } from '@/lib/utils';
@@ -40,6 +41,7 @@ import type { Expense, ExpenseFilters } from '@/types';
 export function ExpensesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [deleteModal, setDeleteModal] = useState<Expense | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<Expense | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [search, setSearch] = useState('');
@@ -296,10 +298,18 @@ export function ExpensesPage() {
                             {formatDate(expense.date)}
                           </span>
                           {expense.receiptUrl && (
-                            <span className="inline-flex items-center gap-1 text-xs font-medium text-accent">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setReceiptPreview(expense);
+                              }}
+                              className="inline-flex items-center gap-1 text-xs font-medium text-accent transition hover:underline"
+                            >
                               <Paperclip className="h-3 w-3" />
                               Struk
-                            </span>
+                            </button>
                           )}
                         </div>
                       </div>
@@ -406,6 +416,13 @@ export function ExpensesPage() {
             </Button>
           </ModalFooter>
         </Modal>
+
+        <ReceiptPreviewModal
+          isOpen={!!receiptPreview}
+          onClose={() => setReceiptPreview(null)}
+          receiptUrl={receiptPreview?.receiptUrl}
+          title={receiptPreview?.description || 'Preview Struk'}
+        />
       </MainLayout>
     </PageTransition>
   );

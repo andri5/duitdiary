@@ -17,6 +17,7 @@ import {
   Loading,
   AmountCalculator,
   ReceiptUpload,
+  FieldTooltip,
 } from '@/components/ui';
 import { expenseSchema } from '@/lib/validations';
 import type { ExpenseFormData } from '@/lib/validations';
@@ -149,8 +150,12 @@ export function ExpenseFormPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
                 <div className="mb-1.5 flex items-center justify-between gap-2">
-                  <label htmlFor="amount" className="text-sm font-semibold text-ink">
-                    Jumlah (Rp)
+                  <label
+                    htmlFor="amount"
+                    className="flex items-center gap-1.5 text-sm font-semibold text-ink"
+                  >
+                    <span>Jumlah (Rp)</span>
+                    <FieldTooltip content="Masukkan nominal transaksi. Pakai tombol Kalkulator jika perlu menjumlah beberapa angka dulu." />
                   </label>
                   <button
                     type="button"
@@ -190,6 +195,11 @@ export function ExpenseFormPage() {
 
               <Input
                 label="Deskripsi"
+                tooltip={
+                  isIncome
+                    ? 'Jelaskan sumber uang, misalnya gaji, freelance, atau bonus.'
+                    : 'Jelaskan keperluan belanja agar mudah dicari lagi nanti.'
+                }
                 placeholder={
                   isIncome ? 'Contoh: Gaji bulan Agustus' : 'Contoh: Makan siang di warteg'
                 }
@@ -199,6 +209,7 @@ export function ExpenseFormPage() {
 
               <Input
                 label="Tanggal"
+                tooltip="Tanggal terjadinya transaksi, bukan tanggal pencatatan."
                 type="date"
                 error={errors.date?.message}
                 {...register('date')}
@@ -206,6 +217,11 @@ export function ExpenseFormPage() {
 
               <Select
                 label="Kategori"
+                tooltip={
+                  isIncome
+                    ? 'Pilih kategori pemasukan agar laporan dashboard lebih akurat.'
+                    : 'Pilih kategori pengeluaran untuk breakdown grafik per kategori.'
+                }
                 placeholder="Pilih kategori"
                 options={categoryOptions}
                 disabled={isCategoriesLoading}

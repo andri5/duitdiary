@@ -21,6 +21,7 @@ import {
   Plus,
   X,
   ArrowLeftRight,
+  CircleHelp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore, useUIStore } from '@/stores';
@@ -58,6 +59,12 @@ const primaryNav = [
     label: 'Kategori',
     shortLabel: 'Kategori',
     path: ROUTES.CATEGORIES,
+  },
+  {
+    icon: CircleHelp,
+    label: 'Bantuan',
+    shortLabel: 'Bantuan',
+    path: ROUTES.HELP,
   },
   {
     icon: Settings,
@@ -439,12 +446,12 @@ export function MainLayout({ children }: MainLayoutProps) {
       </main>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line/80 bg-surface/95 px-1 pb-[calc(0.35rem+var(--safe-bottom))] pt-1.5 backdrop-blur-xl lg:hidden">
-        <div className="mx-auto grid max-w-lg grid-cols-4 gap-0">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line/80 bg-surface/95 px-0.5 pb-[calc(0.35rem+var(--safe-bottom))] pt-1.5 backdrop-blur-xl lg:hidden">
+        <div className="mx-auto grid max-w-lg grid-cols-5 gap-0">
           <Link
             to={ROUTES.DASHBOARD}
             className={cn(
-              'flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-semibold transition sm:text-[11px]',
+              'flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-0.5 py-1.5 text-[10px] font-semibold transition sm:text-[11px]',
               isPathActive(location.pathname, ROUTES.DASHBOARD)
                 ? 'text-accent'
                 : 'text-muted'
@@ -470,7 +477,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               setMobileTransactionOpen((open) => !open);
             }}
             className={cn(
-              'flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-semibold transition sm:text-[11px]',
+              'flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-0.5 py-1.5 text-[10px] font-semibold transition sm:text-[11px]',
               isTransactionActive(location.pathname) || mobileTransactionOpen
                 ? 'text-accent'
                 : 'text-muted'
@@ -496,7 +503,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  'flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-semibold transition sm:text-[11px]',
+                  'flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-0.5 py-1.5 text-[10px] font-semibold transition sm:text-[11px]',
                   isActive ? 'text-accent' : 'text-muted'
                 )}
               >

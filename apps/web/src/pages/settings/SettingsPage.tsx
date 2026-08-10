@@ -105,7 +105,7 @@ export function SettingsPage() {
                 type="button"
                 disabled={isUploading}
                 onClick={() => fileRef.current?.click()}
-                className="absolute -bottom-1 -right-1 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-ink text-white shadow-md ring-2 ring-surface transition hover:bg-ink-soft disabled:opacity-60"
+                className="absolute -bottom-1 -right-1 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-white shadow-md ring-2 ring-surface transition hover:brightness-95 disabled:opacity-60"
                 aria-label="Unggah foto profil"
               >
                 {isUploading ? (

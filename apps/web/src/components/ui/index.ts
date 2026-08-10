@@ -5,8 +5,10 @@
 
 export { Button, type ButtonProps } from './Button';
 export { Input, type InputProps } from './Input';
+export { FieldTooltip, FieldLabel, type FieldTooltipProps } from './FieldTooltip';
 export { AmountCalculator, type AmountCalculatorProps } from './AmountCalculator';
 export { ReceiptUpload, type ReceiptUploadProps } from './ReceiptUpload';
+export { ReceiptPreviewModal, type ReceiptPreviewModalProps } from './ReceiptPreviewModal';
 export { UserAvatar } from './UserAvatar';
 export { Card, CardHeader, CardTitle, CardContent, type CardProps } from './Card';
 export { Select, type SelectProps, type SelectOption } from './Select';

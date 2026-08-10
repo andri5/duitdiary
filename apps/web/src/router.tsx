@@ -15,6 +15,7 @@ import {
   IncomesPage,
   CategoriesPage,
   SettingsPage,
+  HelpPage,
 } from '@/pages';
 import { ROUTES } from '@/lib/constants';
 
@@ -120,6 +121,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <SettingsPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: ROUTES.HELP,
+    element: (
+      <ProtectedRoute>
+        <HelpPage />
       </ProtectedRoute>
     ),
   },

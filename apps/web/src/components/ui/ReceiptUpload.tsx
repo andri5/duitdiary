@@ -9,6 +9,8 @@ import { uploadReceipt } from '@/services/upload.service';
 import { resolveUploadUrl } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { Button } from './Button';
+import { ReceiptPreviewModal } from './ReceiptPreviewModal';
+import { FieldTooltip } from './FieldTooltip';
 
 const ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,application/pdf';
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
@@ -28,6 +30,7 @@ export function ReceiptUpload({ value, onChange, error, disabled }: ReceiptUploa
   const inputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const displayUrl = localPreview || resolveUploadUrl(value);
 
@@ -88,8 +91,11 @@ export function ReceiptUpload({ value, onChange, error, disabled }: ReceiptUploa
 
   return (
     <div className="w-full">
-      <label className="mb-1.5 block text-sm font-semibold text-ink">
-        Struk / Bukti <span className="font-medium text-muted">(opsional)</span>
+      <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-ink">
+        <span>
+          Struk / Bukti <span className="font-medium text-muted">(opsional)</span>
+        </span>
+        <FieldTooltip content="Unggah foto atau PDF bukti transaksi (maks. 5MB). Bisa di-preview dari daftar transaksi lewat label Struk." />
       </label>
 
       <input
@@ -131,11 +137,18 @@ export function ReceiptUpload({ value, onChange, error, disabled }: ReceiptUploa
               {isUploading ? (
                 <Loader2 className="h-6 w-6 animate-spin text-accent" />
               ) : displayUrl && !isPdf(displayUrl) && !isPdf(value || '') ? (
-                <img
-                  src={displayUrl}
-                  alt="Preview struk"
-                  className="h-full w-full object-cover"
-                />
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(true)}
+                  className="h-full w-full"
+                  aria-label="Preview struk"
+                >
+                  <img
+                    src={displayUrl}
+                    alt="Preview struk"
+                    className="h-full w-full object-cover"
+                  />
+                </button>
               ) : (
                 <FileText className="h-8 w-8 text-coral" />
               )}
@@ -151,15 +164,14 @@ export function ReceiptUpload({ value, onChange, error, disabled }: ReceiptUploa
               </p>
               <div className="flex flex-wrap gap-2">
                 {displayUrl && !isUploading && (
-                  <a
-                    href={displayUrl}
-                    target="_blank"
-                    rel="noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => setShowPreview(true)}
                     className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:underline"
                   >
                     Lihat
                     <ExternalLink className="h-3 w-3" />
-                  </a>
+                  </button>
                 )}
                 <Button
                   type="button"
@@ -188,6 +200,13 @@ export function ReceiptUpload({ value, onChange, error, disabled }: ReceiptUploa
       )}
 
       {error && <p className="mt-1.5 text-sm text-coral">{error}</p>}
+
+      <ReceiptPreviewModal
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        receiptUrl={localPreview || value}
+        title="Preview Struk"
+      />
     </div>
   );
 }

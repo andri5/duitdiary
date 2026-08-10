@@ -6,6 +6,7 @@ import { forwardRef, useState } from 'react';
 import type { SelectHTMLAttributes } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { FieldTooltip } from './FieldTooltip';
 
 export interface SelectOption {
   value: string;
@@ -14,6 +15,7 @@ export interface SelectOption {
 
 export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
+  tooltip?: string;
   error?: string;
   helperText?: string;
   options: SelectOption[];
@@ -26,6 +28,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     {
       className,
       label,
+      tooltip,
       error,
       helperText,
       options,
@@ -44,8 +47,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={selectId} className="mb-1.5 block text-sm font-semibold text-ink">
-            {label}
+          <label
+            htmlFor={selectId}
+            className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-ink"
+          >
+            <span>{label}</span>
+            {tooltip && <FieldTooltip content={tooltip} />}
           </label>
         )}
         <div className="relative">
