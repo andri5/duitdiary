@@ -1,17 +1,17 @@
 /**
  * DuitDiary - Type Definitions
- * Central type definitions for the application
  */
 
-// ============================================
-// User Types
-// ============================================
+export type TransactionType = 'EXPENSE' | 'INCOME';
+
 export interface User {
   id: string;
   email: string;
   name: string;
+  avatar?: string | null;
+  currency?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface AuthTokens {
@@ -30,45 +30,46 @@ export interface RegisterData {
   name: string;
 }
 
-// ============================================
-// Category Types
-// ============================================
 export interface Category {
   id: string;
   name: string;
   icon: string;
   color: string;
-  userId: string;
-  createdAt: string;
-  updatedAt: string;
-  expenseCount?: number; // Optional: count of expenses in this category
+  type: TransactionType;
+  userId?: string;
+  isDefault?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  expenseCount?: number;
 }
 
 export interface CreateCategoryData {
   name: string;
   icon?: string;
   color?: string;
+  type?: TransactionType;
 }
 
 export interface UpdateCategoryData {
   name?: string;
   icon?: string;
   color?: string;
+  type?: TransactionType;
 }
 
-// ============================================
-// Expense Types
-// ============================================
 export interface Expense {
   id: string;
+  type: TransactionType;
   amount: number;
   description: string;
+  note?: string | null;
   date: string;
   categoryId: string;
-  userId: string;
+  userId?: string;
   category: Category;
+  receiptUrl?: string | null;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface CreateExpenseData {
@@ -76,6 +77,8 @@ export interface CreateExpenseData {
   description: string;
   date: string;
   categoryId: string;
+  type?: TransactionType;
+  receiptUrl?: string | null;
 }
 
 export interface UpdateExpenseData {
@@ -83,6 +86,8 @@ export interface UpdateExpenseData {
   description?: string;
   date?: string;
   categoryId?: string;
+  type?: TransactionType;
+  receiptUrl?: string | null;
 }
 
 export interface ExpenseFilters {
@@ -91,19 +96,26 @@ export interface ExpenseFilters {
   categoryId?: string;
   startDate?: string;
   endDate?: string;
+  type?: TransactionType;
   sortBy?: 'date' | 'amount' | 'createdAt';
   sortOrder?: 'asc' | 'desc';
 }
 
-// ============================================
-// Dashboard Types
-// ============================================
 export interface DashboardSummary {
-  totalExpenses: number;
-  expenseCount: number;
-  categoryBreakdown: CategoryBreakdown[];
+  period: 'week' | 'month' | 'year';
   periodStart: string;
   periodEnd: string;
+  totalExpenses: number;
+  expenseCount: number;
+  totalIncome: number;
+  incomeCount: number;
+  balance: number;
+  categoryBreakdown: CategoryBreakdown[];
+  expenseCategoryBreakdown?: CategoryBreakdown[];
+  incomeCategoryBreakdown?: CategoryBreakdown[];
+  overview?: OverviewPoint[];
+  recentExpenses?: Expense[];
+  recentIncomes?: Expense[];
 }
 
 export interface CategoryBreakdown {
@@ -116,13 +128,23 @@ export interface CategoryBreakdown {
   percentage: number;
 }
 
-// ============================================
-// API Response Types
-// ============================================
+export interface OverviewPoint {
+  name: string;
+  income: number;
+  expense: number;
+  balance: number;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
   message?: string;
+  meta?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export interface PaginatedResponse<T> {

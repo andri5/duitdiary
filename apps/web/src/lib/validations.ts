@@ -51,6 +51,29 @@ export const registerSchema = z
     path: ['confirmPassword'],
   });
 
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email wajib diisi')
+    .email('Format email tidak valid'),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(1, 'Password wajib diisi')
+      .min(
+        VALIDATION.PASSWORD_MIN_LENGTH,
+        `Password minimal ${VALIDATION.PASSWORD_MIN_LENGTH} karakter`
+      ),
+    confirmPassword: z.string().min(1, 'Konfirmasi password wajib diisi'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Password tidak cocok',
+    path: ['confirmPassword'],
+  });
+
 // Category Schemas
 export const categorySchema = z.object({
   name: z
@@ -59,6 +82,7 @@ export const categorySchema = z.object({
     .max(50, 'Nama kategori maksimal 50 karakter'),
   icon: z.string().optional(),
   color: z.string().optional(),
+  type: z.enum(['EXPENSE', 'INCOME']),
 });
 
 // Expense Schemas
@@ -76,10 +100,13 @@ export const expenseSchema = z.object({
     ),
   date: z.string().min(1, 'Tanggal wajib diisi'),
   categoryId: z.string().min(1, 'Kategori wajib dipilih'),
+  receiptUrl: z.string().max(500).optional().nullable(),
 });
 
 // Types from schemas
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 export type CategoryFormData = z.infer<typeof categorySchema>;
 export type ExpenseFormData = z.infer<typeof expenseSchema>;

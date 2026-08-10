@@ -10,6 +10,7 @@
  * ============================================
  */
 
+import path from 'path';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -30,9 +31,10 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", 'data:', 'https:'],
+      imgSrc: ["'self'", 'data:', 'https:', 'http:'],
     },
   },
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
   hsts: {
     maxAge: 31536000, // 1 year in seconds
     includeSubDomains: true,
@@ -54,6 +56,15 @@ app.use(cors({
 // Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Static uploaded receipts
+app.use(
+  '/uploads',
+  express.static(path.resolve(config.upload.dir), {
+    maxAge: '7d',
+    fallthrough: false,
+  })
+);
 
 // Rate limiting
 app.use('/api/v1/auth', authRateLimiter);

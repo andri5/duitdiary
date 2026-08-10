@@ -1,110 +1,101 @@
-# DuitDiary - Personal Finance Management App
+# DuitDiary — Catat Keuangan
 
-A comprehensive personal finance management system built with modern web technologies. DuitDiary helps you track expenses, manage budgets, and visualize your spending patterns.
+Aplikasi pencatatan keuangan pribadi (pemasukan & pengeluaran) dengan dashboard, kategori, upload struk, dan saran finansial otomatis.
 
-## 📱 Project Structure
+## Project Structure
 
-This is a monorepo containing multiple applications:
+Monorepo:
 
-### Applications
+| Path | Deskripsi |
+|------|-----------|
+| [apps/api](./apps/api) | Backend API (Node.js + Express + TypeScript + Prisma + PostgreSQL) |
+| [apps/web](./apps/web) | Web frontend (React + Vite + TypeScript + Tailwind CSS) |
+| [apps/mobile](./apps/mobile) | Mobile app (React Native + Expo) — WIP |
+| [packages/shared](./packages/shared) | Shared utilities & types |
 
-- **[apps/api](./apps/api)** - Backend API (Node.js + Express + TypeScript + Prisma)
-- **[apps/web](./apps/web)** - Web Frontend (React + Vite + TypeScript)
-- **[apps/mobile](./apps/mobile)** - Mobile App (React Native + Expo + TypeScript)
+## Features
 
-### Shared Packages
+- **Auth** — Register, login, logout, lupa/reset password
+- **Transaksi** — Pemasukan & pengeluaran (menu Transaksi dengan submenu)
+- **Kategori** — Default + kustom, ikon Lucide, kategori default terkunci
+- **Dashboard** — Ringkasan saldo, grafik perbandingan, breakdown per kategori, AI saran & notice
+- **Struk** — Upload gambar/PDF sebagai bukti transaksi
+- **Kalkulator** — Hitung nominal cepat di form transaksi
+- **Profil** — Upload foto profil, 3 tema (Neo Ledger, Midnight, Ocean Mist)
+- **Responsif** — Desktop sidebar + mobile bottom nav
 
-- **[packages/shared](./packages/shared)** - Shared utilities and types
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ 
-- npm or yarn
+- Node.js 18+
+- npm
+- PostgreSQL (atau Docker)
 - Git
 
 ### Installation
 
-1. Clone the repository:
 ```bash
 git clone https://github.com/andri5/duitdiary.git
 cd duitdiary
-```
-
-2. Install dependencies:
-```bash
 npm install
 ```
 
-3. Setup environment variables:
+### Environment
+
 ```bash
-# API
 cp apps/api/.env.example apps/api/.env
-
-# Web
-cp apps/web/.env.example apps/web/.env (if exists)
-
-# Mobile
-cp apps/mobile/.env.example apps/mobile/.env (if exists)
 ```
 
-4. Setup database:
+Sesuaikan di `apps/api/.env`:
+
+- `DATABASE_URL` — koneksi PostgreSQL
+- `PORT` — default `3001` jika 3000 sudah terpakai
+- `CORS_ORIGIN` / `APP_URL` — biasanya `http://localhost:5173`
+- `JWT_SECRET` & `JWT_REFRESH_SECRET`
+
+### Database
+
 ```bash
 cd apps/api
 npx prisma generate
-npx prisma migrate dev
+npx prisma db push
 npx prisma db seed
 ```
 
-### Running the Applications
+### Run (dari root monorepo)
 
-#### Backend API
 ```bash
-cd apps/api
-npm run dev
+# Terminal 1 — API
+npm run api
+
+# Terminal 2 — Web
+npm run web
 ```
 
-#### Web Frontend
-```bash
-cd apps/web
-npm run dev
-```
+- Web: http://127.0.0.1:5173/
+- API: http://localhost:3001/api/v1/health
 
-#### Mobile App
-```bash
-cd apps/mobile
-npm start
-```
+## Tech Stack
 
-## 📚 Documentation
+**API:** Express, Prisma, Zod, JWT, Multer, Helmet, bcrypt  
 
-- [Backend Documentation](./apps/api/README.md)
-- [Web Frontend Documentation](./apps/web/README.md)
-- [Contributing Guidelines](./CONTRIBUTING.md)
-- [Development Plan](./plan.md)
+**Web:** React 19, React Router, TanStack Query, Zustand, React Hook Form, Recharts, Framer Motion, Tailwind CSS v4
 
-## 🤝 Contributing
+## Documentation
 
-Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+- [Backend](./apps/api/README.md)
+- [Web](./apps/web/README.md)
+- [Contributing](./CONTRIBUTING.md)
 
-## 📝 License
+## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT — see [LICENSE](./LICENSE)
 
-## 👨‍💻 Author
+## Author
 
-- **Andri** - [GitHub Profile](https://github.com/andri5)
+- **Andri** — [GitHub](https://github.com/andri5)
 
-## 🎯 Features
+## Support
 
-- 💰 Expense tracking
-- 📊 Financial dashboard with analytics
-- 🏷️ Category management
-- 👥 User authentication
-- 📱 Responsive design
-- 🌐 Cross-platform (Web & Mobile)
-
-## 📞 Support
-
-For support, please open an issue on [GitHub Issues](https://github.com/andri5/duitdiary/issues).
+Buka issue di [GitHub Issues](https://github.com/andri5/duitdiary/issues).

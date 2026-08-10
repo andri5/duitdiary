@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Expenses List Page
+ * DuitDiary - Incomes List Page
  */
 
 import { useState } from 'react';
@@ -11,7 +11,7 @@ import {
   Search,
   Filter,
   Calendar,
-  Receipt,
+  Wallet,
   Paperclip,
   X,
   ChevronDown,
@@ -37,7 +37,7 @@ import { formatCurrency, formatDate, cn } from '@/lib/utils';
 import { ROUTES, DEFAULT_PAGE_SIZE } from '@/lib/constants';
 import type { Expense, ExpenseFilters } from '@/types';
 
-export function ExpensesPage() {
+export function IncomesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [deleteModal, setDeleteModal] = useState<Expense | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -50,14 +50,14 @@ export function ExpensesPage() {
     categoryId: searchParams.get('categoryId') || undefined,
     startDate: searchParams.get('startDate') || undefined,
     endDate: searchParams.get('endDate') || undefined,
-    type: 'EXPENSE',
+    type: 'INCOME',
     sortBy: (searchParams.get('sortBy') as ExpenseFilters['sortBy']) || 'date',
     sortOrder: (searchParams.get('sortOrder') as ExpenseFilters['sortOrder']) || 'desc',
   };
 
   const { data: expenses, isLoading } = useExpenses(filters);
-  const { data: categories } = useCategories('EXPENSE');
-  const { delete: deleteMutation } = useExpenseMutations('EXPENSE');
+  const { data: categories } = useCategories('INCOME');
+  const { delete: deleteMutation } = useExpenseMutations('INCOME');
 
   const updateFilters = (newFilters: Partial<ExpenseFilters>) => {
     const params = new URLSearchParams(searchParams);
@@ -105,10 +105,10 @@ export function ExpensesPage() {
       <MainLayout>
         <PageHeader
           eyebrow="Transaksi"
-          title="Pengeluaran"
-          description="Cari, filter, dan kelola semua catatan pengeluaran."
+          title="Pemasukan"
+          description="Catat dan pantau semua sumber pemasukanmu."
           action={
-            <Link to={ROUTES.EXPENSE_NEW} className="w-full sm:w-auto">
+            <Link to={ROUTES.INCOME_NEW} className="w-full sm:w-auto">
               <Button
                 variant="gradient"
                 size="lg"
@@ -129,7 +129,7 @@ export function ExpensesPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari deskripsi atau kategori..."
+                placeholder="Cari pemasukan atau kategori..."
                 className="w-full rounded-2xl border border-line bg-mist/40 py-3 pl-11 pr-4 text-sm text-ink outline-none transition focus:border-accent focus:bg-surface focus:ring-2 focus:ring-accent/15"
               />
             </div>
@@ -229,7 +229,7 @@ export function ExpensesPage() {
         </Card>
 
         {isLoading ? (
-          <Loading message="Memuat pengeluaran..." />
+          <Loading message="Memuat pemasukan..." />
         ) : filteredData.length > 0 ? (
           <>
             <div
@@ -311,12 +311,12 @@ export function ExpensesPage() {
                         viewMode === 'grid' ? 'mt-2 justify-between' : 'justify-between sm:justify-end'
                       )}
                     >
-                      <p className="text-base font-bold amount-negative sm:text-lg">
-                        -{formatCurrency(expense.amount)}
+                      <p className="text-base font-bold font-mono text-lime sm:text-lg">
+                        +{formatCurrency(expense.amount)}
                       </p>
                       <div className="flex items-center gap-1">
                         <Link
-                          to={`/expenses/${expense.id}/edit`}
+                          to={`/incomes/${expense.id}/edit`}
                           className="rounded-xl p-2 text-muted transition hover:bg-accent-soft hover:text-accent"
                           aria-label="Edit"
                         >
@@ -370,12 +370,12 @@ export function ExpensesPage() {
         ) : (
           <Card padding="lg">
             <EmptyState
-              icon={<Receipt className="h-7 w-7" />}
-              title="Belum ada pengeluaran"
-              description="Mulai catat pengeluaran harianmu sekarang"
+              icon={<Wallet className="h-7 w-7" />}
+              title="Belum ada pemasukan"
+              description="Mulai catat pemasukan seperti gaji atau freelance"
               action={
-                <Link to={ROUTES.EXPENSE_NEW}>
-                  <Button leftIcon={<Plus className="h-4 w-4" />}>Tambah Pengeluaran</Button>
+                <Link to={ROUTES.INCOME_NEW}>
+                  <Button leftIcon={<Plus className="h-4 w-4" />}>Tambah Pemasukan</Button>
                 </Link>
               }
             />
@@ -385,11 +385,11 @@ export function ExpensesPage() {
         <Modal
           isOpen={!!deleteModal}
           onClose={() => setDeleteModal(null)}
-          title="Hapus Pengeluaran"
+          title="Hapus Pemasukan"
           size="sm"
         >
           <p className="text-muted">
-            Hapus pengeluaran "
+            Hapus pemasukan "
             <strong className="text-ink">{deleteModal?.description}</strong>"? Tindakan
             ini tidak dapat dibatalkan.
           </p>

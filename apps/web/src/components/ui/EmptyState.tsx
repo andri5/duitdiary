@@ -1,10 +1,8 @@
 /**
  * DuitDiary - Empty State Component
- * Enhanced with animations
  */
 
 import type { ReactNode } from 'react';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export interface EmptyStateProps {
@@ -16,85 +14,30 @@ export interface EmptyStateProps {
   animated?: boolean;
 }
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring', damping: 20, stiffness: 300 },
-  },
-};
-
 export function EmptyState({
   icon,
   title,
   description,
   action,
   className,
-  animated = true,
 }: EmptyStateProps) {
-  const content = (
+  return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center py-12 text-center',
+        'flex flex-col items-center justify-center px-4 py-12 text-center',
         className
       )}
     >
       {icon && (
-        <motion.div 
-          className="mb-4 rounded-full bg-gray-100 p-4 text-gray-400"
-          variants={itemVariants}
-        >
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-mist-deep text-muted">
           {icon}
-        </motion.div>
+        </div>
       )}
-      <motion.h3 
-        className="text-lg font-semibold text-gray-900"
-        variants={itemVariants}
-      >
-        {title}
-      </motion.h3>
+      <h3 className="font-display text-lg font-bold text-ink">{title}</h3>
       {description && (
-        <motion.p 
-          className="mt-1 max-w-sm text-sm text-gray-500"
-          variants={itemVariants}
-        >
-          {description}
-        </motion.p>
+        <p className="mt-1 max-w-sm text-sm text-muted">{description}</p>
       )}
-      {action && (
-        <motion.div 
-          className="mt-4"
-          variants={itemVariants}
-        >
-          {action}
-        </motion.div>
-      )}
+      {action && <div className="mt-5">{action}</div>}
     </div>
-  );
-
-  if (!animated) {
-    return content;
-  }
-
-  return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {content}
-    </motion.div>
   );
 }

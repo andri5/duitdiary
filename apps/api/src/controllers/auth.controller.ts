@@ -1,7 +1,13 @@
 import { Request, Response } from 'express';
 import { authService } from '../services/auth.service.js';
 import { sendSuccess, sendCreated, sendError, sendUnauthorized } from '../utils/response.js';
-import type { RegisterInput, LoginInput, RefreshTokenInput } from '../utils/validation.js';
+import type {
+  RegisterInput,
+  LoginInput,
+  RefreshTokenInput,
+  ForgotPasswordInput,
+  ResetPasswordInput,
+} from '../utils/validation.js';
 import type { AuthenticatedRequest } from '../types/index.js';
 
 export class AuthController {
@@ -51,6 +57,28 @@ export class AuthController {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Token refresh failed';
       sendUnauthorized(res, message);
+    }
+  }
+
+  async forgotPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const data: ForgotPasswordInput = req.body;
+      const result = await authService.forgotPassword(data);
+      sendSuccess(res, result, result.message);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Forgot password failed';
+      sendError(res, message, 400, 'FORGOT_PASSWORD_FAILED');
+    }
+  }
+
+  async resetPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const data: ResetPasswordInput = req.body;
+      const result = await authService.resetPassword(data);
+      sendSuccess(res, result, result.message);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Reset password failed';
+      sendError(res, message, 400, 'RESET_PASSWORD_FAILED');
     }
   }
 }

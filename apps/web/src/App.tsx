@@ -8,8 +8,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AnimatePresence } from 'framer-motion';
 import { router } from './router';
 import { useAuthStore } from '@/stores';
+import { initThemeFromStorage } from '@/stores/ui.store';
 import { Notifications } from '@/components/ui';
 import './index.css';
+
+// Apply theme as early as possible
+initThemeFromStorage();
 
 // Create a client
 const queryClient = new QueryClient({
@@ -28,6 +32,7 @@ function App() {
   // Initialize auth state on app load
   useEffect(() => {
     initAuth();
+    initThemeFromStorage();
   }, [initAuth]);
 
   return (

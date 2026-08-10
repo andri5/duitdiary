@@ -15,6 +15,7 @@ import {
   isAuthenticated as checkAuth,
 } from '@/services/auth.service';
 import type { LoginCredentials, RegisterData } from '@/types';
+import { STORAGE_KEYS } from '@/lib/constants';
 
 interface AuthState {
   user: User | null;
@@ -95,6 +96,11 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       setUser: (user: User | null) => {
+        if (user) {
+          localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+        } else {
+          localStorage.removeItem(STORAGE_KEYS.USER);
+        }
         set({ user, isAuthenticated: !!user });
       },
 

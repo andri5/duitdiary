@@ -1,10 +1,11 @@
 /**
- * DuitDiary - Auth Layout Component
- * Modern glassmorphism design with gradient background
+ * DuitDiary - Auth Layout
+ * Brand-forward atmospheric shell
  */
 
 import type { ReactNode } from 'react';
-import { Wallet } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Wallet, Sparkles } from 'lucide-react';
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -14,40 +15,83 @@ interface AuthLayoutProps {
 
 export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4 sm:p-6 lg:p-8">
-      {/* Animated Gradient Background - Deep Blue Theme */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-slate-900">
-        {/* Animated Shapes */}
-        <div className="absolute -left-20 -top-20 h-72 w-72 animate-pulse rounded-full bg-blue-400/10 blur-3xl sm:h-96 sm:w-96" />
-        <div className="absolute -bottom-20 -right-20 h-72 w-72 animate-pulse rounded-full bg-cyan-400/10 blur-3xl delay-1000 sm:h-96 sm:w-96" />
-        <div className="absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-blue-500/10 blur-2xl delay-500 sm:h-64 sm:w-64" />
+    <div className="relative flex min-h-dvh overflow-x-clip">
+      <div className="absolute inset-0 bg-ink">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(28,200,180,0.22),transparent_40%),radial-gradient(circle_at_80%_10%,rgba(15,155,142,0.18),transparent_35%),radial-gradient(circle_at_70%_80%,rgba(94,234,212,0.12),transparent_40%)]" />
+        <div
+          className="absolute inset-0 opacity-[0.12]"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)',
+            backgroundSize: '48px 48px',
+          }}
+        />
+        <motion.div
+          className="absolute -left-24 top-24 h-72 w-72 rounded-full bg-accent/30 blur-3xl"
+          animate={{ x: [0, 24, 0], y: [0, -18, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute -right-20 bottom-10 h-80 w-80 rounded-full bg-accent-bright/20 blur-3xl"
+          animate={{ x: [0, -20, 0], y: [0, 16, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+        />
       </div>
 
-      {/* Content Container */}
-      <div className="relative z-10 w-full max-w-[420px] sm:max-w-md">
-        {/* Header */}
-        <div className="mb-6 text-center sm:mb-8">
-          {/* Logo */}
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/30 text-white shadow-2xl backdrop-blur-sm border border-blue-400/50 sm:h-16 sm:w-16">
-            <Wallet className="h-7 w-7 sm:h-8 sm:w-8" />
+      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col justify-center gap-6 px-4 py-8 sm:gap-10 sm:py-10 lg:grid lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="text-center lg:text-left"
+        >
+          <div className="mb-4 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-md sm:mb-6">
+            <div className="brand-mark flex h-10 w-10 items-center justify-center rounded-xl text-ink">
+              <Wallet className="h-5 w-5" />
+            </div>
+            <div className="text-left">
+              <p className="font-display text-xl font-bold tracking-[-0.04em] text-white">
+                DuitDiary
+              </p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/55">
+                Finance OS
+              </p>
+            </div>
           </div>
-          <h1 className="text-xl font-bold text-white drop-shadow-lg sm:text-2xl lg:text-3xl">
-            {title}
+
+          <h1 className="font-display text-[2rem] font-bold leading-tight text-white sm:text-5xl lg:text-6xl">
+            Kendalikan
+            <span className="block bg-gradient-to-r from-accent-bright to-teal-200 bg-clip-text text-transparent">
+              arus kas harianmu
+            </span>
           </h1>
-          {subtitle && (
-            <p className="mt-2 text-sm text-white/80 sm:text-base">{subtitle}</p>
-          )}
-        </div>
+          <p className="mx-auto mt-3 max-w-md text-sm text-white/65 sm:mt-4 sm:text-base lg:mx-0 lg:text-lg">
+            Catat pemasukan dan pengeluaran dalam satu ruang yang cepat dan jelas.
+          </p>
 
-        {/* Glass Card */}
-        <div className="rounded-2xl border border-blue-400/30 bg-blue-950/40 p-6 shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:p-8 lg:p-10">
-          {children}
-        </div>
+          <div className="mt-6 hidden items-center gap-3 text-sm text-white/55 lg:flex">
+            <Sparkles className="h-4 w-4 text-accent-bright" />
+            Ringkas. Responsif. Siap dipakai setiap hari.
+          </div>
+        </motion.div>
 
-        {/* Footer */}
-        <p className="mt-4 text-center text-xs text-white/60 sm:mt-6 sm:text-sm">
-          DuitDiary - Catat pengeluaran harianmu
-        </p>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.08 }}
+          className="mx-auto w-full max-w-md"
+        >
+          <div className="rounded-[1.5rem] border border-white/15 bg-white/95 p-5 shadow-[0_30px_80px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:rounded-[1.75rem] sm:p-8">
+            <div className="mb-5 sm:mb-6">
+              <h2 className="font-display text-xl font-bold text-ink sm:text-2xl">{title}</h2>
+              {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
+            </div>
+            {children}
+          </div>
+          <p className="mt-4 pb-[var(--safe-bottom)] text-center text-xs text-white/45">
+            DuitDiary © {new Date().getFullYear()} — catat lebih cerdas
+          </p>
+        </motion.div>
       </div>
     </div>
   );

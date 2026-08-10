@@ -50,9 +50,10 @@ export const config = {
   },
 
   /**
-   * CORS Configuration
+   * CORS / Frontend Configuration
    */
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  appUrl: process.env.APP_URL || process.env.CORS_ORIGIN || 'http://localhost:5173',
 } as const;
 
 /**

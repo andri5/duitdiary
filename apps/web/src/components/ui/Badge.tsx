@@ -1,6 +1,5 @@
 /**
  * DuitDiary - Badge Component
- * Enhanced with new design tokens
  */
 
 import { forwardRef } from 'react';
@@ -13,13 +12,13 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantStyles = {
-  default: 'bg-gray-100 text-gray-700',
-  primary: 'bg-blue-100 text-blue-700 border border-blue-200',
-  secondary: 'bg-purple-100 text-purple-700 border border-purple-200',
-  success: 'bg-green-100 text-green-700 border border-green-200',
-  warning: 'bg-amber-100 text-amber-700 border border-amber-200',
-  danger: 'bg-red-100 text-red-700 border border-red-200',
-  info: 'bg-blue-50 text-blue-700 border border-blue-200',
+  default: 'bg-mist-deep text-muted',
+  primary: 'bg-accent-soft text-accent',
+  secondary: 'bg-ink/5 text-ink',
+  success: 'bg-lime-soft text-lime',
+  warning: 'bg-amber-soft text-amber',
+  danger: 'bg-coral-soft text-coral',
+  info: 'bg-accent-soft text-accent',
 };
 
 const sizeStyles = {
@@ -33,7 +32,7 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
       <span
         ref={ref}
         className={cn(
-          'inline-flex items-center rounded-full font-medium transition-colors',
+          'inline-flex items-center rounded-lg font-semibold',
           variantStyles[variant],
           sizeStyles[size],
           className

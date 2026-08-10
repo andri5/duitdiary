@@ -1,6 +1,5 @@
 /**
  * DuitDiary - Dashboard Page
- * Modern glassmorphism design with animations and enhanced cards
  */
 
 import { useState } from 'react';
@@ -8,12 +7,12 @@ import { Link } from 'react-router-dom';
 import {
   TrendingUp,
   TrendingDown,
-  Receipt,
-  FolderOpen,
+  Wallet,
+  Scale,
   Plus,
   ArrowRight,
-  Calendar,
   Activity,
+  PieChart as PieChartIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
@@ -22,441 +21,527 @@ import {
   Cell,
   ResponsiveContainer,
   Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Legend,
 } from 'recharts';
-import { MainLayout, PageTransition } from '@/components/layout';
-import { Button, Loading, EmptyState } from '@/components/ui';
-import { useDashboard } from '@/hooks';
-import { useExpenses } from '@/hooks';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { MainLayout, PageHeader, PageTransition } from '@/components/layout';
+import {
+  Button,
+  Loading,
+  EmptyState,
+  Card,
+  CardHeader,
+  CardTitle,
+  CategoryIcon,
+} from '@/components/ui';
+import { useDashboard, useExpenses } from '@/hooks';
+import { formatCurrency, formatDate, cn } from '@/lib/utils';
 import { ROUTES } from '@/lib/constants';
 import { useAuthStore } from '@/stores';
+import type { CategoryBreakdown } from '@/types';
+import { DashboardInsights } from './components/DashboardInsights';
 
 type Period = 'week' | 'month' | 'year';
 
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
+const tooltipStyle = {
+  borderRadius: '12px',
+  border: '1px solid #d7e0ea',
+  boxShadow: '0 10px 30px rgba(7,17,31,0.08)',
+  fontSize: '12px',
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring', damping: 20, stiffness: 300 },
-  },
-};
+function CategorySummaryPanel({
+  title,
+  icon: Icon,
+  iconClass,
+  items,
+  total,
+  emptyTitle,
+  emptyDescription,
+  amountTone,
+}: {
+  title: string;
+  icon: typeof PieChartIcon;
+  iconClass: string;
+  items: CategoryBreakdown[];
+  total: number;
+  emptyTitle: string;
+  emptyDescription: string;
+  amountTone: string;
+}) {
+  if (!items.length) {
+    return (
+      <Card padding="md" className="h-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Icon className={cn('h-5 w-5', iconClass)} />
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <EmptyState title={emptyTitle} description={emptyDescription} />
+      </Card>
+    );
+  }
 
-// Stats card colors with new design tokens
-const statsConfig = [
-  { 
-    key: 'total',
-    label: 'Total Pengeluaran',
-    icon: TrendingDown,
-    gradient: 'from-red-500 to-red-600',
-    bgLight: 'bg-red-50',
-    textColor: 'text-red-600',
-    accentColor: '#E74C3C',
-  },
-  {
-    key: 'count',
-    label: 'Jumlah Transaksi',
-    icon: Receipt,
-    gradient: 'from-blue-600 to-blue-700',
-    bgLight: 'bg-blue-50',
-    textColor: 'text-blue-600',
-    accentColor: '#0052CC',
-  },
-  {
-    key: 'average',
-    label: 'Rata-rata',
-    icon: TrendingUp,
-    gradient: 'from-green-500 to-green-600',
-    bgLight: 'bg-green-50',
-    textColor: 'text-green-600',
-    accentColor: '#27AE60',
-  },
-  {
-    key: 'categories',
-    label: 'Kategori Aktif',
-    icon: FolderOpen,
-    gradient: 'from-amber-500 to-amber-600',
-    bgLight: 'bg-amber-50',
-    textColor: 'text-amber-600',
-    accentColor: '#F39C12',
-  },
-];
+  return (
+    <Card padding="md" className="h-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Icon className={cn('h-5 w-5', iconClass)} />
+          {title}
+        </CardTitle>
+        <span className={cn('text-sm font-bold tabular', amountTone)}>
+          {formatCurrency(total)}
+        </span>
+      </CardHeader>
+
+      <div className="grid gap-4 sm:grid-cols-[1fr_1.1fr] sm:items-center">
+        <div className="h-52 sm:h-60">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={items}
+                dataKey="total"
+                nameKey="categoryName"
+                cx="50%"
+                cy="50%"
+                outerRadius="80%"
+                innerRadius="52%"
+                paddingAngle={3}
+              >
+                {items.map((entry, index) => (
+                  <Cell
+                    key={entry.categoryId}
+                    fill={entry.categoryColor || `hsl(${160 + index * 28}, 55%, 45%)`}
+                    stroke="transparent"
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value) => formatCurrency(Number(value))}
+                contentStyle={tooltipStyle}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+          {items.map((item) => (
+            <div
+              key={item.categoryId}
+              className="rounded-xl bg-mist/70 px-3 py-2.5"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <div
+                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
+                    style={{
+                      backgroundColor: item.categoryColor
+                        ? `${item.categoryColor}22`
+                        : '#e6edf4',
+                      color: item.categoryColor || '#0f9b8e',
+                    }}
+                  >
+                    <CategoryIcon icon={item.categoryIcon} size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-ink">
+                      {item.categoryName}
+                    </p>
+                    <p className="text-xs text-muted">
+                      {item.count} transaksi · {item.percentage.toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+                <p className={cn('flex-shrink-0 text-sm font-bold tabular', amountTone)}>
+                  {formatCurrency(item.total)}
+                </p>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line/70">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${Math.min(item.percentage, 100)}%`,
+                    backgroundColor: item.categoryColor || '#0f9b8e',
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 export function DashboardPage() {
   const { user } = useAuthStore();
   const [period, setPeriod] = useState<Period>('month');
-  
+
   const { data: summary, isLoading: isSummaryLoading } = useDashboard({ period });
   const { data: recentExpenses, isLoading: isExpensesLoading } = useExpenses({
     limit: 5,
+    type: 'EXPENSE',
+    sortBy: 'date',
+    sortOrder: 'desc',
+  });
+  const { data: recentIncomes, isLoading: isIncomesLoading } = useExpenses({
+    limit: 5,
+    type: 'INCOME',
     sortBy: 'date',
     sortOrder: 'desc',
   });
 
   const periodLabels: Record<Period, string> = {
-    week: 'Minggu Ini',
-    month: 'Bulan Ini',
-    year: 'Tahun Ini',
+    week: 'Minggu',
+    month: 'Bulan',
+    year: 'Tahun',
   };
 
-  // Get greeting based on time
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Selamat Pagi';
-    if (hour < 15) return 'Selamat Siang';
-    if (hour < 18) return 'Selamat Sore';
-    return 'Selamat Malam';
+    if (hour < 12) return 'Selamat pagi';
+    if (hour < 15) return 'Selamat siang';
+    if (hour < 18) return 'Selamat sore';
+    return 'Selamat malam';
   };
 
-  // Get stats values
-  const getStatsValue = (key: string) => {
-    switch (key) {
-      case 'total':
-        return formatCurrency(summary?.totalExpenses || 0);
-      case 'count':
-        return (summary?.expenseCount || 0).toString();
-      case 'average':
-        return formatCurrency(
-          summary?.expenseCount
-            ? (summary.totalExpenses / summary.expenseCount)
-            : 0
-        );
-      case 'categories':
-        return (summary?.categoryBreakdown?.length || 0).toString();
-      default:
-        return '0';
-    }
-  };
+  const expenseBreakdown =
+    summary?.expenseCategoryBreakdown || summary?.categoryBreakdown || [];
+  const incomeBreakdown = summary?.incomeCategoryBreakdown || [];
+  const overview = summary?.overview || [];
+
+  const stats = [
+    {
+      key: 'income',
+      label: 'Pemasukan',
+      value: formatCurrency(summary?.totalIncome || 0),
+      hint: `${summary?.incomeCount || 0} transaksi`,
+      icon: TrendingUp,
+      tone: 'text-lime bg-lime-soft',
+    },
+    {
+      key: 'expense',
+      label: 'Pengeluaran',
+      value: formatCurrency(summary?.totalExpenses || 0),
+      hint: `${summary?.expenseCount || 0} transaksi`,
+      icon: TrendingDown,
+      tone: 'text-coral bg-coral-soft',
+    },
+    {
+      key: 'balance',
+      label: 'Saldo Bersih',
+      value: formatCurrency(summary?.balance || 0),
+      hint: (summary?.balance || 0) >= 0 ? 'Surplus' : 'Defisit',
+      icon: Scale,
+      tone:
+        (summary?.balance || 0) >= 0
+          ? 'text-accent bg-accent-soft'
+          : 'text-coral bg-coral-soft',
+    },
+    {
+      key: 'wallet',
+      label: 'Ringkasan',
+      value: periodLabels[period],
+      hint: `${summary?.periodStart || '-'} → ${summary?.periodEnd || '-'}`,
+      icon: Wallet,
+      tone: 'text-ink bg-mist-deep',
+    },
+  ];
 
   return (
     <PageTransition>
       <MainLayout>
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Hero Header */}
-        <motion.div 
-          className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-900 via-blue-800 to-slate-900 p-6 text-white shadow-xl sm:p-8 border border-blue-700/50 relative"
-          variants={itemVariants}
-        >
-          {/* Background animation */}
-          <div className="absolute inset-0 overflow-hidden">
-            <motion.div
-              className="absolute -right-32 -top-32 h-64 w-64 bg-blue-400/10 rounded-full blur-3xl"
-              animate={{ x: [0, 30, 0], y: [0, -30, 0] }}
-              transition={{ duration: 8, repeat: Infinity }}
-            />
-          </div>
-
-          <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <motion.div 
-                className="mb-1 flex items-center gap-2 text-white/80"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <Calendar className="h-4 w-4" />
-                <span className="text-sm">
-                  {new Date().toLocaleDateString('id-ID', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </span>
-              </motion.div>
-              <motion.h1 
-                className="text-2xl font-bold sm:text-3xl"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                {getGreeting()}, {user?.name?.split(' ')[0] || 'User'}! 👋
-              </motion.h1>
-              <motion.p 
-                className="mt-1 text-white/80"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                Pantau pengeluaran harianmu dengan mudah
-              </motion.p>
-            </div>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.6, type: 'spring', damping: 20, stiffness: 300 }}
-            >
-              <Link to={ROUTES.EXPENSE_NEW}>
-                <Button
-                  variant="glass"
-                  size="lg"
-                  leftIcon={<Plus className="h-5 w-5" />}
-                  className="w-full sm:w-auto"
-                >
-                  Tambah Pengeluaran
+        <PageHeader
+          eyebrow={new Date().toLocaleDateString('id-ID', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+          })}
+          title={`${getGreeting()}, ${user?.name?.split(' ')[0] || 'User'}`}
+          description="Pantau pemasukan, pengeluaran, dan saldo bersih dalam satu tampilan."
+          action={
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              <Link to={ROUTES.INCOME_NEW} className="w-full sm:w-auto">
+                <Button variant="outline" leftIcon={<Plus className="h-4 w-4" />} className="w-full">
+                  Pemasukan
                 </Button>
               </Link>
-            </motion.div>
-          </div>
-        </motion.div>
+              <Link to={ROUTES.EXPENSE_NEW} className="w-full sm:w-auto">
+                <Button
+                  variant="gradient"
+                  leftIcon={<Plus className="h-4 w-4" />}
+                  className="w-full"
+                >
+                  Pengeluaran
+                </Button>
+              </Link>
+            </div>
+          }
+        />
 
-        {/* Period Selector */}
-        <motion.div 
-          className="mb-6 flex flex-wrap gap-2"
-          variants={itemVariants}
-        >
+        <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
           {(['week', 'month', 'year'] as Period[]).map((p) => (
-            <motion.button
+            <button
               key={p}
               onClick={() => setPeriod(p)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+              className={cn(
+                'rounded-xl px-4 py-2 text-sm font-semibold whitespace-nowrap transition',
                 period === p
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-600/25'
-                  : 'bg-white text-gray-600 shadow-sm hover:bg-gray-50 hover:shadow-md'
-              }`}
+                  ? 'bg-ink text-white shadow-md'
+                  : 'bg-surface/80 text-muted ring-1 ring-line hover:text-ink'
+              )}
             >
               {periodLabels[p]}
-            </motion.button>
+            </button>
           ))}
-        </motion.div>
+        </div>
 
         {isSummaryLoading ? (
           <Loading message="Memuat data..." />
         ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            {/* Stats Cards */}
-            <motion.div 
-              className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-              variants={containerVariants}
-            >
-              {statsConfig.map((stat, index) => (
+          <>
+            <div className="mb-5 grid grid-cols-2 gap-2.5 sm:mb-6 sm:gap-3 xl:grid-cols-4">
+              {stats.map((stat, index) => (
                 <motion.div
                   key={stat.key}
-                  variants={itemVariants}
-                  whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}
-                  className="group relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm transition-all duration-300"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
                 >
-                  {/* Gradient Accent */}
-                  <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${stat.gradient}`} />
-                  
-                  {/* Animated background */}
-                  <motion.div
-                    className="absolute -right-20 -top-20 h-40 w-40 opacity-0 rounded-full blur-3xl"
-                    style={{ backgroundColor: stat.accentColor }}
-                    animate={{ opacity: [0, 0.1, 0], scale: [0.5, 1.2, 0.5] }}
-                    transition={{ duration: 4, repeat: Infinity, delay: index * 0.5 }}
-                  />
-
-                  <div className="relative z-10 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">{stat.label}</p>
-                      <motion.p 
-                        className="mt-2 text-2xl font-bold text-gray-900 sm:text-3xl"
-                        key={`stat-${stat.key}-${period}`}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-                      >
-                        {getStatsValue(stat.key)}
-                      </motion.p>
+                  <Card padding="sm" className="h-full sm:p-5">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-xs font-medium text-muted sm:text-sm">{stat.label}</p>
+                      <div className={cn('rounded-xl p-2 sm:rounded-2xl sm:p-3', stat.tone)}>
+                        <stat.icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                      </div>
                     </div>
-                    <motion.div 
-                      className={`rounded-2xl ${stat.bgLight} p-3 transition-transform`}
-                      whileHover={{ scale: 1.15, rotate: 5 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <stat.icon className={`h-6 w-6 ${stat.textColor}`} />
-                    </motion.div>
-                  </div>
+                    <p className="mt-2 break-words font-display text-base font-bold leading-snug tabular text-ink sm:text-xl lg:text-2xl">
+                      {stat.value}
+                    </p>
+                    <p className="mt-1 text-[11px] text-muted sm:text-xs">{stat.hint}</p>
+                  </Card>
                 </motion.div>
               ))}
-            </motion.div>
+            </div>
 
-            {/* Charts & Recent Expenses */}
-            <motion.div 
-              className="grid gap-6 lg:grid-cols-2"
-              variants={containerVariants}
-            >
-              {/* Category Breakdown Chart */}
-              <motion.div 
-                className="overflow-hidden rounded-2xl bg-white p-5 shadow-sm sm:p-6"
-                variants={itemVariants}
-                whileHover={{ boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}
-              >
-                <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-blue-600" />
-                    Pengeluaran per Kategori
-                  </h3>
+            <DashboardInsights summary={summary} />
+
+            <Card padding="md" className="mb-4">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-accent" />
+                  Perbandingan Pemasukan & Pengeluaran
+                </CardTitle>
+              </CardHeader>
+              {overview.length > 0 ? (
+                <div className="h-64 sm:h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={overview} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#d7e0ea" vertical={false} />
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fontSize: 11, fill: '#5b6b7c' }}
+                        tickLine={false}
+                        axisLine={false}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis
+                        tick={{ fontSize: 11, fill: '#5b6b7c' }}
+                        tickLine={false}
+                        axisLine={false}
+                        width={56}
+                        tickFormatter={(v) =>
+                          v >= 1_000_000
+                            ? `${(v / 1_000_000).toFixed(1)}jt`
+                            : v >= 1_000
+                              ? `${Math.round(v / 1_000)}rb`
+                              : String(v)
+                        }
+                      />
+                      <Tooltip
+                        formatter={(value) => formatCurrency(Number(value))}
+                        contentStyle={tooltipStyle}
+                      />
+                      <Legend
+                        wrapperStyle={{ fontSize: 12 }}
+                        formatter={(value) =>
+                          value === 'income' ? 'Pemasukan' : 'Pengeluaran'
+                        }
+                      />
+                      <Bar dataKey="income" fill="#7CB518" radius={[6, 6, 0, 0]} maxBarSize={28} />
+                      <Bar dataKey="expense" fill="#E85D4C" radius={[6, 6, 0, 0]} maxBarSize={28} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
-                {summary?.categoryBreakdown && summary.categoryBreakdown.length > 0 ? (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                  >
-                    <ResponsiveContainer width="100%" height={280}>
-                      <PieChart>
-                        <Pie
-                          data={summary.categoryBreakdown.map((item) => ({
-                            ...item,
-                            [item.categoryName]: item.total,
-                          }))}
-                          dataKey="total"
-                          nameKey="categoryName"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={90}
-                          innerRadius={50}
-                          paddingAngle={2}
-                          label={({ name, percent }) =>
-                            `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`
-                          }
-                          labelLine={false}
-                        >
-                          {summary.categoryBreakdown.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={entry.categoryColor || `hsl(${index * 45 + 200}, 70%, 55%)`}
-                              stroke="white"
-                              strokeWidth={2}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value) => formatCurrency(Number(value))}
-                          contentStyle={{
-                            borderRadius: '12px',
-                            border: 'none',
-                            boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
-                          }}
-                        />
-                        <Legend 
-                          wrapperStyle={{ paddingTop: '20px' }}
-                          formatter={(value) => <span className="text-gray-600">{value}</span>}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </motion.div>
-                ) : (
-                  <EmptyState
-                    title="Belum ada data"
-                    description="Tambahkan pengeluaran untuk melihat statistik"
-                  />
-                )}
-              </motion.div>
+              ) : (
+                <EmptyState
+                  title="Belum ada data grafik"
+                  description="Catat pemasukan atau pengeluaran untuk melihat tren periode ini"
+                />
+              )}
+            </Card>
 
-              {/* Recent Expenses */}
-              <motion.div 
-                className="overflow-hidden rounded-2xl bg-white p-5 shadow-sm sm:p-6"
-                variants={itemVariants}
-                whileHover={{ boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}
-              >
-                <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <TrendingDown className="w-5 h-5 text-red-600" />
-                    Pengeluaran Terbaru
-                  </h3>
+            <div className="mb-4 grid gap-4 lg:grid-cols-2">
+              <CategorySummaryPanel
+                title="Ringkasan Pengeluaran"
+                icon={TrendingDown}
+                iconClass="text-coral"
+                items={expenseBreakdown}
+                total={summary?.totalExpenses || 0}
+                emptyTitle="Belum ada pengeluaran"
+                emptyDescription="Tambahkan pengeluaran untuk melihat breakdown kategori"
+                amountTone="text-coral"
+              />
+              <CategorySummaryPanel
+                title="Ringkasan Pemasukan"
+                icon={TrendingUp}
+                iconClass="text-lime"
+                items={incomeBreakdown}
+                total={summary?.totalIncome || 0}
+                emptyTitle="Belum ada pemasukan"
+                emptyDescription="Tambahkan pemasukan untuk melihat breakdown kategori"
+                amountTone="text-lime"
+              />
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <Card padding="md">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-lime" />
+                    Pemasukan Terbaru
+                  </CardTitle>
                   <Link
-                    to={ROUTES.EXPENSES}
-                    className="flex items-center gap-1 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
+                    to={ROUTES.INCOMES}
+                    className="inline-flex items-center gap-1 text-sm font-semibold text-accent hover:underline"
                   >
-                    Lihat semua
+                    Semua
                     <ArrowRight className="h-4 w-4" />
                   </Link>
-                </div>
-                {isExpensesLoading ? (
+                </CardHeader>
+                {isIncomesLoading ? (
                   <Loading />
-                ) : recentExpenses?.data && recentExpenses.data.length > 0 ? (
-                  <motion.div 
-                    className="space-y-3"
-                    variants={containerVariants}
-                  >
-                    {recentExpenses.data.map((expense, index) => (
-                      <motion.div
-                        key={expense.id}
-                        variants={itemVariants}
-                        whileHover={{ x: 4 }}
-                        className="group flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-all hover:border-blue-100 hover:bg-blue-50/30 sm:p-4"
+                ) : recentIncomes?.data && recentIncomes.data.length > 0 ? (
+                  <div className="space-y-2">
+                    {recentIncomes.data.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between gap-3 rounded-2xl px-2 py-2.5"
                       >
-                        <div className="flex items-center gap-3">
-                          <motion.div
-                            className="flex h-11 w-11 items-center justify-center rounded-xl transition-transform sm:h-12 sm:w-12"
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div
+                            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl"
                             style={{
-                              backgroundColor: expense.category?.color
-                                ? `${expense.category.color}20`
-                                : '#f3f4f6',
+                              backgroundColor: item.category?.color
+                                ? `${item.category.color}22`
+                                : '#d9f5f1',
+                              color: item.category?.color || '#0f9b8e',
                             }}
-                            whileHover={{ scale: 1.1, rotate: 5 }}
-                            whileTap={{ scale: 0.9 }}
                           >
-                            <span
-                              className="text-xl sm:text-2xl"
-                              style={{ color: expense.category?.color }}
-                            >
-                              {expense.category?.icon || '💰'}
-                            </span>
-                          </motion.div>
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {expense.description}
+                            <CategoryIcon icon={item.category?.icon} size={20} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-ink">
+                              {item.description}
                             </p>
-                            <p className="text-sm text-gray-500">
-                              {expense.category?.name} • {formatDate(expense.date)}
+                            <p className="truncate text-sm text-muted">
+                              {item.category?.name} • {formatDate(item.date)}
                             </p>
                           </div>
                         </div>
-                        <p className="text-base font-bold text-rose-600 sm:text-lg">
-                          -{formatCurrency(expense.amount)}
+                        <p className="flex-shrink-0 text-sm font-bold font-mono text-lime">
+                          +{formatCurrency(item.amount)}
                         </p>
-                      </motion.div>
+                      </div>
                     ))}
-                  </motion.div>
+                  </div>
                 ) : (
                   <EmptyState
-                    title="Belum ada pengeluaran"
-                    description="Tambahkan pengeluaran pertamamu"
+                    title="Belum ada pemasukan"
+                    description="Tambahkan pemasukan pertamamu"
                     action={
-                      <Link to={ROUTES.EXPENSE_NEW}>
-                        <Button 
-                          size="sm" 
-                          variant="gradient"
-                          leftIcon={<Plus className="h-4 w-4" />}
-                        >
+                      <Link to={ROUTES.INCOME_NEW}>
+                        <Button size="sm" leftIcon={<Plus className="h-4 w-4" />}>
                           Tambah
                         </Button>
                       </Link>
                     }
                   />
                 )}
-              </motion.div>
-            </motion.div>
-          </motion.div>
+              </Card>
+
+              <Card padding="md">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingDown className="h-5 w-5 text-coral" />
+                    Pengeluaran Terbaru
+                  </CardTitle>
+                  <Link
+                    to={ROUTES.EXPENSES}
+                    className="inline-flex items-center gap-1 text-sm font-semibold text-accent hover:underline"
+                  >
+                    Semua
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </CardHeader>
+                {isExpensesLoading ? (
+                  <Loading />
+                ) : recentExpenses?.data && recentExpenses.data.length > 0 ? (
+                  <div className="space-y-2">
+                    {recentExpenses.data.map((expense) => (
+                      <div
+                        key={expense.id}
+                        className="flex items-center justify-between gap-3 rounded-2xl px-2 py-2.5"
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div
+                            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl"
+                            style={{
+                              backgroundColor: expense.category?.color
+                                ? `${expense.category.color}22`
+                                : '#e6edf4',
+                              color: expense.category?.color || '#0f9b8e',
+                            }}
+                          >
+                            <CategoryIcon icon={expense.category?.icon} size={20} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-ink">
+                              {expense.description}
+                            </p>
+                            <p className="truncate text-sm text-muted">
+                              {expense.category?.name} • {formatDate(expense.date)}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="flex-shrink-0 text-sm font-bold amount-negative">
+                          -{formatCurrency(expense.amount)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="Belum ada pengeluaran"
+                    description="Tambahkan pengeluaran pertamamu"
+                    action={
+                      <Link to={ROUTES.EXPENSE_NEW}>
+                        <Button size="sm" leftIcon={<Plus className="h-4 w-4" />}>
+                          Tambah
+                        </Button>
+                      </Link>
+                    }
+                  />
+                )}
+              </Card>
+            </div>
+          </>
         )}
-      </motion.div>
       </MainLayout>
     </PageTransition>
   );

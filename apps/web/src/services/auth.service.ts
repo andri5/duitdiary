@@ -81,6 +81,32 @@ export async function getCurrentUser(): Promise<User> {
 }
 
 /**
+ * Request password reset
+ */
+export async function forgotPassword(
+  email: string
+): Promise<{ message: string; resetUrl?: string }> {
+  const response = await api.post<
+    ApiResponse<{ message: string; resetUrl?: string }>
+  >('/auth/forgot-password', { email });
+  return response.data.data;
+}
+
+/**
+ * Reset password with token
+ */
+export async function resetPassword(
+  token: string,
+  password: string
+): Promise<{ message: string }> {
+  const response = await api.post<ApiResponse<{ message: string }>>(
+    '/auth/reset-password',
+    { token, password }
+  );
+  return response.data.data;
+}
+
+/**
  * Save auth data to local storage
  */
 export function saveAuthData(data: AuthResponse): void {

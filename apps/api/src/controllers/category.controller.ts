@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { categoryService } from '../services/category.service.js';
 import { sendSuccess, sendCreated, sendError, sendNotFound } from '../utils/response.js';
+import { categoryQuerySchema } from '../utils/validation.js';
 import type { CreateCategoryInput, UpdateCategoryInput } from '../utils/validation.js';
 import type { AuthenticatedRequest } from '../types/index.js';
 
@@ -8,7 +9,8 @@ export class CategoryController {
   async getAll(req: Request, res: Response): Promise<void> {
     try {
       const { userId } = (req as AuthenticatedRequest).user!;
-      const categories = await categoryService.getAll(userId);
+      const query = categoryQuerySchema.parse(req.query);
+      const categories = await categoryService.getAll(userId, query);
       sendSuccess(res, categories, 'Categories retrieved successfully');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to get categories';
@@ -54,14 +56,18 @@ export class CategoryController {
       const category = await categoryService.update(id, userId, data);
       
       if (!category) {
-        sendNotFound(res, 'Category not found or cannot be updated');
+        sendNotFound(res, 'Kategori tidak ditemukan atau tidak dapat diubah');
         return;
       }
-      
+
       sendSuccess(res, category, 'Category updated successfully');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update category';
-      sendError(res, message, 400, 'UPDATE_CATEGORY_FAILED');
+      if (message.includes('default') || message.includes('bawaan')) {
+        sendError(res, message, 403, 'DEFAULT_CATEGORY_PROTECTED');
+      } else {
+        sendError(res, message, 400, 'UPDATE_CATEGORY_FAILED');
+      }
     }
   }
 
@@ -70,16 +76,18 @@ export class CategoryController {
       const { userId } = (req as AuthenticatedRequest).user!;
       const { id } = req.params;
       const deleted = await categoryService.delete(id, userId);
-      
+
       if (!deleted) {
-        sendNotFound(res, 'Category not found or cannot be deleted');
+        sendNotFound(res, 'Kategori tidak ditemukan atau tidak dapat dihapus');
         return;
       }
-      
+
       sendSuccess(res, null, 'Category deleted successfully');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to delete category';
-      if (message.includes('existing expenses')) {
+      if (message.includes('default') || message.includes('bawaan')) {
+        sendError(res, message, 403, 'DEFAULT_CATEGORY_PROTECTED');
+      } else if (message.includes('pengganti') || message.includes('existing expenses')) {
         sendError(res, message, 409, 'CATEGORY_HAS_EXPENSES');
       } else {
         sendError(res, message, 400, 'DELETE_CATEGORY_FAILED');

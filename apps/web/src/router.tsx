@@ -7,16 +7,18 @@ import { ProtectedRoute, PublicRoute } from '@/components/auth';
 import {
   LoginPage,
   RegisterPage,
+  ForgotPasswordPage,
+  ResetPasswordPage,
   DashboardPage,
   ExpensesPage,
   ExpenseFormPage,
+  IncomesPage,
   CategoriesPage,
   SettingsPage,
 } from '@/pages';
 import { ROUTES } from '@/lib/constants';
 
 export const router = createBrowserRouter([
-  // Public routes (redirect to dashboard if logged in)
   {
     path: ROUTES.LOGIN,
     element: (
@@ -33,8 +35,22 @@ export const router = createBrowserRouter([
       </PublicRoute>
     ),
   },
-
-  // Protected routes (redirect to login if not logged in)
+  {
+    path: ROUTES.FORGOT_PASSWORD,
+    element: (
+      <PublicRoute>
+        <ForgotPasswordPage />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: ROUTES.RESET_PASSWORD,
+    element: (
+      <PublicRoute>
+        <ResetPasswordPage />
+      </PublicRoute>
+    ),
+  },
   {
     path: ROUTES.DASHBOARD,
     element: (
@@ -68,6 +84,30 @@ export const router = createBrowserRouter([
     ),
   },
   {
+    path: ROUTES.INCOMES,
+    element: (
+      <ProtectedRoute>
+        <IncomesPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: ROUTES.INCOME_NEW,
+    element: (
+      <ProtectedRoute>
+        <ExpenseFormPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: ROUTES.INCOME_EDIT,
+    element: (
+      <ProtectedRoute>
+        <ExpenseFormPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: ROUTES.CATEGORIES,
     element: (
       <ProtectedRoute>
@@ -83,14 +123,10 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-
-  // Root redirect
   {
     path: ROUTES.HOME,
     element: <Navigate to={ROUTES.DASHBOARD} replace />,
   },
-
-  // Catch all - 404
   {
     path: '*',
     element: <Navigate to={ROUTES.DASHBOARD} replace />,

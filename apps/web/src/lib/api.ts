@@ -27,6 +27,14 @@ api.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // FormData must use multipart boundary from the browser
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData && config.headers) {
+      if (typeof config.headers.delete === 'function') {
+        config.headers.delete('Content-Type');
+      } else {
+        delete (config.headers as Record<string, unknown>)['Content-Type'];
+      }
+    }
     return config;
   },
   (error: AxiosError) => {

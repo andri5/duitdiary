@@ -3,14 +3,50 @@
  */
 
 // API Configuration
-export const API_BASE_URL = 'http://localhost:3000/api/v1';
+export const API_ORIGIN = 'http://localhost:3001';
+export const API_BASE_URL = `${API_ORIGIN}/api/v1`;
+
+/** Resolve uploaded file path to absolute URL */
+export function resolveUploadUrl(path?: string | null): string | null {
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:')) {
+    return path;
+  }
+  return `${API_ORIGIN}${path.startsWith('/') ? path : `/${path}`}`;
+}
 
 // Storage Keys
 export const STORAGE_KEYS = {
   ACCESS_TOKEN: 'duitdiary_access_token',
   REFRESH_TOKEN: 'duitdiary_refresh_token',
   USER: 'duitdiary_user',
+  THEME: 'duitdiary_theme',
 } as const;
+
+export type AppTheme = 'neo' | 'midnight' | 'ocean';
+
+export const THEME_OPTIONS: {
+  id: AppTheme;
+  name: string;
+  description: string;
+}[] = [
+  {
+    id: 'neo',
+    name: 'Neo Ledger',
+    description: 'Teal terang, bersih, dan fokus',
+  },
+  {
+    id: 'midnight',
+    name: 'Midnight',
+    description: 'Gelap nyaman untuk malam hari',
+  },
+  {
+    id: 'ocean',
+    name: 'Ocean Mist',
+    description: 'Biru laut lembut dan sejuk',
+  },
+];
+
 
 // Pagination
 export const DEFAULT_PAGE_SIZE = 10;
@@ -46,19 +82,26 @@ export const CATEGORY_COLORS = [
   '#6366F1', // Indigo
 ] as const;
 
-// Category Icons
+// Category Icons (Lucide keys — keep in sync with CategoryIcon)
 export const CATEGORY_ICONS = [
-  'utensils',      // Food
-  'car',           // Transportation
-  'shopping-bag',  // Shopping
-  'gamepad-2',     // Entertainment
-  'heart-pulse',   // Health
-  'graduation-cap',// Education
-  'home',          // Housing
-  'zap',           // Utilities
-  'plane',         // Travel
-  'gift',          // Gifts
-  'more-horizontal',// Other
+  'utensils',
+  'car',
+  'shopping-bag',
+  'gamepad-2',
+  'heart-pulse',
+  'graduation-cap',
+  'home',
+  'zap',
+  'plane',
+  'gift',
+  'wallet',
+  'banknote',
+  'briefcase',
+  'laptop',
+  'line-chart',
+  'piggy-bank',
+  'sparkles',
+  'more-horizontal',
 ] as const;
 
 // Routes
@@ -66,10 +109,15 @@ export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
   REGISTER: '/register',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
   DASHBOARD: '/dashboard',
   EXPENSES: '/expenses',
   EXPENSE_NEW: '/expenses/new',
   EXPENSE_EDIT: '/expenses/:id/edit',
+  INCOMES: '/incomes',
+  INCOME_NEW: '/incomes/new',
+  INCOME_EDIT: '/incomes/:id/edit',
   CATEGORIES: '/categories',
   SETTINGS: '/settings',
 } as const;
@@ -80,6 +128,8 @@ export const QUERY_KEYS = {
   CATEGORIES: ['categories'],
   EXPENSES: ['expenses'],
   EXPENSE: (id: string) => ['expense', id],
+  INCOMES: ['incomes'],
+  INCOME: (id: string) => ['income', id],
   DASHBOARD: ['dashboard'],
   DASHBOARD_SUMMARY: (period: string) => ['dashboard', 'summary', period],
 } as const;

@@ -6,11 +6,11 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { Button, Input, ModalFooter } from '@/components/ui';
+import { Button, Input, ModalFooter, CategoryIcon, CATEGORY_ICON_OPTIONS } from '@/components/ui';
 import { categorySchema } from '@/lib/validations';
 import type { CategoryFormData } from '@/lib/validations';
 import { useCategoryMutations } from '@/hooks';
-import { CATEGORY_COLORS, CATEGORY_ICONS } from '@/lib/constants';
+import { CATEGORY_COLORS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import type { Category } from '@/types';
 
@@ -19,21 +19,6 @@ interface CategoryFormProps {
   onSuccess: () => void;
   onCancel: () => void;
 }
-
-// Icon mapping - simple emoji for now
-const iconEmojis: Record<string, string> = {
-  'utensils': '🍽️',
-  'car': '🚗',
-  'shopping-bag': '🛍️',
-  'gamepad-2': '🎮',
-  'heart-pulse': '❤️',
-  'graduation-cap': '🎓',
-  'home': '🏠',
-  'zap': '⚡',
-  'plane': '✈️',
-  'gift': '🎁',
-  'more-horizontal': '📁',
-};
 
 export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProps) {
   const isEditing = !!category;
@@ -50,21 +35,23 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: '',
-      icon: CATEGORY_ICONS[0],
+      icon: CATEGORY_ICON_OPTIONS[0],
       color: CATEGORY_COLORS[0],
+      type: 'EXPENSE',
     },
   });
 
   const selectedIcon = watch('icon');
   const selectedColor = watch('color');
+  const selectedType = watch('type');
 
-  // Populate form when editing
   useEffect(() => {
     if (category) {
       reset({
         name: category.name,
-        icon: category.icon || CATEGORY_ICONS[0],
+        icon: category.icon || CATEGORY_ICON_OPTIONS[0],
         color: category.color || CATEGORY_COLORS[0],
+        type: category.type || 'EXPENSE',
       });
     }
   }, [category, reset]);
@@ -80,7 +67,7 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
         await createMutation.mutateAsync(data);
       }
       onSuccess();
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   };
@@ -94,11 +81,33 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
         {...register('name')}
       />
 
-      {/* Color Picker */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Warna
-        </label>
+        <label className="mb-2 block text-sm font-semibold text-ink">Jenis</label>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { value: 'EXPENSE', label: 'Pengeluaran' },
+            { value: 'INCOME', label: 'Pemasukan' },
+          ].map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setValue('type', option.value as 'EXPENSE' | 'INCOME')}
+              className={cn(
+                'rounded-xl border px-3 py-2.5 text-sm font-semibold transition',
+                selectedType === option.value
+                  ? 'border-accent bg-accent-soft text-accent'
+                  : 'border-line bg-surface text-muted hover:border-accent/40'
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <input type="hidden" {...register('type')} />
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-semibold text-ink">Warna</label>
         <div className="flex flex-wrap gap-2">
           {CATEGORY_COLORS.map((color) => (
             <button
@@ -106,7 +115,7 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
               type="button"
               onClick={() => setValue('color', color)}
               className={cn(
-                'h-8 w-8 rounded-full transition-transform',
+                'h-8 w-8 rounded-xl transition-transform',
                 selectedColor === color && 'scale-110 ring-2 ring-offset-2'
               )}
               style={{
@@ -119,50 +128,52 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
         </div>
       </div>
 
-      {/* Icon Picker */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Ikon
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {CATEGORY_ICONS.map((icon) => (
-            <button
-              key={icon}
-              type="button"
-              onClick={() => setValue('icon', iconEmojis[icon] || '📁')}
-              className={cn(
-                'flex h-10 w-10 items-center justify-center rounded-lg border-2 text-xl transition-colors',
-                selectedIcon === (iconEmojis[icon] || '📁')
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 bg-white hover:border-gray-300'
-              )}
-            >
-              {iconEmojis[icon] || '📁'}
-            </button>
-          ))}
+        <label className="mb-2 block text-sm font-semibold text-ink">Ikon</label>
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+          {CATEGORY_ICON_OPTIONS.map((icon) => {
+            const active = selectedIcon === icon;
+            return (
+              <button
+                key={icon}
+                type="button"
+                onClick={() => setValue('icon', icon, { shouldValidate: true })}
+                className={cn(
+                  'flex h-11 w-full items-center justify-center rounded-2xl border transition',
+                  active
+                    ? 'border-accent bg-accent-soft text-accent shadow-sm shadow-accent/15'
+                    : 'border-line bg-mist/40 text-ink hover:border-accent/40 hover:bg-accent-soft/40'
+                )}
+                aria-label={`Pilih ikon ${icon}`}
+              >
+                <CategoryIcon icon={icon} size={18} />
+              </button>
+            );
+          })}
         </div>
         <input type="hidden" {...register('icon')} />
       </div>
 
-      {/* Preview */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Preview
-        </label>
-        <div className="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+        <label className="mb-2 block text-sm font-semibold text-ink">Preview</label>
+        <div className="flex items-center gap-3 rounded-2xl border border-line bg-mist/50 p-4">
           <div
-            className="flex h-12 w-12 items-center justify-center rounded-full"
+            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl"
             style={{
-              backgroundColor: selectedColor ? `${selectedColor}20` : '#f3f4f6',
+              backgroundColor: selectedColor ? `${selectedColor}22` : '#e6edf4',
+              color: selectedColor || '#0f9b8e',
             }}
           >
-            <span className="text-xl" style={{ color: selectedColor }}>
-              {selectedIcon || '📁'}
-            </span>
+            <CategoryIcon icon={selectedIcon} size={22} />
           </div>
-          <p className="font-medium text-gray-900">
-            {watch('name') || 'Nama Kategori'}
-          </p>
+          <div className="min-w-0">
+            <p className="truncate font-display text-base font-bold text-ink">
+              {watch('name') || 'Nama Kategori'}
+            </p>
+            <p className="text-xs text-muted">
+              {selectedType === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'}
+            </p>
+          </div>
         </div>
       </div>
 

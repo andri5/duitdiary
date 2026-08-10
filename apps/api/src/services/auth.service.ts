@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { prisma } from '../utils/prisma.js';
 import {
   generateAccessToken,
@@ -7,12 +8,16 @@ import {
   parseExpiresIn,
 } from '../utils/jwt.js';
 import { config } from '../config/index.js';
-import type { RegisterInput, LoginInput } from '../utils/validation.js';
+import type {
+  RegisterInput,
+  LoginInput,
+  ForgotPasswordInput,
+  ResetPasswordInput,
+} from '../utils/validation.js';
 import type { AuthResponse, UserResponse } from '../types/index.js';
 
 export class AuthService {
   async register(data: RegisterInput): Promise<AuthResponse> {
-    // Check if email already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email },
     });
@@ -21,10 +26,8 @@ export class AuthService {
       throw new Error('Email already registered');
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(data.password, 12);
 
-    // Create user
     const user = await prisma.user.create({
       data: {
         name: data.name,
@@ -33,12 +36,10 @@ export class AuthService {
       },
     });
 
-    // Generate tokens
     const tokenPayload = { userId: user.id, email: user.email };
     const accessToken = generateAccessToken(tokenPayload);
     const refreshToken = generateRefreshToken(tokenPayload);
 
-    // Save refresh token
     await this.saveRefreshToken(user.id, refreshToken);
 
     return {
@@ -49,7 +50,6 @@ export class AuthService {
   }
 
   async login(data: LoginInput): Promise<AuthResponse> {
-    // Find user
     const user = await prisma.user.findUnique({
       where: { email: data.email },
     });
@@ -58,19 +58,16 @@ export class AuthService {
       throw new Error('Invalid email or password');
     }
 
-    // Verify password
     const isPasswordValid = await bcrypt.compare(data.password, user.password);
 
     if (!isPasswordValid) {
       throw new Error('Invalid email or password');
     }
 
-    // Generate tokens
     const tokenPayload = { userId: user.id, email: user.email };
     const accessToken = generateAccessToken(tokenPayload);
     const refreshToken = generateRefreshToken(tokenPayload);
 
-    // Save refresh token
     await this.saveRefreshToken(user.id, refreshToken);
 
     return {
@@ -82,7 +79,6 @@ export class AuthService {
 
   async logout(userId: string, refreshToken?: string): Promise<void> {
     if (refreshToken) {
-      // Delete specific refresh token
       await prisma.refreshToken.deleteMany({
         where: {
           userId,
@@ -90,7 +86,6 @@ export class AuthService {
         },
       });
     } else {
-      // Delete all refresh tokens for user
       await prisma.refreshToken.deleteMany({
         where: { userId },
       });
@@ -98,14 +93,12 @@ export class AuthService {
   }
 
   async refreshTokens(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
-    // Verify refresh token
     const payload = verifyRefreshToken(refreshToken);
 
     if (!payload) {
       throw new Error('Invalid refresh token');
     }
 
-    // Check if refresh token exists in database
     const storedToken = await prisma.refreshToken.findUnique({
       where: { token: refreshToken },
     });
@@ -114,13 +107,11 @@ export class AuthService {
       throw new Error('Refresh token not found');
     }
 
-    // Check if token is expired
     if (new Date() > storedToken.expiresAt) {
       await prisma.refreshToken.delete({ where: { id: storedToken.id } });
       throw new Error('Refresh token expired');
     }
 
-    // Get user
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
     });
@@ -129,21 +120,102 @@ export class AuthService {
       throw new Error('User not found');
     }
 
-    // Delete old refresh token
     await prisma.refreshToken.delete({ where: { id: storedToken.id } });
 
-    // Generate new tokens
     const tokenPayload = { userId: user.id, email: user.email };
     const newAccessToken = generateAccessToken(tokenPayload);
     const newRefreshToken = generateRefreshToken(tokenPayload);
 
-    // Save new refresh token
     await this.saveRefreshToken(user.id, newRefreshToken);
 
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
     };
+  }
+
+  /**
+   * Create a password reset token.
+   * Always returns a generic message. When the email exists, also returns
+   * resetUrl so the app can complete the flow without an email provider.
+   */
+  async forgotPassword(
+    data: ForgotPasswordInput
+  ): Promise<{ message: string; resetUrl?: string }> {
+    const email = data.email.trim().toLowerCase();
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    const generic = {
+      message:
+        'Jika email terdaftar, tautan reset password sudah dibuat. Silakan lanjutkan untuk mengatur password baru.',
+    };
+
+    if (!user) {
+      return generic;
+    }
+
+    await prisma.passwordResetToken.deleteMany({
+      where: {
+        userId: user.id,
+        usedAt: null,
+      },
+    });
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await prisma.passwordResetToken.create({
+      data: {
+        userId: user.id,
+        token: tokenHash,
+        expiresAt,
+      },
+    });
+
+    const resetUrl = `${config.appUrl.replace(/\/$/, '')}/reset-password?token=${rawToken}`;
+    console.log(`[password-reset] ${user.email} → ${resetUrl}`);
+
+    return {
+      ...generic,
+      resetUrl,
+    };
+  }
+
+  async resetPassword(data: ResetPasswordInput): Promise<{ message: string }> {
+    const tokenHash = crypto.createHash('sha256').update(data.token).digest('hex');
+
+    const record = await prisma.passwordResetToken.findUnique({
+      where: { token: tokenHash },
+    });
+
+    if (!record || record.usedAt || record.expiresAt < new Date()) {
+      throw new Error('Token reset tidak valid atau sudah kedaluwarsa');
+    }
+
+    const hashedPassword = await bcrypt.hash(data.password, 12);
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: record.userId },
+        data: { password: hashedPassword },
+      }),
+      prisma.passwordResetToken.update({
+        where: { id: record.id },
+        data: { usedAt: new Date() },
+      }),
+      prisma.refreshToken.deleteMany({
+        where: { userId: record.userId },
+      }),
+      prisma.passwordResetToken.deleteMany({
+        where: {
+          userId: record.userId,
+          id: { not: record.id },
+        },
+      }),
+    ]);
+
+    return { message: 'Password berhasil diubah. Silakan masuk dengan password baru.' };
   }
 
   private async saveRefreshToken(userId: string, token: string): Promise<void> {
