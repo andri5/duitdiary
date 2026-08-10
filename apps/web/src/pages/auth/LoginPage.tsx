@@ -38,10 +38,16 @@ export function LoginPage() {
       toast.success('Login berhasil!', 'Selamat datang kembali');
       navigate(ROUTES.DASHBOARD);
     } catch (err) {
-      const errorMessage =
+      const apiMessage =
         err instanceof AxiosError
-          ? err.response?.data?.message || 'Login gagal. Periksa email dan password.'
-          : 'Terjadi kesalahan. Silakan coba lagi.';
+          ? (err.response?.data as { message?: string } | undefined)?.message
+          : err instanceof Error
+            ? err.message
+            : undefined;
+      const errorMessage =
+        apiMessage && apiMessage !== 'No refresh token'
+          ? apiMessage
+          : 'Email atau password salah. Silakan coba lagi.';
       setError(errorMessage);
       toast.error(errorMessage);
     }

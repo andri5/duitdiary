@@ -15,13 +15,14 @@ Monorepo:
 
 ## Features
 
-- **Auth** — Register, login, logout, lupa/reset password
+- **Auth** — Register, login, logout, lupa/reset password (SMTP + HttpOnly cookie di web; Bearer di mobile)
 - **Transaksi** — Pemasukan & pengeluaran (menu Transaksi dengan submenu)
 - **Kategori** — Default + kustom, ikon Lucide, kategori default terkunci
 - **Dashboard** — Ringkasan saldo, grafik perbandingan, breakdown per kategori, AI saran & notice
-- **Struk** — Upload gambar/PDF sebagai bukti transaksi
+- **Struk** — Upload gambar/PDF sebagai bukti transaksi (akses privat ber-auth)
 - **Kalkulator** — Hitung nominal cepat di form transaksi
 - **Profil** — Upload foto profil, 3 tema (Neo Ledger, Midnight, Ocean Mist)
+- **Mobile** — Expo app (auth fase 1) di `apps/mobile`
 - **Responsif** — Desktop sidebar + mobile bottom nav
 
 ## Quick Start
@@ -45,14 +46,27 @@ npm install
 
 ```bash
 cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+cp apps/mobile/.env.example apps/mobile/.env
 ```
 
 Sesuaikan di `apps/api/.env`:
 
 - `DATABASE_URL` — koneksi PostgreSQL
-- `PORT` — default `3001` jika 3000 sudah terpakai
+- `PORT` — default `3001`
 - `CORS_ORIGIN` / `APP_URL` — biasanya `http://localhost:5173`
-- `JWT_SECRET` & `JWT_REFRESH_SECRET`
+- `JWT_SECRET` & `JWT_REFRESH_SECRET` — wajib kuat di production
+- `SMTP_*` — untuk kirim email reset password (`SMTP_ENABLED=true`)
+- `EXPOSE_PASSWORD_RESET_URL` — hanya development bila SMTP belum aktif
+
+Sesuaikan di `apps/web/.env`:
+
+- `VITE_API_URL=/api/v1` — same-origin via Vite proxy (wajib untuk cookie auth)
+
+Sesuaikan di `apps/mobile/.env`:
+
+- `EXPO_PUBLIC_API_URL` — contoh `http://localhost:3001/api/v1` (Android emulator: `http://10.0.2.2:3001/api/v1`)
+
 
 ### Database
 
@@ -71,16 +85,22 @@ npm run api
 
 # Terminal 2 — Web
 npm run web
+
+# Terminal 3 — Mobile (opsional)
+npm run mobile
 ```
 
 - Web: http://127.0.0.1:5173/
 - API: http://localhost:3001/api/v1/health
+- Mobile: Expo Dev Tools (scan QR / emulator)
 
 ## Tech Stack
 
-**API:** Express, Prisma, Zod, JWT, Multer, Helmet, bcrypt  
+**API:** Express, Prisma, Zod, JWT, Nodemailer, cookie-parser, Multer, Helmet, bcrypt  
 
-**Web:** React 19, React Router, TanStack Query, Zustand, React Hook Form, Recharts, Framer Motion, Tailwind CSS v4
+**Web:** React 19, React Router, TanStack Query, Zustand, React Hook Form, Recharts, Framer Motion, Tailwind CSS v4  
+
+**Mobile:** Expo (React Native), React Navigation, SecureStore, Axios
 
 ## Documentation
 

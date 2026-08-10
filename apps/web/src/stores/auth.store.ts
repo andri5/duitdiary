@@ -1,6 +1,5 @@
 /**
  * DuitDiary - Auth Store
- * Zustand store for authentication state
  */
 
 import { create } from 'zustand';
@@ -11,8 +10,8 @@ import {
   logout as logoutApi,
   register as registerApi,
   saveAuthData,
-  getStoredUser,
-  isAuthenticated as checkAuth,
+  clearAuthData,
+  restoreSession,
 } from '@/services/auth.service';
 import type { LoginCredentials, RegisterData } from '@/types';
 import { STORAGE_KEYS } from '@/lib/constants';
@@ -21,6 +20,7 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isBootstrapping: boolean;
   error: string | null;
 }
 
@@ -30,7 +30,7 @@ interface AuthActions {
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
   clearError: () => void;
-  initAuth: () => void;
+  initAuth: () => Promise<void>;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -38,13 +38,12 @@ type AuthStore = AuthState & AuthActions;
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
-      // Initial state
       user: null,
       isAuthenticated: false,
       isLoading: false,
+      isBootstrapping: true,
       error: null,
 
-      // Actions
       login: async (credentials: LoginCredentials) => {
         set({ isLoading: true, error: null });
         try {
@@ -54,10 +53,10 @@ export const useAuthStore = create<AuthStore>()(
             user: data.user,
             isAuthenticated: true,
             isLoading: false,
+            isBootstrapping: false,
           });
         } catch (error) {
-          const message =
-            error instanceof Error ? error.message : 'Login failed';
+          const message = error instanceof Error ? error.message : 'Login failed';
           set({ error: message, isLoading: false });
           throw error;
         }
@@ -72,6 +71,7 @@ export const useAuthStore = create<AuthStore>()(
             user: authData.user,
             isAuthenticated: true,
             isLoading: false,
+            isBootstrapping: false,
           });
         } catch (error) {
           const message =
@@ -86,6 +86,7 @@ export const useAuthStore = create<AuthStore>()(
         try {
           await logoutApi();
         } finally {
+          clearAuthData();
           set({
             user: null,
             isAuthenticated: false,
@@ -108,10 +109,23 @@ export const useAuthStore = create<AuthStore>()(
         set({ error: null });
       },
 
-      initAuth: () => {
-        const user = getStoredUser();
-        const isAuthenticated = checkAuth();
-        set({ user, isAuthenticated });
+      initAuth: async () => {
+        set({ isBootstrapping: true });
+        try {
+          const user = await restoreSession();
+          set({
+            user,
+            isAuthenticated: !!user,
+            isBootstrapping: false,
+          });
+        } catch {
+          clearAuthData();
+          set({
+            user: null,
+            isAuthenticated: false,
+            isBootstrapping: false,
+          });
+        }
       },
     }),
     {

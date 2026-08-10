@@ -10,10 +10,10 @@
  * ============================================
  */
 
-import path from 'path';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { config } from './config/index.js';
 import routes from './routes/index.js';
 import { errorMiddleware } from './middlewares/index.js';
@@ -24,49 +24,38 @@ const app = express();
 
 // ==================== SECURITY MIDDLEWARE ====================
 
-// ✅ Security headers with helmet
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", 'data:', 'https:', 'http:'],
+      imgSrc: ["'self'", 'data:', 'https:', 'http:', 'blob:'],
     },
   },
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   hsts: {
-    maxAge: 31536000, // 1 year in seconds
+    maxAge: 31536000,
     includeSubDomains: true,
     preload: true,
   },
 }));
 
-// ✅ Hide Express version
 app.disable('x-powered-by');
 
 // ==================== MIDDLEWARE ====================
 
-// CORS configuration
 app.use(cors({
   origin: config.corsOrigin,
   credentials: true,
 }));
 
-// Body parsing
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static uploaded receipts
-app.use(
-  '/uploads',
-  express.static(path.resolve(config.upload.dir), {
-    maxAge: '7d',
-    fallthrough: false,
-  })
-);
+// NOTE: uploads are NOT publicly static — use GET /api/v1/uploads/content/:kind/:filename
 
-// Rate limiting
 app.use('/api/v1/auth', authRateLimiter);
 app.use('/api/v1', apiRateLimiter);
 

@@ -18,7 +18,17 @@ import { AxiosError } from 'axios';
 export function ResetPasswordPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const token = useMemo(() => searchParams.get('token') || '', [searchParams]);
+  const token = useMemo(() => {
+    const fromQuery = searchParams.get('token')?.trim() || '';
+    if (fromQuery) return fromQuery;
+    // Some clients put params after #/...
+    if (typeof window !== 'undefined' && window.location.hash.includes('token=')) {
+      const hash = window.location.hash.replace(/^#/, '');
+      const params = new URLSearchParams(hash.includes('?') ? hash.split('?')[1] : hash);
+      return params.get('token')?.trim() || '';
+    }
+    return '';
+  }, [searchParams]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);

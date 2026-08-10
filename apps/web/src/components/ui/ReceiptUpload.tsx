@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FileText, ImagePlus, Loader2, Trash2, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { uploadReceipt } from '@/services/upload.service';
-import { resolveUploadUrl } from '@/lib/constants';
+import { useAuthenticatedFileUrl } from '@/hooks/useAuthenticatedFileUrl';
 import { cn } from '@/lib/utils';
 import { Button } from './Button';
 import { ReceiptPreviewModal } from './ReceiptPreviewModal';
@@ -31,8 +31,9 @@ export function ReceiptUpload({ value, onChange, error, disabled }: ReceiptUploa
   const [isUploading, setIsUploading] = useState(false);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const { url: remotePreview } = useAuthenticatedFileUrl(localPreview ? null : value);
 
-  const displayUrl = localPreview || resolveUploadUrl(value);
+  const displayUrl = localPreview || remotePreview;
 
   useEffect(() => {
     return () => {

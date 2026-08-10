@@ -50,10 +50,16 @@ export function RegisterPage() {
       toast.success('Pendaftaran berhasil!', 'Selamat datang di DuitDiary');
       navigate(ROUTES.DASHBOARD);
     } catch (err) {
-      const errorMessage =
+      const apiMessage =
         err instanceof AxiosError
-          ? err.response?.data?.message || 'Pendaftaran gagal. Silakan coba lagi.'
-          : 'Terjadi kesalahan. Silakan coba lagi.';
+          ? (err.response?.data as { message?: string } | undefined)?.message
+          : err instanceof Error
+            ? err.message
+            : undefined;
+      const errorMessage =
+        apiMessage && apiMessage !== 'No refresh token'
+          ? apiMessage
+          : 'Pendaftaran gagal. Silakan coba lagi.';
       setError(errorMessage);
       toast.error(errorMessage);
     }

@@ -65,10 +65,9 @@ export function ForgotPasswordPage() {
 
             {result.resetUrl ? (
               <div className="space-y-3 rounded-2xl border border-line bg-mist/50 p-4">
-                <p className="text-sm font-semibold text-ink">Lanjutkan reset password</p>
+                <p className="text-sm font-semibold text-ink">Mode development</p>
                 <p className="text-xs text-muted">
-                  Tautan berlaku 1 jam. Karena email SMTP belum dikonfigurasi, gunakan tombol
-                  di bawah untuk lanjut.
+                  SMTP belum dikonfigurasi. Tautan di bawah hanya muncul di development.
                 </p>
                 <Link to={result.resetUrl.replace(/^https?:\/\/[^/]+/, '')}>
                   <Button
@@ -82,8 +81,8 @@ export function ForgotPasswordPage() {
               </div>
             ) : (
               <p className="text-sm text-muted">
-                Jika email tidak terdaftar, tidak ada tautan yang dibuat. Coba daftar akun baru
-                atau periksa kembali emailmu.
+                Jika email terdaftar, tautan reset dikirim ke kotak masuk. Periksa juga folder
+                spam. Tautan berlaku 1 jam.
               </p>
             )}
 

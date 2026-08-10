@@ -8,6 +8,7 @@ import {
   parseExpiresIn,
 } from '../utils/jwt.js';
 import { config } from '../config/index.js';
+import { isSmtpConfigured, sendPasswordResetEmail } from './email.service.js';
 import type {
   RegisterInput,
   LoginInput,
@@ -55,13 +56,13 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error('Invalid email or password');
+      throw new Error('Email atau password salah');
     }
 
     const isPasswordValid = await bcrypt.compare(data.password, user.password);
 
     if (!isPasswordValid) {
-      throw new Error('Invalid email or password');
+      throw new Error('Email atau password salah');
     }
 
     const tokenPayload = { userId: user.id, email: user.email };
@@ -136,8 +137,8 @@ export class AuthService {
 
   /**
    * Create a password reset token.
-   * Always returns a generic message. When the email exists, also returns
-   * resetUrl so the app can complete the flow without an email provider.
+   * Always returns a generic message (no email enumeration).
+   * resetUrl is only included in development when EXPOSE_PASSWORD_RESET_URL is enabled.
    */
   async forgotPassword(
     data: ForgotPasswordInput
@@ -147,7 +148,7 @@ export class AuthService {
 
     const generic = {
       message:
-        'Jika email terdaftar, tautan reset password sudah dibuat. Silakan lanjutkan untuk mengatur password baru.',
+        'Jika email terdaftar, tautan reset password akan dikirim. Periksa kotak masuk atau folder spam.',
     };
 
     if (!user) {
@@ -174,12 +175,30 @@ export class AuthService {
     });
 
     const resetUrl = `${config.appUrl.replace(/\/$/, '')}/reset-password?token=${rawToken}`;
-    console.log(`[password-reset] ${user.email} → ${resetUrl}`);
 
-    return {
-      ...generic,
-      resetUrl,
-    };
+    try {
+      if (isSmtpConfigured()) {
+        await sendPasswordResetEmail({
+          to: user.email,
+          name: user.name,
+          resetUrl,
+        });
+      } else if (config.isProduction) {
+        console.error('[password-reset] SMTP not configured; email not sent');
+      } else {
+        console.warn('[password-reset] SMTP off — email not sent');
+      }
+    } catch (err) {
+      console.error('[password-reset] Failed to send email', err);
+      // Still return generic message (no enumeration / no leak)
+    }
+
+    if (config.exposePasswordResetUrl) {
+      console.log(`[password-reset:dev] ${user.email} → ${resetUrl}`);
+      return { ...generic, resetUrl };
+    }
+
+    return generic;
   }
 
   async resetPassword(data: ResetPasswordInput): Promise<{ message: string }> {
@@ -216,6 +235,26 @@ export class AuthService {
     ]);
 
     return { message: 'Password berhasil diubah. Silakan masuk dengan password baru.' };
+  }
+
+  async getMe(userId: string): Promise<UserResponse> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar: true,
+        currency: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return this.formatUser(user);
   }
 
   private async saveRefreshToken(userId: string, token: string): Promise<void> {

@@ -16,10 +16,13 @@ import {
   CategoriesPage,
   SettingsPage,
   HelpPage,
+  NotFoundPage,
+  MaintenancePage,
 } from '@/pages';
 import { ROUTES } from '@/lib/constants';
+import { isMaintenanceMode } from '@/lib/maintenance';
 
-export const router = createBrowserRouter([
+const appRoutes = [
   {
     path: ROUTES.LOGIN,
     element: (
@@ -39,7 +42,7 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.FORGOT_PASSWORD,
     element: (
-      <PublicRoute>
+      <PublicRoute allowAuthenticated>
         <ForgotPasswordPage />
       </PublicRoute>
     ),
@@ -47,7 +50,7 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.RESET_PASSWORD,
     element: (
-      <PublicRoute>
+      <PublicRoute allowAuthenticated>
         <ResetPasswordPage />
       </PublicRoute>
     ),
@@ -133,11 +136,31 @@ export const router = createBrowserRouter([
     ),
   },
   {
+    path: ROUTES.MAINTENANCE,
+    element: <MaintenancePage />,
+  },
+  {
+    path: ROUTES.NOT_FOUND,
+    element: <NotFoundPage />,
+  },
+  {
     path: ROUTES.HOME,
     element: <Navigate to={ROUTES.DASHBOARD} replace />,
   },
   {
     path: '*',
-    element: <Navigate to={ROUTES.DASHBOARD} replace />,
+    element: <NotFoundPage />,
   },
-]);
+];
+
+/** When VITE_MAINTENANCE_MODE=true, every path shows the maintenance page */
+const maintenanceRoutes = [
+  {
+    path: '*',
+    element: <MaintenancePage />,
+  },
+];
+
+export const router = createBrowserRouter(
+  isMaintenanceMode ? maintenanceRoutes : appRoutes
+);

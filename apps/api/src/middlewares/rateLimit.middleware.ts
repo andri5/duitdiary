@@ -4,9 +4,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { config } from '../config/index.js';
 
-// Simple in-memory rate limiter (for development)
-// In production, use redis-based rate limiter
 interface RateLimitStore {
   [key: string]: { count: number; resetTime: number };
 }
@@ -20,23 +19,19 @@ const store: RateLimitStore = {};
  */
 export const rateLimit = (windowMs: number, maxRequests: number) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const key = req.ip || 'unknown';
+    const key = `${req.ip || 'unknown'}:${req.baseUrl}${req.path}`;
     const now = Date.now();
 
-    // Initialize or check existing entry
     if (!store[key] || now > store[key].resetTime) {
       store[key] = { count: 0, resetTime: now + windowMs };
     }
 
-    // Increment request count
     store[key].count++;
 
-    // Set rate limit headers
     res.set('X-RateLimit-Limit', maxRequests.toString());
     res.set('X-RateLimit-Remaining', Math.max(0, maxRequests - store[key].count).toString());
     res.set('X-RateLimit-Reset', store[key].resetTime.toString());
 
-    // Check if limit exceeded
     if (store[key].count > maxRequests) {
       res.status(429).json({
         success: false,
@@ -53,21 +48,24 @@ export const rateLimit = (windowMs: number, maxRequests: number) => {
   };
 };
 
-/**
- * Auth rate limiter - stricter for login/register
- * Max 30 attempts per 15 minutes (permissive for testing)
- */
-export const authRateLimiter = rateLimit(15 * 60 * 1000, 30);
+/** Login/register — stricter in production */
+export const authRateLimiter = rateLimit(
+  15 * 60 * 1000,
+  config.isProduction ? 20 : 60
+);
 
-/**
- * API rate limiter - standard for all other endpoints
- * Max 200 requests per minute (permissive for testing)
- */
-export const apiRateLimiter = rateLimit(60 * 1000, 200);
+/** Forgot / reset password — prevent token farming */
+export const passwordResetRateLimiter = rateLimit(
+  60 * 60 * 1000,
+  config.isProduction ? 5 : 20
+);
 
-/**
- * Cleanup old entries (run periodically)
- */
+/** General API */
+export const apiRateLimiter = rateLimit(
+  60 * 1000,
+  config.isProduction ? 120 : 300
+);
+
 export const cleanupRateLimitStore = () => {
   const now = Date.now();
   for (const key in store) {
@@ -77,5 +75,4 @@ export const cleanupRateLimitStore = () => {
   }
 };
 
-// Run cleanup every 5 minutes
 setInterval(cleanupRateLimitStore, 5 * 60 * 1000);

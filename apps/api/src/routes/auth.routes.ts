@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authController } from '../controllers/auth.controller.js';
 import { authMiddleware, validate } from '../middlewares/index.js';
+import { passwordResetRateLimiter } from '../middlewares/rateLimit.middleware.js';
 import {
   registerSchema,
   loginSchema,
@@ -35,14 +36,25 @@ router.post(
   (req, res) => authController.refreshToken(req, res)
 );
 
+/** Alias for clients that call /auth/refresh */
+router.post(
+  '/refresh',
+  validate(refreshTokenSchema),
+  (req, res) => authController.refreshToken(req, res)
+);
+
+router.get('/me', authMiddleware, (req, res) => authController.me(req, res));
+
 router.post(
   '/forgot-password',
+  passwordResetRateLimiter,
   validate(forgotPasswordSchema),
   (req, res) => authController.forgotPassword(req, res)
 );
 
 router.post(
   '/reset-password',
+  passwordResetRateLimiter,
   validate(resetPasswordSchema),
   (req, res) => authController.resetPassword(req, res)
 );

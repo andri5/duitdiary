@@ -2,17 +2,41 @@
  * DuitDiary - Application Constants
  */
 
-// API Configuration
-export const API_ORIGIN = 'http://localhost:3001';
-export const API_BASE_URL = `${API_ORIGIN}/api/v1`;
+const envOrigin = (import.meta.env.VITE_API_ORIGIN as string | undefined)?.replace(/\/$/, '');
+const envApiUrl = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '');
 
-/** Resolve uploaded file path to absolute URL */
-export function resolveUploadUrl(path?: string | null): string | null {
+/**
+ * Prefer same-origin `/api/v1` (Vite proxy) so HttpOnly cookies work.
+ * Override with VITE_API_URL / VITE_API_ORIGIN only for special cases.
+ */
+export const API_ORIGIN = envOrigin ?? '';
+export const API_BASE_URL =
+  envApiUrl || (API_ORIGIN ? `${API_ORIGIN}/api/v1` : '/api/v1');
+
+/**
+ * Map stored upload path → authenticated API content path (relative to API_BASE_URL).
+ */
+export function getUploadContentPath(path?: string | null): string | null {
   if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:')) {
+  if (
+    path.startsWith('http://') ||
+    path.startsWith('https://') ||
+    path.startsWith('blob:') ||
+    path.startsWith('data:')
+  ) {
     return path;
   }
-  return `${API_ORIGIN}${path.startsWith('/') ? path : `/${path}`}`;
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  const match = normalized.match(/^\/uploads\/(receipts|avatars)\/([^/?#]+)$/);
+  if (match) {
+    return `/uploads/content/${match[1]}/${match[2]}`;
+  }
+  return normalized;
+}
+
+/** @deprecated Prefer useAuthenticatedFileUrl for private uploads */
+export function resolveUploadUrl(path?: string | null): string | null {
+  return getUploadContentPath(path);
 }
 
 // Storage Keys
@@ -121,6 +145,8 @@ export const ROUTES = {
   CATEGORIES: '/categories',
   SETTINGS: '/settings',
   HELP: '/help',
+  MAINTENANCE: '/maintenance',
+  NOT_FOUND: '/404',
 } as const;
 
 // Query Keys for React Query

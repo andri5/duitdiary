@@ -1,10 +1,18 @@
 /**
  * DuitDiary - Auth Service
- * API calls for authentication
+ * Web: HttpOnly cookies via withCredentials
+ * Mobile: store access/refresh from JSON body in SecureStore (Bearer)
  */
 
 import api from '@/lib/api';
 import { STORAGE_KEYS } from '@/lib/constants';
+import {
+  clearTokens,
+  getAccessToken,
+  migrateLegacyTokens,
+  setAccessToken,
+  setRefreshToken,
+} from '@/lib/tokenStore';
 import type {
   ApiResponse,
   AuthTokens,
@@ -19,105 +27,76 @@ export interface AuthResponse {
   refreshToken: string;
 }
 
-/**
- * Register a new user
- */
 export async function register(data: RegisterData): Promise<AuthResponse> {
-  const response = await api.post<ApiResponse<AuthResponse>>(
-    '/auth/register',
-    data
-  );
+  const response = await api.post<ApiResponse<AuthResponse>>('/auth/register', data);
   return response.data.data;
 }
 
-/**
- * Login user
- */
-export async function login(
-  credentials: LoginCredentials
-): Promise<AuthResponse> {
-  const response = await api.post<ApiResponse<AuthResponse>>(
-    '/auth/login',
-    credentials
-  );
+export async function login(credentials: LoginCredentials): Promise<AuthResponse> {
+  const response = await api.post<ApiResponse<AuthResponse>>('/auth/login', credentials);
   return response.data.data;
 }
 
-/**
- * Logout user
- */
 export async function logout(): Promise<void> {
   try {
-    const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-    if (refreshToken) {
-      await api.post('/auth/logout', { refreshToken });
-    }
+    await api.post('/auth/logout', {});
   } finally {
-    // Always clear local storage
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.USER);
+    clearAuthData();
   }
 }
 
-/**
- * Refresh access token
- */
-export async function refreshToken(
-  refreshToken: string
-): Promise<AuthTokens> {
-  const response = await api.post<ApiResponse<AuthTokens>>('/auth/refresh', {
-    refreshToken,
-  });
+export async function refreshToken(token?: string): Promise<AuthTokens> {
+  const response = await api.post<ApiResponse<AuthTokens>>(
+    '/auth/refresh-token',
+    token ? { refreshToken: token } : {}
+  );
   return response.data.data;
 }
 
-/**
- * Get current user profile
- */
 export async function getCurrentUser(): Promise<User> {
   const response = await api.get<ApiResponse<User>>('/auth/me');
   return response.data.data;
 }
 
-/**
- * Request password reset
- */
 export async function forgotPassword(
   email: string
 ): Promise<{ message: string; resetUrl?: string }> {
-  const response = await api.post<
-    ApiResponse<{ message: string; resetUrl?: string }>
-  >('/auth/forgot-password', { email });
-  return response.data.data;
-}
-
-/**
- * Reset password with token
- */
-export async function resetPassword(
-  token: string,
-  password: string
-): Promise<{ message: string }> {
-  const response = await api.post<ApiResponse<{ message: string }>>(
-    '/auth/reset-password',
-    { token, password }
+  const response = await api.post<ApiResponse<{ message: string; resetUrl?: string }>>(
+    '/auth/forgot-password',
+    { email }
   );
   return response.data.data;
 }
 
-/**
- * Save auth data to local storage
- */
-export function saveAuthData(data: AuthResponse): void {
-  localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
-  localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
-  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
+export async function resetPassword(
+  token: string,
+  password: string
+): Promise<{ message: string }> {
+  const response = await api.post<ApiResponse<{ message: string }>>('/auth/reset-password', {
+    token,
+    password,
+  });
+  return response.data.data;
 }
 
 /**
- * Get stored user from local storage
+ * Persist user profile. Tokens stay in HttpOnly cookies for web;
+ * optionally mirror in memory for Bearer dual-mode (e.g. tests).
  */
+export function saveAuthData(data: AuthResponse): void {
+  // Do not put tokens in localStorage. Cookies are authoritative for web.
+  // Keep a short-lived memory copy so Authorization can be sent if cookies
+  // are unavailable (e.g. some mobile webviews) — still not persisted.
+  setAccessToken(data.accessToken);
+  setRefreshToken(data.refreshToken);
+  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
+}
+
+export function clearAuthData(): void {
+  clearTokens();
+  localStorage.removeItem(STORAGE_KEYS.USER);
+}
+
 export function getStoredUser(): User | null {
   const userStr = localStorage.getItem(STORAGE_KEYS.USER);
   if (!userStr) return null;
@@ -128,9 +107,33 @@ export function getStoredUser(): User | null {
   }
 }
 
-/**
- * Check if user is authenticated
- */
 export function isAuthenticated(): boolean {
-  return !!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+  return !!getStoredUser() || !!getAccessToken();
+}
+
+/**
+ * Restore session: cookies → /auth/me, else refresh cookie → /me
+ */
+export async function restoreSession(): Promise<User | null> {
+  migrateLegacyTokens();
+
+  try {
+    const user = await getCurrentUser();
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    return user;
+  } catch {
+    // try refresh via cookie
+  }
+
+  try {
+    const tokens = await refreshToken();
+    if (tokens?.accessToken) setAccessToken(tokens.accessToken);
+    if (tokens?.refreshToken) setRefreshToken(tokens.refreshToken);
+    const user = await getCurrentUser();
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    return user;
+  } catch {
+    clearAuthData();
+    return null;
+  }
 }

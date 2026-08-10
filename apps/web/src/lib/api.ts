@@ -1,6 +1,5 @@
 /**
- * DuitDiary - API Client
- * Axios instance with interceptors for auth
+ * Axios API client — cookie session (web) + optional Bearer (mobile/legacy)
  */
 
 import axios from 'axios';
@@ -10,24 +9,29 @@ import type {
   InternalAxiosRequestConfig,
 } from 'axios';
 import { API_BASE_URL, STORAGE_KEYS } from './constants';
+import {
+  clearTokens,
+  getAccessToken,
+  setAccessToken,
+  setRefreshToken,
+} from './tokenStore';
 
-// Create axios instance
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 10000,
+  withCredentials: true,
 });
 
-// Request interceptor - add auth token
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    // Prefer Bearer when present (mobile / dual-mode); otherwise cookies carry the session
+    const token = getAccessToken();
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // FormData must use multipart boundary from the browser
     if (typeof FormData !== 'undefined' && config.data instanceof FormData && config.headers) {
       if (typeof config.headers.delete === 'function') {
         config.headers.delete('Content-Type');
@@ -37,12 +41,40 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error: AxiosError) => {
-    return Promise.reject(error);
-  }
+  (error: AxiosError) => Promise.reject(error)
 );
 
-// Response interceptor - handle token refresh
+const AUTH_NO_REFRESH_PATHS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/refresh',
+  '/auth/refresh-token',
+];
+
+/** Frontend routes where a failed session must NOT hard-redirect to login */
+const NO_LOGIN_REDIRECT_PATHS = [
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/maintenance',
+  '/404',
+];
+
+function isAuthCredentialRequest(url?: string): boolean {
+  if (!url) return false;
+  return AUTH_NO_REFRESH_PATHS.some((path) => url.includes(path));
+}
+
+function shouldRedirectToLogin(): boolean {
+  const path = window.location.pathname;
+  return !NO_LOGIN_REDIRECT_PATHS.some(
+    (p) => path === p || path.startsWith(`${p}/`)
+  );
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -50,41 +82,39 @@ api.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // If 401 and we haven't retried yet
+    if (
+      error.response?.status === 401 &&
+      isAuthCredentialRequest(originalRequest?.url)
+    ) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-        
-        if (!refreshToken) {
-          throw new Error('No refresh token');
-        }
+        const response = await axios.post(
+          `${API_BASE_URL}/auth/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
 
-        // Try to refresh the token
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refreshToken,
-        });
+        const { accessToken, refreshToken: newRefreshToken } = response.data.data || {};
+        if (accessToken) setAccessToken(accessToken);
+        if (newRefreshToken) setRefreshToken(newRefreshToken);
 
-        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
-
-        // Save new tokens
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
-        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken);
-
-        // Retry original request with new token
-        if (originalRequest.headers) {
+        if (accessToken && originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         }
 
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - clear tokens and redirect to login
-        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+        clearTokens();
         localStorage.removeItem(STORAGE_KEYS.USER);
-        
-        window.location.href = '/login';
+
+        if (shouldRedirectToLogin()) {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       }
     }

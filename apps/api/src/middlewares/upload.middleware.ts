@@ -30,14 +30,17 @@ function makeStorage(destination: string) {
     destination: (_req, _file, cb) => {
       cb(null, destination);
     },
-    filename: (_req, file, cb) => {
+    filename: (req, file, cb) => {
       const ext = path.extname(file.originalname).toLowerCase() || '.bin';
       const safeExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.pdf'].includes(ext)
         ? ext
         : file.mimetype === 'application/pdf'
           ? '.pdf'
           : '.jpg';
-      const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+      const userId =
+        (req as { user?: { userId?: string } }).user?.userId?.replace(/[^a-zA-Z0-9-]/g, '') ||
+        'anon';
+      const unique = `${userId}-${Date.now()}-${Math.round(Math.random() * 1e9)}`;
       cb(null, `${unique}${safeExt}`);
     },
   });

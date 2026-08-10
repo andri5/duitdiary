@@ -5,7 +5,8 @@
 import { ExternalLink, FileText } from 'lucide-react';
 import { Modal } from './Modal';
 import { Button } from './Button';
-import { resolveUploadUrl } from '@/lib/constants';
+import { useAuthenticatedFileUrl } from '@/hooks/useAuthenticatedFileUrl';
+import { Spinner } from './Spinner';
 
 export interface ReceiptPreviewModalProps {
   isOpen: boolean;
@@ -14,8 +15,8 @@ export interface ReceiptPreviewModalProps {
   title?: string;
 }
 
-function isPdf(url: string) {
-  return url.toLowerCase().includes('.pdf');
+function isPdf(path: string) {
+  return path.toLowerCase().includes('.pdf');
 }
 
 export function ReceiptPreviewModal({
@@ -24,13 +25,20 @@ export function ReceiptPreviewModal({
   receiptUrl,
   title = 'Preview Struk',
 }: ReceiptPreviewModalProps) {
-  const url = resolveUploadUrl(receiptUrl);
+  const { url, isLoading, error } = useAuthenticatedFileUrl(
+    isOpen ? receiptUrl : null
+  );
+  const pdf = receiptUrl ? isPdf(receiptUrl) : false;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="lg" showBrand={false}>
-      {!url ? (
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <Spinner />
+        </div>
+      ) : error || !url ? (
         <p className="text-sm text-muted">Struk tidak tersedia.</p>
-      ) : isPdf(url) ? (
+      ) : pdf ? (
         <div className="space-y-4">
           <div className="flex flex-col items-center gap-3 rounded-2xl bg-mist/70 px-4 py-10 text-center">
             <FileText className="h-12 w-12 text-coral" />

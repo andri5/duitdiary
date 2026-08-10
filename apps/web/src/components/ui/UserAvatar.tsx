@@ -2,7 +2,7 @@
  * Shared user avatar (image or initials)
  */
 
-import { resolveUploadUrl } from '@/lib/constants';
+import { useAuthenticatedFileUrl } from '@/hooks/useAuthenticatedFileUrl';
 import { cn, getInitials } from '@/lib/utils';
 
 interface UserAvatarProps {
@@ -25,7 +25,7 @@ export function UserAvatar({
   size = 'md',
   className,
 }: UserAvatarProps) {
-  const src = resolveUploadUrl(avatar);
+  const { url: src } = useAuthenticatedFileUrl(avatar);
 
   if (src) {
     return (

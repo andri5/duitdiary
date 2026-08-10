@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DuitDiary — Scan Expo Go</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: #f4f7fb;
+        color: #0f172a;
+      }
+      .card {
+        width: min(420px, 92vw);
+        background: #fff;
+        border: 1px solid #d7e0ea;
+        border-radius: 20px;
+        padding: 28px 24px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.35rem;
+      }
+      p {
+        margin: 0 0 18px;
+        color: #64748b;
+        line-height: 1.45;
+      }
+      img {
+        width: 260px;
+        height: 260px;
+        border-radius: 12px;
+        background: #fff;
+      }
+      code {
+        display: inline-block;
+        margin-top: 16px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: #ecfdf8;
+        color: #0f9b8e;
+        font-weight: 700;
+        word-break: break-all;
+      }
+      .hint {
+        margin-top: 16px;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Scan dengan Expo Go</h1>
+      <p>Jangan pakai tab localhost:8081 di Cursor — buka halaman ini di Chrome/Edge.</p>
+      <img
+        id="qr"
+        alt="QR Expo"
+        width="260"
+        height="260"
+        src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=exp%3A%2F%2F192.168.101.79%3A8081"
+      />
+      <div><code id="url">exp://192.168.101.79:8081</code></div>
+      <p class="hint">
+        Atau di Expo Go ketik URL di atas secara manual.<br />
+        Pastikan Expo Metro masih jalan di PC.
+      </p>
+    </div>
+  </body>
+</html>

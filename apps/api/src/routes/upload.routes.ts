@@ -43,4 +43,13 @@ router.post(
   (req, res) => uploadController.uploadAvatar(req, res)
 );
 
+/**
+ * @route   GET /api/v1/uploads/content/:kind/:filename
+ * @desc    Auth-gated download for receipts/avatars
+ * @access  Private
+ */
+router.get('/content/:kind/:filename', (req, res) =>
+  uploadController.serveFile(req, res)
+);
+
 export default router;

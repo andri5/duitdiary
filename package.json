@@ -17,7 +17,7 @@
     "lint": "npm run lint --workspaces",
     "api": "npm --workspace apps/api run dev",
     "web": "npm --workspace apps/web run dev",
-    "mobile": "npm --workspace apps/mobile run dev"
+    "mobile": "npm --workspace mobile run start"
   },
   "keywords": [
     "finance",

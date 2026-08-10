@@ -1,6 +1,9 @@
+import path from 'path';
+import fs from 'fs';
 import { Request, Response } from 'express';
 import { prisma } from '../utils/prisma.js';
-import { sendCreated, sendError } from '../utils/response.js';
+import { sendCreated, sendError, sendNotFound, sendForbidden } from '../utils/response.js';
+import { AVATARS_DIR, RECEIPTS_DIR } from '../middlewares/upload.middleware.js';
 import type { AuthenticatedRequest } from '../types/index.js';
 
 export class UploadController {
@@ -86,6 +89,72 @@ export class UploadController {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to upload avatar';
       sendError(res, message, 400, 'UPLOAD_FAILED');
+    }
+  }
+
+  /**
+   * Serve upload only if the authenticated user owns the file.
+   */
+  async serveFile(req: Request, res: Response): Promise<void> {
+    try {
+      const authUser = (req as AuthenticatedRequest).user;
+      if (!authUser?.userId) {
+        sendError(res, 'Unauthorized', 401, 'UNAUTHORIZED');
+        return;
+      }
+
+      const kind = String(req.params.kind || '');
+      const filename = path.basename(String(req.params.filename || ''));
+
+      if (!['receipts', 'avatars'].includes(kind) || !filename) {
+        sendNotFound(res, 'File not found');
+        return;
+      }
+
+      const publicPath = `/uploads/${kind}/${filename}`;
+      const diskRoot = kind === 'receipts' ? RECEIPTS_DIR : AVATARS_DIR;
+      const absolute = path.resolve(diskRoot, filename);
+
+      if (!absolute.startsWith(path.resolve(diskRoot))) {
+        sendForbidden(res, 'Invalid path');
+        return;
+      }
+
+      if (!fs.existsSync(absolute)) {
+        sendNotFound(res, 'File not found');
+        return;
+      }
+
+      if (kind === 'avatars') {
+        const owner = await prisma.user.findFirst({
+          where: { id: authUser.userId, avatar: publicPath },
+          select: { id: true },
+        });
+        const ownedByName = filename.startsWith(`${authUser.userId}-`);
+        if (!owner && !ownedByName) {
+          sendForbidden(res, 'You do not have access to this file');
+          return;
+        }
+      } else {
+        const expense = await prisma.expense.findFirst({
+          where: {
+            userId: authUser.userId,
+            receiptUrl: publicPath,
+            deletedAt: null,
+          },
+          select: { id: true },
+        });
+        const ownedByName = filename.startsWith(`${authUser.userId}-`);
+        if (!expense && !ownedByName) {
+          sendForbidden(res, 'You do not have access to this file');
+          return;
+        }
+      }
+
+      res.sendFile(absolute);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to serve file';
+      sendError(res, message, 400, 'FILE_SERVE_FAILED');
     }
   }
 }
