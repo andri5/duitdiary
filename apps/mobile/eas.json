@@ -1,36 +1,48 @@
 {
   "cli": {
     "version": ">= 16.0.0",
-    "appVersionSource": "remote"
+    "appVersionSource": "local"
   },
   "build": {
-    "preview": {
+    "release": {
       "distribution": "internal",
+      "channel": "release",
+      "environment": "production",
       "node": "22.14.0",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "applicationArchivePath": "android/app/build/outputs/apk/release/app-release.apk"
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "http://10.44.202.50:3001/api/v1",
+        "EXPO_PUBLIC_APP_ENV": "release",
         "NPM_CONFIG_ENGINE_STRICT": "false",
         "EAS_SKIP_AUTO_FINGERPRINT": "1"
       }
     },
-    "preview-prod-api": {
-      "distribution": "internal",
-      "node": "22.14.0",
-      "android": {
-        "buildType": "apk"
-      },
+    "release-prod-api": {
+      "extends": "release",
+      "channel": "production",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api.example.com/api/v1",
-        "NPM_CONFIG_ENGINE_STRICT": "false"
+        "EXPO_PUBLIC_APP_ENV": "production",
+        "NPM_CONFIG_ENGINE_STRICT": "false",
+        "EAS_SKIP_AUTO_FINGERPRINT": "1"
       }
     },
     "production": {
-      "node": "22.14.0",
+      "extends": "release",
+      "distribution": "store",
+      "channel": "production",
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "gradleCommand": ":app:bundleRelease",
+        "applicationArchivePath": "android/app/build/outputs/bundle/release/app-release.aab"
+      },
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "production",
+        "NPM_CONFIG_ENGINE_STRICT": "false"
       }
     }
   },

@@ -4,7 +4,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { User } from '../lib/auth';
 import { logout } from '../lib/auth';
-import { API_BASE_URL } from '../lib/api';
 import { colors } from '../theme';
 import type { MainStackParamList } from '../navigation/types';
 
@@ -63,8 +62,8 @@ export function ProfileScreen({
       </Pressable>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>API endpoint</Text>
-        <Text style={styles.meta}>{API_BASE_URL}</Text>
+        <Text style={styles.cardTitle}>Versi aplikasi</Text>
+        <Text style={styles.meta}>DuitDiary 1.0.0 (release)</Text>
       </View>
 
       <Pressable style={styles.btn} onPress={handleLogout}>
