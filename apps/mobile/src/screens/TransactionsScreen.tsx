@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   getTransactions,
   deleteTransaction,
@@ -22,6 +23,7 @@ import { colors } from '../theme';
 import type { MainStackParamList } from '../navigation/types';
 
 export function TransactionsScreen() {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const [items, setItems] = useState<Transaction[]>([]);
   const [filter, setFilter] = useState<TxType | 'ALL'>('ALL');
@@ -61,6 +63,7 @@ export function TransactionsScreen() {
         onPress: async () => {
           try {
             await deleteTransaction(item.id);
+            Alert.alert('Berhasil', 'Transaksi dihapus.');
             setItems((prev) => prev.filter((t) => t.id !== item.id));
           } catch {
             Alert.alert('Gagal', 'Tidak bisa menghapus transaksi.');
@@ -71,16 +74,21 @@ export function TransactionsScreen() {
   };
 
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, { paddingTop: Math.max(insets.top, 12) + 12 }]}>
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Transaksi</Text>
           <Text style={styles.sub}>Pemasukan & pengeluaran</Text>
         </View>
-        <Pressable style={styles.addBtn} onPress={() => navigation.navigate('AddTransaction')}>
+        <Pressable
+          style={styles.addBtn}
+          onPress={() => navigation.navigate('TransactionForm', undefined)}
+        >
           <Text style={styles.addBtnText}>+ Tambah</Text>
         </Pressable>
       </View>
+
+      <Text style={styles.hint}>Tap untuk edit · Tahan untuk hapus</Text>
 
       <View style={styles.filterRow}>
         {([
@@ -118,12 +126,19 @@ export function TransactionsScreen() {
             />
           }
           ListEmptyComponent={
-            <Text style={styles.empty}>Belum ada transaksi. Tap + Tambah untuk mulai.</Text>
+            <View style={styles.emptyBox}>
+              <Text style={styles.emptyTitle}>Belum ada transaksi</Text>
+              <Text style={styles.emptyBody}>Tap + Tambah untuk mulai mencatat.</Text>
+            </View>
           }
           renderItem={({ item }) => {
             const isIncome = item.type === 'INCOME';
             return (
-              <Pressable style={styles.row} onLongPress={() => onDelete(item)}>
+              <Pressable
+                style={styles.row}
+                onPress={() => navigation.navigate('TransactionForm', { id: item.id })}
+                onLongPress={() => onDelete(item)}
+              >
                 <View
                   style={[styles.dot, { backgroundColor: item.category.color || colors.brand }]}
                 />
@@ -151,7 +166,7 @@ export function TransactionsScreen() {
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 56 },
+  wrap: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -160,6 +175,7 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 26, fontWeight: '800', color: colors.text },
   sub: { marginTop: 4, color: colors.muted },
+  hint: { color: colors.faint, fontSize: 12, marginBottom: 10 },
   addBtn: {
     backgroundColor: colors.brand,
     borderRadius: 12,
@@ -179,7 +195,13 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
   chipText: { fontSize: 13, fontWeight: '600', color: colors.muted },
   chipTextActive: { color: '#fff' },
-  empty: { textAlign: 'center', color: colors.muted, marginTop: 48, paddingHorizontal: 24 },
+  emptyBox: {
+    marginTop: 48,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  emptyTitle: { fontWeight: '800', fontSize: 16, color: colors.text },
+  emptyBody: { marginTop: 8, color: colors.muted, textAlign: 'center' },
   error: {
     backgroundColor: colors.dangerBg,
     color: colors.dangerText,

@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>DuitDiary — Scan Expo Go</title>
     <style>
-      :root {
-        color-scheme: light;
-      }
       body {
         margin: 0;
         min-height: 100vh;
@@ -26,21 +23,9 @@
         text-align: center;
         box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
       }
-      h1 {
-        margin: 0 0 8px;
-        font-size: 1.35rem;
-      }
-      p {
-        margin: 0 0 18px;
-        color: #64748b;
-        line-height: 1.45;
-      }
-      img {
-        width: 260px;
-        height: 260px;
-        border-radius: 12px;
-        background: #fff;
-      }
+      h1 { margin: 0 0 8px; font-size: 1.35rem; }
+      p { margin: 0 0 18px; color: #64748b; line-height: 1.45; }
+      img { width: 260px; height: 260px; border-radius: 12px; }
       code {
         display: inline-block;
         margin-top: 16px;
@@ -51,28 +36,21 @@
         font-weight: 700;
         word-break: break-all;
       }
-      .hint {
-        margin-top: 16px;
-        font-size: 0.9rem;
-      }
+      .hint { margin-top: 16px; font-size: 0.9rem; }
     </style>
   </head>
   <body>
     <div class="card">
       <h1>Scan dengan Expo Go</h1>
-      <p>Jangan pakai tab localhost:8081 di Cursor — buka halaman ini di Chrome/Edge.</p>
+      <p>Buka di Chrome/Edge (bukan tab Cursor). Pastikan Expo Go <strong>SDK 57</strong>.</p>
       <img
-        id="qr"
         alt="QR Expo"
         width="260"
         height="260"
-        src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=exp%3A%2F%2F192.168.101.79%3A8081"
+        src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=exp%3A%2F%2F10.44.202.50%3A8081"
       />
-      <div><code id="url">exp://192.168.101.79:8081</code></div>
-      <p class="hint">
-        Atau di Expo Go ketik URL di atas secara manual.<br />
-        Pastikan Expo Metro masih jalan di PC.
-      </p>
+      <div><code>exp://10.44.202.50:8081</code></div>
+      <p class="hint">API: http://10.44.202.50:3001/api/v1</p>
     </div>
   </body>
 </html>

@@ -1,4 +1,4 @@
-import { useEffect, useState, createContext, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -6,22 +6,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { RegisterScreen } from './src/screens/RegisterScreen';
+import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen';
 import { MainNavigator } from './src/navigation/MainNavigator';
 import { getMe, type User } from './src/lib/auth';
 import { getAccessToken } from './src/lib/api';
 import { colors } from './src/theme';
-
-type AuthContextValue = {
-  setUser: (user: User | null) => void;
-};
-
-const AuthContext = createContext<AuthContextValue>({ setUser: () => undefined });
-export const useAuth = () => useContext(AuthContext);
-
-export type RootStackParamList = {
-  Login: undefined;
-  Register: undefined;
-};
+import { AuthContext, type RootStackParamList } from './src/authContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -66,6 +56,7 @@ export default function App() {
             <Stack.Navigator screenOptions={{ headerShown: false }}>
               <Stack.Screen name="Login" component={LoginScreen} />
               <Stack.Screen name="Register" component={RegisterScreen} />
+              <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
             </Stack.Navigator>
           )}
         </NavigationContainer>

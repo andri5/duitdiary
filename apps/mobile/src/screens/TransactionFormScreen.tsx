@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,77 +11,143 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   createTransaction,
   getCategories,
+  getTransaction,
+  updateTransaction,
   type Category,
   type TxType,
 } from '../lib/finance';
-import { todayISO } from '../lib/format';
+import { formatDateShort, todayISO } from '../lib/format';
 import { colors } from '../theme';
 import type { MainStackParamList } from '../navigation/types';
 
-type Props = NativeStackScreenProps<MainStackParamList, 'AddTransaction'>;
+type Props = NativeStackScreenProps<MainStackParamList, 'TransactionForm'>;
 
-export function AddTransactionScreen({ navigation }: Props) {
+function parseAmount(raw: string): number {
+  return Number(String(raw).replace(/\./g, '').replace(',', '.'));
+}
+
+function isoToDate(iso: string): Date {
+  const d = new Date(`${iso.slice(0, 10)}T12:00:00`);
+  return Number.isNaN(d.getTime()) ? new Date() : d;
+}
+
+function dateToISO(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+export function TransactionFormScreen({ navigation, route }: Props) {
+  const editId = route.params?.id;
+  const isEdit = Boolean(editId);
+  const insets = useSafeAreaInsets();
+
   const [type, setType] = useState<TxType>('EXPENSE');
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [date, setDate] = useState(todayISO());
+  const [showPicker, setShowPicker] = useState(false);
+  const [loading, setLoading] = useState(isEdit);
   const [loadingCats, setLoadingCats] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prefilling, setPrefilling] = useState(isEdit);
 
   useEffect(() => {
+    navigation.setOptions({
+      title: isEdit ? 'Edit transaksi' : 'Tambah transaksi',
+    });
+  }, [isEdit, navigation]);
+
+  useEffect(() => {
+    if (!editId) return;
     let cancelled = false;
     (async () => {
-      setLoadingCats(true);
-      setCategoryId(null);
+      setLoading(true);
       try {
-        const list = await getCategories(type);
-        if (!cancelled) {
-          setCategories(list);
-          setCategoryId(list[0]?.id ?? null);
-        }
+        const tx = await getTransaction(editId);
+        if (cancelled) return;
+        setType(tx.type);
+        setAmount(String(Math.round(tx.amount)));
+        setNote(tx.description || '');
+        setDate(tx.date.slice(0, 10));
+        setCategoryId(tx.categoryId);
+        setPrefilling(true);
       } catch {
-        if (!cancelled) setError('Gagal memuat kategori.');
+        if (!cancelled) {
+          setError('Gagal memuat transaksi.');
+          Alert.alert('Gagal', 'Transaksi tidak ditemukan.', [
+            { text: 'OK', onPress: () => navigation.goBack() },
+          ]);
+        }
       } finally {
-        if (!cancelled) setLoadingCats(false);
+        if (!cancelled) setLoading(false);
       }
     })();
     return () => {
       cancelled = true;
     };
+  }, [editId, navigation]);
+
+  const loadCategories = useCallback(async () => {
+    setLoadingCats(true);
+    try {
+      const list = await getCategories(type);
+      setCategories(list);
+      setCategoryId((prev) => {
+        if (prev && list.some((c) => c.id === prev)) return prev;
+        return list[0]?.id ?? null;
+      });
+    } catch {
+      setError('Gagal memuat kategori.');
+    } finally {
+      setLoadingCats(false);
+      setPrefilling(false);
+    }
   }, [type]);
+
+  useEffect(() => {
+    if (loading && isEdit) return;
+    void loadCategories();
+  }, [type, loading, isEdit, loadCategories]);
 
   const onSave = async () => {
     setError(null);
-    const parsed = Number(String(amount).replace(/\./g, '').replace(',', '.'));
+    const parsed = parseAmount(amount);
     if (!parsed || parsed <= 0) {
       setError('Masukkan jumlah yang valid.');
       return;
     }
     if (!categoryId) {
-      setError('Pilih kategori.');
-      return;
-    }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      setError('Tanggal harus format YYYY-MM-DD.');
+      setError('Pilih kategori. Buat dulu di Profil → Kelola kategori.');
       return;
     }
 
     setSaving(true);
     try {
-      await createTransaction({
+      const payload = {
         amount: parsed,
         categoryId,
         type,
         date,
         description: note.trim() || undefined,
-      });
+      };
+      if (isEdit && editId) {
+        await updateTransaction(editId, payload);
+        Alert.alert('Berhasil', 'Transaksi diperbarui.');
+      } else {
+        await createTransaction(payload);
+        Alert.alert('Berhasil', 'Transaksi ditambahkan.');
+      }
       navigation.goBack();
     } catch (e: unknown) {
       const message =
@@ -94,19 +160,35 @@ export function AddTransactionScreen({ navigation }: Props) {
     }
   };
 
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator color={colors.brand} size="large" />
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView style={styles.wrap} contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Tambah transaksi</Text>
-
+      <ScrollView
+        style={styles.wrap}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: Math.max(insets.bottom, 16) + 32 },
+        ]}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.typeRow}>
           {(['EXPENSE', 'INCOME'] as const).map((t) => (
             <Pressable
               key={t}
-              onPress={() => setType(t)}
+              onPress={() => {
+                if (!prefilling) setCategoryId(null);
+                setType(t);
+              }}
               style={[styles.typeChip, type === t && styles.typeChipActive]}
             >
               <Text style={[styles.typeText, type === t && styles.typeTextActive]}>
@@ -127,8 +209,27 @@ export function AddTransactionScreen({ navigation }: Props) {
           onChangeText={setAmount}
         />
 
-        <Text style={styles.label}>Tanggal (YYYY-MM-DD)</Text>
-        <TextInput style={styles.input} value={date} onChangeText={setDate} autoCapitalize="none" />
+        <Text style={styles.label}>Tanggal</Text>
+        <Pressable style={styles.dateBtn} onPress={() => setShowPicker(true)}>
+          <Text style={styles.dateBtnText}>{formatDateShort(date)}</Text>
+          <Text style={styles.dateBtnHint}>Ubah</Text>
+        </Pressable>
+        {showPicker ? (
+          <DateTimePicker
+            value={isoToDate(date)}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={(_, selected) => {
+              if (Platform.OS === 'android') setShowPicker(false);
+              if (selected) setDate(dateToISO(selected));
+            }}
+          />
+        ) : null}
+        {Platform.OS === 'ios' && showPicker ? (
+          <Pressable onPress={() => setShowPicker(false)} style={{ marginBottom: 8 }}>
+            <Text style={styles.donePicker}>Selesai pilih tanggal</Text>
+          </Pressable>
+        ) : null}
 
         <Text style={styles.label}>Catatan (opsional)</Text>
         <TextInput
@@ -142,7 +243,12 @@ export function AddTransactionScreen({ navigation }: Props) {
         {loadingCats ? (
           <ActivityIndicator color={colors.brand} />
         ) : categories.length === 0 ? (
-          <Text style={styles.hint}>Belum ada kategori. Buat dulu di web/settings.</Text>
+          <View style={styles.emptyBox}>
+            <Text style={styles.hint}>Belum ada kategori untuk tipe ini.</Text>
+            <Pressable onPress={() => navigation.navigate('Categories')}>
+              <Text style={styles.link}>Kelola kategori →</Text>
+            </Pressable>
+          </View>
         ) : (
           <View style={styles.catWrap}>
             {categories.map((c) => (
@@ -168,7 +274,7 @@ export function AddTransactionScreen({ navigation }: Props) {
           {saving ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.saveText}>Simpan</Text>
+            <Text style={styles.saveText}>{isEdit ? 'Simpan perubahan' : 'Simpan'}</Text>
           )}
         </Pressable>
 
@@ -182,8 +288,8 @@ export function AddTransactionScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 20, paddingTop: 24, paddingBottom: 40 },
-  title: { fontSize: 22, fontWeight: '800', color: colors.text, marginBottom: 16 },
+  content: { padding: 20, paddingTop: 16 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg },
   typeRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   typeChip: {
     flex: 1,
@@ -207,6 +313,20 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 4,
   },
+  dateBtn: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateBtnText: { fontWeight: '700', color: colors.text },
+  dateBtnHint: { color: colors.brand, fontWeight: '600' },
+  donePicker: { color: colors.brand, fontWeight: '700', textAlign: 'right' },
   catWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   catChip: {
     flexDirection: 'row',
@@ -220,7 +340,15 @@ const styles = StyleSheet.create({
   },
   catDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
   catName: { fontWeight: '600', color: colors.text, fontSize: 13 },
+  emptyBox: {
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 14,
+  },
   hint: { color: colors.muted, marginBottom: 8 },
+  link: { color: colors.brand, fontWeight: '700' },
   saveBtn: {
     marginTop: 24,
     backgroundColor: colors.brand,

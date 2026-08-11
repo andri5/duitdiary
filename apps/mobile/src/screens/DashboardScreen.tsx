@@ -8,16 +8,31 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { User } from '../lib/auth';
-import { getDashboardSummary, type DashboardSummary, type Transaction } from '../lib/finance';
+import {
+  getDashboardSummary,
+  getMarketQuotes,
+  type DashboardSummary,
+  type MarketQuotes,
+  type Transaction,
+} from '../lib/finance';
 import { formatIDR, formatDateShort } from '../lib/format';
 import { colors } from '../theme';
+import type { MainStackParamList } from '../navigation/types';
 
-function TxRow({ item }: { item: Transaction }) {
+function TxRow({
+  item,
+  onPress,
+}: {
+  item: Transaction;
+  onPress: () => void;
+}) {
   const isIncome = item.type === 'INCOME';
   return (
-    <View style={styles.row}>
+    <Pressable style={styles.row} onPress={onPress}>
       <View style={[styles.dot, { backgroundColor: item.category.color || colors.brand }]} />
       <View style={styles.rowBody}>
         <Text style={styles.rowTitle} numberOfLines={1}>
@@ -31,23 +46,33 @@ function TxRow({ item }: { item: Transaction }) {
         {isIncome ? '+' : '−'}
         {formatIDR(item.amount)}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 
 export function DashboardScreen({ user }: { user: User }) {
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [market, setMarket] = useState<MarketQuotes | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<'week' | 'month' | 'year'>('month');
 
+  const openAdd = () => navigation.navigate('TransactionForm', undefined);
+  const openEdit = (id: string) => navigation.navigate('TransactionForm', { id });
+
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     setError(null);
     try {
-      const data = await getDashboardSummary(period);
+      const [data, quotes] = await Promise.all([
+        getDashboardSummary(period),
+        getMarketQuotes(),
+      ]);
       setSummary(data);
+      setMarket(quotes);
     } catch {
       setError('Gagal memuat ringkasan. Tarik untuk refresh.');
     } finally {
@@ -72,7 +97,10 @@ export function DashboardScreen({ user }: { user: User }) {
   return (
     <ScrollView
       style={styles.wrap}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[
+        styles.content,
+        { paddingTop: Math.max(insets.top, 12) + 12, paddingBottom: 24 },
+      ]}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -84,8 +112,37 @@ export function DashboardScreen({ user }: { user: User }) {
         />
       }
     >
-      <Text style={styles.hello}>Halo, {user.name.split(' ')[0]}</Text>
-      <Text style={styles.sub}>Ringkasan keuanganmu</Text>
+      <View style={styles.headerRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.hello}>Halo, {user.name.split(' ')[0]}</Text>
+          <Text style={styles.sub}>Ringkasan keuanganmu</Text>
+        </View>
+        <Pressable style={styles.addBtn} onPress={openAdd}>
+          <Text style={styles.addBtnText}>+ Tambah</Text>
+        </Pressable>
+      </View>
+
+      <Pressable style={styles.cta} onPress={openAdd}>
+        <Text style={styles.ctaTitle}>Catat transaksi</Text>
+        <Text style={styles.ctaSub}>Tambah pemasukan atau pengeluaran</Text>
+      </Pressable>
+
+      {market?.usdIdr || market?.gold ? (
+        <View style={styles.marketRow}>
+          {market.usdIdr ? (
+            <View style={styles.marketCard}>
+              <Text style={styles.marketLabel}>USD/IDR</Text>
+              <Text style={styles.marketValue}>{formatIDR(market.usdIdr.rate)}</Text>
+            </View>
+          ) : null}
+          {market.gold ? (
+            <View style={styles.marketCard}>
+              <Text style={styles.marketLabel}>Emas/gr</Text>
+              <Text style={styles.marketValue}>{formatIDR(market.gold.sellPerGram)}</Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
 
       <View style={styles.periodRow}>
         {(['week', 'month', 'year'] as const).map((p) => (
@@ -141,9 +198,21 @@ export function DashboardScreen({ user }: { user: User }) {
 
           <Text style={styles.sectionTitle}>Terbaru</Text>
           {recent.length === 0 ? (
-            <Text style={styles.empty}>Belum ada transaksi di periode ini.</Text>
+            <View style={styles.emptyBox}>
+              <Text style={styles.emptyTitle}>Belum ada transaksi</Text>
+              <Text style={styles.emptyBody}>Tap + Tambah untuk mulai mencatat.</Text>
+            </View>
           ) : (
-            recent.map((item) => <TxRow key={`${item.type}-${item.id}`} item={item} />)
+            <>
+              <Text style={styles.hint}>Tap item untuk edit</Text>
+              {recent.map((item) => (
+                <TxRow
+                  key={`${item.type}-${item.id}`}
+                  item={item}
+                  onPress={() => openEdit(item.id)}
+                />
+              ))}
+            </>
           )}
         </>
       ) : null}
@@ -153,9 +222,44 @@ export function DashboardScreen({ user }: { user: User }) {
 
 const styles = StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 20, paddingTop: 56, paddingBottom: 40 },
+  content: { paddingHorizontal: 20 },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 14,
+  },
   hello: { fontSize: 26, fontWeight: '800', color: colors.text },
-  sub: { marginTop: 4, color: colors.muted, marginBottom: 16 },
+  sub: { marginTop: 4, color: colors.muted },
+  addBtn: {
+    backgroundColor: colors.brand,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginTop: 4,
+  },
+  addBtnText: { color: '#fff', fontWeight: '700' },
+  cta: {
+    backgroundColor: '#ecfdf8',
+    borderWidth: 1,
+    borderColor: '#99f6e4',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
+  },
+  ctaTitle: { fontWeight: '800', color: colors.brandDark, fontSize: 15 },
+  ctaSub: { marginTop: 4, color: colors.muted, fontSize: 13 },
+  marketRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  marketCard: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 12,
+  },
+  marketLabel: { color: colors.muted, fontSize: 11, fontWeight: '600' },
+  marketValue: { marginTop: 4, fontWeight: '800', color: colors.text, fontSize: 14 },
   periodRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   periodChip: {
     paddingHorizontal: 14,
@@ -194,9 +298,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 10,
+    marginBottom: 4,
   },
-  empty: { color: colors.muted, marginTop: 8 },
+  hint: { color: colors.faint, fontSize: 12, marginBottom: 10 },
+  emptyBox: {
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 16,
+    marginTop: 8,
+  },
+  emptyTitle: { fontWeight: '800', color: colors.text },
+  emptyBody: { marginTop: 6, color: colors.muted },
   error: {
     backgroundColor: colors.dangerBg,
     color: colors.dangerText,

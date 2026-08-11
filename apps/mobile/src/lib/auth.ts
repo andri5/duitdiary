@@ -48,3 +48,8 @@ export async function logout(): Promise<void> {
     await clearTokens();
   }
 }
+
+export async function forgotPassword(email: string): Promise<string> {
+  const { data } = await api.post('/auth/forgot-password', { email });
+  return (data.message as string) || 'Jika email terdaftar, link reset akan dikirim.';
+}

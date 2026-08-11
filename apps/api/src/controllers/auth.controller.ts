@@ -50,7 +50,16 @@ export class AuthController {
       sendSuccess(res, result, 'Login successful');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed';
-      sendUnauthorized(res, message);
+      if (
+        message === 'Email atau password salah' ||
+        message === 'Invalid email or password'
+      ) {
+        sendUnauthorized(res, 'Email atau password salah');
+        return;
+      }
+      // Avoid leaking Prisma/DB internals to clients
+      console.error('Login error:', message);
+      sendError(res, 'Login gagal. Coba lagi sebentar.', 503, 'LOGIN_UNAVAILABLE');
     }
   }
 

@@ -9,12 +9,14 @@ import {
   Platform,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { login } from '../lib/auth';
-import { useAuth, type RootStackParamList } from '../../App';
+import { useAuth, type RootStackParamList } from '../authContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export function LoginScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
   const { setUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,7 +41,10 @@ export function LoginScreen({ navigation }: Props) {
 
   return (
     <KeyboardAvoidingView
-      style={styles.wrap}
+      style={[
+        styles.wrap,
+        { paddingTop: Math.max(insets.top, 16), paddingBottom: Math.max(insets.bottom, 16) },
+      ]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <Text style={styles.brand}>DuitDiary</Text>
@@ -72,8 +77,16 @@ export function LoginScreen({ navigation }: Props) {
         )}
       </Pressable>
 
+      <Pressable style={styles.secondaryBtn} onPress={() => navigation.navigate('Register')}>
+        <Text style={styles.secondaryBtnText}>Daftar akun baru</Text>
+      </Pressable>
+
+      <Pressable onPress={() => navigation.navigate('ForgotPassword')}>
+        <Text style={styles.link}>Lupa password?</Text>
+      </Pressable>
+
       <Pressable onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.link}>Belum punya akun? Daftar</Text>
+        <Text style={styles.link}>Belum punya akun? Ketuk di sini</Text>
       </Pressable>
     </KeyboardAvoidingView>
   );
@@ -101,6 +114,16 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  secondaryBtn: {
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#0f9b8e',
+    backgroundColor: '#fff',
+  },
+  secondaryBtnText: { color: '#0f9b8e', fontWeight: '700', fontSize: 16 },
   link: { marginTop: 18, textAlign: 'center', color: '#0f9b8e', fontWeight: '600' },
   error: {
     backgroundColor: '#fdecec',

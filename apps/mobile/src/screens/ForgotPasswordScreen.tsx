@@ -10,31 +10,34 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { register } from '../lib/auth';
-import { useAuth, type RootStackParamList } from '../authContext';
+import { forgotPassword } from '../lib/auth';
+import type { RootStackParamList } from '../authContext';
 import { colors } from '../theme';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'ForgotPassword'>;
 
-export function RegisterScreen({ navigation }: Props) {
+export function ForgotPasswordScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { setUser } = useAuth();
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const onSubmit = async () => {
     setError(null);
+    setSuccess(null);
+    if (!email.trim()) {
+      setError('Masukkan email.');
+      return;
+    }
     setLoading(true);
     try {
-      const result = await register(name.trim(), email.trim(), password);
-      setUser(result.user);
+      const message = await forgotPassword(email.trim());
+      setSuccess(message);
     } catch (e: unknown) {
       const message =
         (e as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Pendaftaran gagal.';
+        'Gagal mengirim link reset.';
       setError(message);
     } finally {
       setLoading(false);
@@ -57,12 +60,14 @@ export function RegisterScreen({ navigation }: Props) {
       </Pressable>
 
       <Text style={styles.brand}>DuitDiary</Text>
-      <Text style={styles.title}>Buat akun</Text>
-      <Text style={styles.sub}>Mulai catat pengeluaran dari HP</Text>
+      <Text style={styles.title}>Lupa password</Text>
+      <Text style={styles.sub}>
+        Kami kirim link reset ke email (buka di browser/web untuk ganti password).
+      </Text>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {success ? <Text style={styles.success}>{success}</Text> : null}
 
-      <TextInput style={styles.input} placeholder="Nama" value={name} onChangeText={setName} />
       <TextInput
         style={styles.input}
         autoCapitalize="none"
@@ -71,24 +76,13 @@ export function RegisterScreen({ navigation }: Props) {
         value={email}
         onChangeText={setEmail}
       />
-      <TextInput
-        style={styles.input}
-        secureTextEntry
-        placeholder="Password (min. 6)"
-        value={password}
-        onChangeText={setPassword}
-      />
 
       <Pressable style={styles.btn} onPress={onSubmit} disabled={loading}>
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.btnText}>Daftar</Text>
+          <Text style={styles.btnText}>Kirim link reset</Text>
         )}
-      </Pressable>
-
-      <Pressable onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.link}>Sudah punya akun? Masuk</Text>
       </Pressable>
     </KeyboardAvoidingView>
   );
@@ -96,11 +90,11 @@ export function RegisterScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   wrap: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: colors.bg },
-  backBtn: { position: 'absolute', top: 52, left: 24, zIndex: 1 },
+  backBtn: { position: 'absolute', left: 24, zIndex: 1 },
   backText: { color: colors.brand, fontWeight: '700', fontSize: 15 },
   brand: { fontSize: 14, fontWeight: '700', color: colors.brand, marginBottom: 8 },
   title: { fontSize: 28, fontWeight: '800', color: colors.text },
-  sub: { marginTop: 6, marginBottom: 20, color: colors.muted },
+  sub: { marginTop: 6, marginBottom: 20, color: colors.muted, lineHeight: 20 },
   input: {
     backgroundColor: colors.surface,
     borderWidth: 1,
@@ -118,10 +112,16 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  link: { marginTop: 18, textAlign: 'center', color: colors.brand, fontWeight: '600' },
   error: {
     backgroundColor: colors.dangerBg,
     color: colors.dangerText,
+    padding: 10,
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  success: {
+    backgroundColor: '#ecfdf8',
+    color: colors.income,
     padding: 10,
     borderRadius: 12,
     marginBottom: 10,
