@@ -4,7 +4,7 @@
   "description": "Personal Finance Management App",
   "private": true,
   "engines": {
-    "node": "18.x || 20.x"
+    "node": ">=18"
   },
   "workspaces": [
     "apps/*",

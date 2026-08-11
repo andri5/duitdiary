@@ -6,23 +6,29 @@
   "build": {
     "preview": {
       "distribution": "internal",
+      "node": "22.14.0",
       "android": {
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://10.44.202.50:3001/api/v1"
+        "EXPO_PUBLIC_API_URL": "http://10.44.202.50:3001/api/v1",
+        "NPM_CONFIG_ENGINE_STRICT": "false",
+        "EAS_SKIP_AUTO_FINGERPRINT": "1"
       }
     },
     "preview-prod-api": {
       "distribution": "internal",
+      "node": "22.14.0",
       "android": {
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.example.com/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://api.example.com/api/v1",
+        "NPM_CONFIG_ENGINE_STRICT": "false"
       }
     },
     "production": {
+      "node": "22.14.0",
       "android": {
         "buildType": "app-bundle"
       }
