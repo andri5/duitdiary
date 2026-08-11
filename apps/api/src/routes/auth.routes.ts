@@ -8,6 +8,7 @@ import {
   refreshTokenSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  updateProfileSchema,
 } from '../utils/validation.js';
 
 const router = Router();
@@ -44,6 +45,13 @@ router.post(
 );
 
 router.get('/me', authMiddleware, (req, res) => authController.me(req, res));
+
+router.put(
+  '/profile',
+  authMiddleware,
+  validate(updateProfileSchema),
+  (req, res) => authController.updateProfile(req, res)
+);
 
 router.post(
   '/forgot-password',

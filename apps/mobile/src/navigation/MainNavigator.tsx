@@ -9,6 +9,8 @@ import { ProfileScreen } from '../screens/ProfileScreen';
 import { TransactionFormScreen } from '../screens/TransactionFormScreen';
 import { CategoriesScreen } from '../screens/CategoriesScreen';
 import { CategoryFormScreen } from '../screens/CategoryFormScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
+import { HelpScreen } from '../screens/HelpScreen';
 import { colors } from '../theme';
 import type { MainStackParamList, MainTabParamList } from './types';
 
@@ -105,6 +107,24 @@ export function MainNavigator({
         options={{
           title: 'Kategori',
           presentation: 'modal',
+          headerTintColor: colors.brand,
+          headerBackTitle: 'Kembali',
+        }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          title: 'Pengaturan',
+          headerTintColor: colors.brand,
+          headerBackTitle: 'Kembali',
+        }}
+      />
+      <Stack.Screen
+        name="Help"
+        component={HelpScreen}
+        options={{
+          title: 'Bantuan',
           headerTintColor: colors.brand,
           headerBackTitle: 'Kembali',
         }}

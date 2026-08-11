@@ -257,6 +257,29 @@ export class AuthService {
     return this.formatUser(user);
   }
 
+  async updateProfile(
+    userId: string,
+    data: { name?: string; currency?: string }
+  ): Promise<UserResponse> {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.currency !== undefined ? { currency: data.currency } : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar: true,
+        currency: true,
+        createdAt: true,
+      },
+    });
+
+    return this.formatUser(user);
+  }
+
   private async saveRefreshToken(userId: string, token: string): Promise<void> {
     const expiresAt = new Date(Date.now() + parseExpiresIn(config.jwt.refreshExpiresIn));
 

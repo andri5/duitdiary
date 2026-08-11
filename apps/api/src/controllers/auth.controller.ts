@@ -131,6 +131,18 @@ export class AuthController {
       }
     }
   }
+
+  async updateProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId } = (req as AuthenticatedRequest).user!;
+      const data = req.body as { name?: string; currency?: string };
+      const user = await authService.updateProfile(userId, data);
+      sendSuccess(res, user, 'Profil diperbarui');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update profile';
+      sendError(res, message, 400, 'PROFILE_UPDATE_FAILED');
+    }
+  }
 }
 
 export const authController = new AuthController();

@@ -10,8 +10,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as ImagePicker from 'expo-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -22,6 +24,7 @@ import {
   type Category,
   type TxType,
 } from '../lib/finance';
+import { authImageSource, uploadReceipt } from '../lib/upload';
 import { formatDateShort, todayISO } from '../lib/format';
 import { colors } from '../theme';
 import type { MainStackParamList } from '../navigation/types';
@@ -61,6 +64,12 @@ export function TransactionFormScreen({ navigation, route }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [prefilling, setPrefilling] = useState(isEdit);
+  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<{
+    uri: string;
+    headers?: { Authorization: string };
+  } | null>(null);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({
@@ -81,6 +90,7 @@ export function TransactionFormScreen({ navigation, route }: Props) {
         setNote(tx.description || '');
         setDate(tx.date.slice(0, 10));
         setCategoryId(tx.categoryId);
+        setReceiptUrl(tx.receiptUrl || null);
         setPrefilling(true);
       } catch {
         if (!cancelled) {
@@ -120,6 +130,60 @@ export function TransactionFormScreen({ navigation, route }: Props) {
     void loadCategories();
   }, [type, loading, isEdit, loadCategories]);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const src = await authImageSource(receiptUrl);
+      if (!cancelled) setReceiptPreview(src);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [receiptUrl]);
+
+  const pickReceipt = async (fromCamera: boolean) => {
+    if (fromCamera) {
+      const cam = await ImagePicker.requestCameraPermissionsAsync();
+      if (!cam.granted) {
+        Alert.alert('Izin diperlukan', 'Izinkan kamera untuk foto struk.');
+        return;
+      }
+    } else {
+      const lib = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!lib.granted) {
+        Alert.alert('Izin diperlukan', 'Izinkan galeri untuk unggah struk.');
+        return;
+      }
+    }
+
+    const result = fromCamera
+      ? await ImagePicker.launchCameraAsync({ quality: 0.7 })
+      : await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          quality: 0.7,
+        });
+
+    if (result.canceled || !result.assets?.[0]) return;
+    const asset = result.assets[0];
+    setUploadingReceipt(true);
+    try {
+      const uploaded = await uploadReceipt(
+        asset.uri,
+        asset.mimeType || 'image/jpeg',
+        asset.fileName || undefined
+      );
+      setReceiptUrl(uploaded.url);
+      Alert.alert('Berhasil', 'Struk diunggah. Simpan transaksi untuk menyimpan.');
+    } catch (e: unknown) {
+      const message =
+        (e as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Gagal mengunggah struk.';
+      Alert.alert('Gagal', message);
+    } finally {
+      setUploadingReceipt(false);
+    }
+  };
+
   const onSave = async () => {
     setError(null);
     const parsed = parseAmount(amount);
@@ -140,6 +204,7 @@ export function TransactionFormScreen({ navigation, route }: Props) {
         type,
         date,
         description: note.trim() || undefined,
+        receiptUrl,
       };
       if (isEdit && editId) {
         await updateTransaction(editId, payload);
@@ -270,6 +335,40 @@ export function TransactionFormScreen({ navigation, route }: Props) {
           </View>
         )}
 
+        <Text style={styles.label}>Struk (opsional)</Text>
+        <View style={styles.receiptActions}>
+          <Pressable
+            style={styles.receiptBtn}
+            onPress={() => pickReceipt(false)}
+            disabled={uploadingReceipt}
+          >
+            <Text style={styles.receiptBtnText}>Galeri</Text>
+          </Pressable>
+          <Pressable
+            style={styles.receiptBtn}
+            onPress={() => pickReceipt(true)}
+            disabled={uploadingReceipt}
+          >
+            <Text style={styles.receiptBtnText}>Kamera</Text>
+          </Pressable>
+          {receiptUrl ? (
+            <Pressable
+              style={[styles.receiptBtn, styles.receiptBtnDanger]}
+              onPress={() => setReceiptUrl(null)}
+            >
+              <Text style={styles.receiptBtnTextDanger}>Hapus</Text>
+            </Pressable>
+          ) : null}
+        </View>
+        {uploadingReceipt ? (
+          <ActivityIndicator color={colors.brand} style={{ marginVertical: 8 }} />
+        ) : null}
+        {receiptPreview ? (
+          <Image source={receiptPreview} style={styles.receiptImage} resizeMode="cover" />
+        ) : (
+          <Text style={styles.hint}>Belum ada struk terlampir.</Text>
+        )}
+
         <Pressable style={styles.saveBtn} onPress={onSave} disabled={saving}>
           {saving ? (
             <ActivityIndicator color="#fff" />
@@ -349,6 +448,25 @@ const styles = StyleSheet.create({
   },
   hint: { color: colors.muted, marginBottom: 8 },
   link: { color: colors.brand, fontWeight: '700' },
+  receiptActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  receiptBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  receiptBtnDanger: { borderColor: '#fecaca', backgroundColor: '#fef2f2' },
+  receiptBtnText: { fontWeight: '700', color: colors.brand },
+  receiptBtnTextDanger: { fontWeight: '700', color: colors.expense },
+  receiptImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 14,
+    backgroundColor: colors.border,
+    marginBottom: 8,
+  },
   saveBtn: {
     marginTop: 24,
     backgroundColor: colors.brand,

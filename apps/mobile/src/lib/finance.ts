@@ -177,6 +177,7 @@ export async function createTransaction(input: {
   type: TxType;
   date: string;
   description?: string;
+  receiptUrl?: string | null;
 }): Promise<Transaction> {
   const { data } = await api.post('/expenses', {
     amount: input.amount,
@@ -185,6 +186,7 @@ export async function createTransaction(input: {
     date: input.date.slice(0, 10),
     note: input.description || undefined,
     description: input.description || undefined,
+    receiptUrl: input.receiptUrl ?? null,
   });
   return normalizeTx(data.data as Record<string, unknown>);
 }
@@ -197,6 +199,7 @@ export async function updateTransaction(
     type: TxType;
     date: string;
     description?: string;
+    receiptUrl?: string | null;
   }
 ): Promise<Transaction> {
   const { data } = await api.put(`/expenses/${id}`, {
@@ -206,6 +209,7 @@ export async function updateTransaction(
     date: input.date.slice(0, 10),
     note: input.description || undefined,
     description: input.description || undefined,
+    receiptUrl: input.receiptUrl ?? null,
   });
   return normalizeTx(data.data as Record<string, unknown>);
 }

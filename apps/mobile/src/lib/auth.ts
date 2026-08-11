@@ -53,3 +53,11 @@ export async function forgotPassword(email: string): Promise<string> {
   const { data } = await api.post('/auth/forgot-password', { email });
   return (data.message as string) || 'Jika email terdaftar, link reset akan dikirim.';
 }
+
+export async function updateProfile(input: {
+  name?: string;
+  currency?: string;
+}): Promise<User> {
+  const { data } = await api.put('/auth/profile', input);
+  return data.data as User;
+}

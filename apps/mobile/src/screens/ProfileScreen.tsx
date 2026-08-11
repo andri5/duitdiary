@@ -44,17 +44,27 @@ export function ProfileScreen({
         ) : null}
       </View>
 
+      <Pressable style={styles.menuBtn} onPress={() => navigation.navigate('Settings')}>
+        <Text style={styles.menuTitle}>Pengaturan</Text>
+        <Text style={styles.menuSub}>Nama, mata uang, dan foto profil</Text>
+      </Pressable>
+
       <Pressable style={styles.menuBtn} onPress={() => navigation.navigate('Categories')}>
         <Text style={styles.menuTitle}>Kelola kategori</Text>
         <Text style={styles.menuSub}>Tambah, edit, atau hapus kategori</Text>
       </Pressable>
 
+      <Pressable
+        style={[styles.menuBtn, styles.menuBtnMuted]}
+        onPress={() => navigation.navigate('Help')}
+      >
+        <Text style={styles.menuTitle}>Bantuan</Text>
+        <Text style={styles.menuSub}>Panduan singkat memakai aplikasi</Text>
+      </Pressable>
+
       <View style={styles.card}>
         <Text style={styles.cardTitle}>API endpoint</Text>
         <Text style={styles.meta}>{API_BASE_URL}</Text>
-        <Text style={styles.hint}>
-          Emulator Android: 10.0.2.2 · Device fisik: set EXPO_PUBLIC_API_URL ke IP LAN.
-        </Text>
       </View>
 
       <Pressable style={styles.btn} onPress={handleLogout}>
@@ -84,13 +94,16 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
   },
+  menuBtnMuted: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+  },
   menuTitle: { fontWeight: '800', color: colors.brandDark, fontSize: 16 },
   menuSub: { marginTop: 4, color: colors.muted, fontSize: 13 },
   name: { fontSize: 18, fontWeight: '800', color: colors.text },
   email: { marginTop: 4, color: colors.muted },
   cardTitle: { fontWeight: '700', color: colors.text, marginBottom: 6 },
   meta: { color: colors.faint, fontSize: 12, marginTop: 4 },
-  hint: { marginTop: 8, color: colors.muted, fontSize: 12, lineHeight: 18 },
   btn: {
     marginTop: 16,
     backgroundColor: colors.text,

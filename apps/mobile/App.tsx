@@ -47,7 +47,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <AuthContext.Provider value={{ setUser }}>
+      <AuthContext.Provider value={{ user, setUser }}>
         <StatusBar style="dark" />
         <NavigationContainer>
           {user ? (

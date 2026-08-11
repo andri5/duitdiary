@@ -3,6 +3,8 @@ export type MainStackParamList = {
   TransactionForm: { id?: string } | undefined;
   Categories: undefined;
   CategoryForm: { id?: string } | undefined;
+  Settings: undefined;
+  Help: undefined;
 };
 
 export type MainTabParamList = {
