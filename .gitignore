@@ -55,5 +55,9 @@ uploads/
 temp/
 tmp/
 
+# Cursor / mobile agent artifacts
+/apps/mobile/.claude/
+/apps/mobile/eas-build-*.json
+
 # Test files
 test-*.ps1
