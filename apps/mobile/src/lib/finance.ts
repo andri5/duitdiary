@@ -65,6 +65,13 @@ export type MarketQuotes = {
     label?: string;
     updatedAt?: string;
   };
+  biRate?: {
+    rate: number;
+    percentLabel: string;
+    effectiveDate?: string;
+    updatedAt?: string;
+    source?: string;
+  } | null;
   fetchedAt?: string;
 };
 

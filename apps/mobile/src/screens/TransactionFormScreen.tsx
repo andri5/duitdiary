@@ -529,7 +529,13 @@ export function TransactionFormScreen({ navigation, route }: Props) {
           {uploadingReceipt ? (
             <ActivityIndicator color={colors.brand} style={{ marginVertical: 8 }} />
           ) : null}
-          {receiptPreview ? (
+          {receiptUrl && /\.pdf($|\?)/i.test(receiptUrl) ? (
+            <View style={styles.receiptPdfBox}>
+              <Ionicons name="document-text-outline" size={28} color={colors.brand} />
+              <Text style={styles.receiptPdfText}>Struk PDF terlampir</Text>
+              <Text style={styles.hint}>Buka di web untuk preview penuh</Text>
+            </View>
+          ) : receiptPreview ? (
             <Image source={receiptPreview} style={styles.receiptImage} resizeMode="cover" />
           ) : (
             <Text style={styles.hint}>Belum ada struk terlampir.</Text>
@@ -681,6 +687,19 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
     marginBottom: 8,
     backgroundColor: colors.border,
   },
+  receiptPdfBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    minHeight: 120,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.brandSoftBorder,
+    backgroundColor: colors.brandSoft,
+    marginBottom: 8,
+    padding: 16,
+  },
+  receiptPdfText: { color: colors.brandDark, fontWeight: '800', fontSize: 14 },
   saveBtn: {
     marginTop: 18,
     backgroundColor: colors.brand,

@@ -5,7 +5,7 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+import { Save, ArrowDownCircle, ArrowUpCircle, Check } from 'lucide-react';
 import { Button, Input, ModalFooter, CategoryIcon, CATEGORY_ICON_OPTIONS, FieldTooltip } from '@/components/ui';
 import { categorySchema } from '@/lib/validations';
 import type { CategoryFormData } from '@/lib/validations';
@@ -89,23 +89,50 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
         </label>
         <div className="grid grid-cols-2 gap-2">
           {[
-            { value: 'EXPENSE', label: 'Pengeluaran' },
-            { value: 'INCOME', label: 'Pemasukan' },
-          ].map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setValue('type', option.value as 'EXPENSE' | 'INCOME')}
-              className={cn(
-                'rounded-xl border px-3 py-2.5 text-sm font-semibold transition',
-                selectedType === option.value
-                  ? 'border-accent bg-accent-soft text-accent'
-                  : 'border-line bg-surface text-muted hover:border-accent/40'
-              )}
-            >
-              {option.label}
-            </button>
-          ))}
+            {
+              value: 'EXPENSE' as const,
+              label: 'Pengeluaran',
+              hint: 'Uang keluar',
+              icon: ArrowUpCircle,
+              activeClass: 'border-coral bg-coral-soft text-coral shadow-sm shadow-coral/15',
+              iconClass: 'text-coral',
+            },
+            {
+              value: 'INCOME' as const,
+              label: 'Pemasukan',
+              hint: 'Uang masuk',
+              icon: ArrowDownCircle,
+              activeClass: 'border-lime bg-lime-soft text-lime shadow-sm shadow-lime/15',
+              iconClass: 'text-lime',
+            },
+          ].map((option) => {
+            const active = selectedType === option.value;
+            const Icon = option.icon;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setValue('type', option.value)}
+                className={cn(
+                  'relative rounded-2xl border px-3 py-3 text-left transition',
+                  active
+                    ? option.activeClass
+                    : 'border-line bg-surface text-muted hover:border-accent/40'
+                )}
+              >
+                {active ? (
+                  <span className="absolute right-2 top-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/70">
+                    <Check className="h-3.5 w-3.5" />
+                  </span>
+                ) : null}
+                <Icon className={cn('mb-2 h-5 w-5', active ? option.iconClass : 'text-muted')} />
+                <p className={cn('text-sm font-extrabold', active ? undefined : 'text-ink')}>
+                  {option.label}
+                </p>
+                <p className="text-[11px] font-semibold opacity-80">{option.hint}</p>
+              </button>
+            );
+          })}
         </div>
         <input type="hidden" {...register('type')} />
       </div>

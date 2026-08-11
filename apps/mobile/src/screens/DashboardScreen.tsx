@@ -20,7 +20,7 @@ import {
   type Transaction,
 } from '../lib/finance';
 import { buildDashboardInsights, getInsightToneColor } from '../lib/dashboardInsights';
-import { formatIDR, formatDateShort } from '../lib/format';
+import { formatIDR, formatIDRCompact, formatDateShort } from '../lib/format';
 import { BrandMark } from '../components/ui';
 import { CategoryIcon } from '../components/CategoryIcon';
 import { CollapsibleSection } from '../components/CollapsibleSection';
@@ -38,6 +38,14 @@ import { useResponsive } from '../hooks/useResponsive';
 import type { MainStackParamList } from '../navigation/types';
 
 const HIDDEN_AMOUNT = '••••';
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Selamat pagi';
+  if (hour < 15) return 'Selamat siang';
+  if (hour < 18) return 'Selamat sore';
+  return 'Selamat malam';
+}
 
 function TxRow({
   item,
@@ -62,9 +70,17 @@ function TxRow({
           <Text style={styles.rowTitle} numberOfLines={1}>
             {item.description || item.category.name || 'Transaksi'}
           </Text>
-          <Text style={styles.rowMeta}>
-            {item.category.name || '—'} · {formatDateShort(item.date)}
-          </Text>
+          <View style={styles.rowMetaRow}>
+            <Text style={styles.rowMeta} numberOfLines={1}>
+              {item.category.name || '—'} · {formatDateShort(item.date)}
+            </Text>
+            {item.receiptUrl ? (
+              <View style={styles.receiptBadge}>
+                <Ionicons name="attach" size={11} color={colors.brand} />
+                <Text style={styles.receiptBadgeText}>Struk</Text>
+              </View>
+            ) : null}
+          </View>
         </View>
         <Text style={[styles.rowAmount, { color: isIncome ? colors.income : colors.expense }]}>
           {amountsVisible ? (
@@ -171,7 +187,7 @@ export function DashboardScreen({ user }: { user: User }) {
           <View style={{ flex: 1, minWidth: 0 }}>
             <BrandMark size="sm" />
             <Text style={styles.hello} numberOfLines={1}>
-              Halo, {user.name.split(' ')[0]}
+              {getGreeting()}, {user.name.split(' ')[0]}
             </Text>
           </View>
           <View style={styles.topActions}>
@@ -183,21 +199,55 @@ export function DashboardScreen({ user }: { user: User }) {
         </View>
       </FadeInUp>
 
-      {(market?.usdIdr || market?.gold) && (
+      {(market?.usdIdr || market?.gold || market?.biRate) && (
         <FadeInUp delay={40}>
-          <View style={styles.marketStrip}>
-            {market.usdIdr ? (
-              <View style={styles.marketChip}>
-                <Text style={styles.marketLabel}>USD</Text>
-                <Text style={styles.marketValue}>{formatIDR(market.usdIdr.rate)}</Text>
-              </View>
-            ) : null}
-            {market.gold ? (
-              <View style={styles.marketChip}>
-                <Text style={styles.marketLabel}>Emas</Text>
-                <Text style={styles.marketValue}>{formatIDR(market.gold.sellPerGram)}</Text>
-              </View>
-            ) : null}
+          <View style={styles.marketCard}>
+            <View style={styles.marketHeader}>
+              <Text style={styles.marketHeaderTitle}>Pasar hari ini</Text>
+              <Text style={styles.marketHeaderHint}>Kurs · Emas · BI</Text>
+            </View>
+            <View style={styles.marketStrip}>
+              {market.usdIdr ? (
+                <View style={styles.marketCell}>
+                  <View style={[styles.marketIcon, { backgroundColor: colors.brandSoft }]}>
+                    <Ionicons name="logo-usd" size={15} color={colors.brand} />
+                  </View>
+                  <Text style={styles.marketLabel}>USD</Text>
+                  <Text style={styles.marketValue} numberOfLines={1}>
+                    {formatIDRCompact(market.usdIdr.rate)}
+                  </Text>
+                </View>
+              ) : null}
+              {market.gold ? (
+                <View style={[styles.marketCell, styles.marketCellDivider]}>
+                  <View style={[styles.marketIcon, { backgroundColor: colors.amberSoft }]}>
+                    <Ionicons name="diamond-outline" size={15} color={colors.amber} />
+                  </View>
+                  <Text style={styles.marketLabel}>Emas</Text>
+                  <Text style={styles.marketValue} numberOfLines={1}>
+                    {formatIDRCompact(market.gold.sellPerGram)}
+                  </Text>
+                  {market.gold.buybackPerGram ? (
+                    <Text style={styles.marketSub} numberOfLines={1}>
+                      BB {formatIDRCompact(market.gold.buybackPerGram)}
+                    </Text>
+                  ) : null}
+                </View>
+              ) : null}
+              {market.biRate ? (
+                <View style={[styles.marketCell, styles.marketCellDivider]}>
+                  <View style={[styles.marketIcon, { backgroundColor: colors.brandSoft }]}>
+                    <Ionicons name="stats-chart-outline" size={15} color={colors.brand} />
+                  </View>
+                  <Text style={styles.marketLabel}>BI Rate</Text>
+                  <Text style={styles.marketValue} numberOfLines={1}>
+                    {Number.isFinite(market.biRate.rate)
+                      ? `${market.biRate.rate.toFixed(2)}%`
+                      : market.biRate.percentLabel}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </View>
         </FadeInUp>
       )}
@@ -243,13 +293,6 @@ export function DashboardScreen({ user }: { user: User }) {
               >
                 {showAmount(summary.balance)}
               </Text>
-              <ScalePress
-                style={styles.quickAdd}
-                onPress={() => navigation.navigate('TransactionForm', { captureReceipt: true })}
-              >
-                <Ionicons name="camera" size={14} color={colors.brandDark} />
-                <Text style={styles.quickAddText}>Foto struk</Text>
-              </ScalePress>
             </View>
           </PopIn>
 
@@ -361,23 +404,84 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
       letterSpacing: -0.4,
     },
     topActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    marketStrip: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
-    marketChip: {
-      flexGrow: 1,
-      flexBasis: r.isCompact ? '100%' : '45%',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+    marketCard: {
       backgroundColor: colors.surface,
-      borderRadius: radii.pill,
+      borderRadius: radii.xl,
       borderWidth: 1,
       borderColor: colors.border,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      minWidth: r.isCompact ? '100%' : 140,
+      paddingTop: 12,
+      paddingBottom: 10,
+      paddingHorizontal: 4,
+      marginBottom: 12,
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.08,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 2,
     },
-    marketLabel: { color: colors.muted, fontSize: r.ms(11), fontWeight: '700' },
-    marketValue: { fontWeight: '800', color: colors.text, fontSize: r.ms(12) },
+    marketHeader: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'space-between',
+      paddingHorizontal: 12,
+      marginBottom: 10,
+    },
+    marketHeaderTitle: {
+      fontSize: r.ms(13),
+      fontWeight: '800',
+      color: colors.text,
+      letterSpacing: -0.2,
+    },
+    marketHeaderHint: {
+      fontSize: r.ms(11),
+      fontWeight: '600',
+      color: colors.muted,
+    },
+    marketStrip: {
+      flexDirection: 'row',
+      alignItems: 'stretch',
+    },
+    marketCell: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      paddingHorizontal: 6,
+      paddingVertical: 4,
+      minHeight: 86,
+    },
+    marketCellDivider: {
+      borderLeftWidth: StyleSheet.hairlineWidth,
+      borderLeftColor: colors.border,
+    },
+    marketIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 8,
+    },
+    marketLabel: {
+      color: colors.muted,
+      fontSize: r.ms(11),
+      fontWeight: '700',
+      letterSpacing: 0.2,
+      marginBottom: 2,
+    },
+    marketValue: {
+      fontWeight: '800',
+      color: colors.text,
+      fontSize: r.ms(14),
+      letterSpacing: -0.3,
+      textAlign: 'center',
+    },
+    marketSub: {
+      marginTop: 2,
+      color: colors.faint,
+      fontSize: r.ms(10),
+      fontWeight: '600',
+      textAlign: 'center',
+    },
     periodSeg: {
       flexDirection: 'row',
       backgroundColor: colors.surface,
@@ -412,20 +516,6 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
     balanceLabel: { color: colors.muted, fontWeight: '700', fontSize: r.ms(12) },
     balanceValue: { fontSize: r.ms(26), fontWeight: '800', marginTop: 4, letterSpacing: -0.6 },
     balanceRange: { color: colors.faint, fontSize: r.ms(11) },
-    quickAdd: {
-      marginTop: 10,
-      alignSelf: 'flex-start',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      backgroundColor: colors.brandSoft,
-      borderRadius: radii.pill,
-      paddingVertical: 6,
-      paddingHorizontal: 10,
-      borderWidth: 1,
-      borderColor: colors.brandSoftBorder,
-    },
-    quickAddText: { color: colors.brandDark, fontWeight: '800', fontSize: r.ms(12) },
     statRow: {
       flexDirection: r.isCompact ? 'column' : 'row',
       gap: 8,
@@ -493,7 +583,26 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
     },
     rowBody: { flex: 1, minWidth: 0 },
     rowTitle: { fontWeight: '700', color: colors.text, fontSize: r.ms(13) },
-    rowMeta: { color: colors.faint, fontSize: r.ms(11), marginTop: 1 },
+    rowMetaRow: {
+      marginTop: 2,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      flexWrap: 'wrap',
+    },
+    rowMeta: { color: colors.faint, fontSize: r.ms(11) },
+    receiptBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      backgroundColor: colors.brandSoft,
+      borderRadius: 999,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderWidth: 1,
+      borderColor: colors.brandSoftBorder,
+    },
+    receiptBadgeText: { color: colors.brand, fontWeight: '800', fontSize: r.ms(10) },
     rowAmount: { fontWeight: '800', fontSize: r.ms(12) },
   });
 }

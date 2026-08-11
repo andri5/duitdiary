@@ -24,7 +24,10 @@ import { formatDate, cn } from '@/lib/utils';
 import { uploadAvatar } from '@/services/upload.service';
 import { updateProfile, changePassword } from '@/services/auth.service';
 
-const CURRENCIES = ['IDR', 'USD', 'SGD', 'MYR'] as const;
+const CURRENCIES = [
+  { code: 'IDR' as const, label: 'Rupiah', hint: 'Indonesia', symbol: 'Rp' },
+  { code: 'USD' as const, label: 'US Dollar', hint: 'United States', symbol: '$' },
+] as const;
 
 const themePreview: Record<AppTheme, { from: string; to: string; accent: string }> = {
   neo: { from: '#f3f6f9', to: '#ffffff', accent: '#0f9b8e' },
@@ -51,7 +54,8 @@ export function SettingsPage() {
   useEffect(() => {
     if (user) {
       setName(user.name);
-      setCurrency((user.currency || 'IDR').toUpperCase().slice(0, 3));
+      const next = (user.currency || 'IDR').toUpperCase().slice(0, 3);
+      setCurrency(next === 'USD' ? 'USD' : 'IDR');
     }
   }, [user]);
 
@@ -106,7 +110,7 @@ export function SettingsPage() {
     try {
       const updated = await updateProfile({
         name: name.trim(),
-        currency: currency.slice(0, 3).toUpperCase(),
+        currency: (currency === 'USD' ? 'USD' : 'IDR'),
       });
       setUser(updated);
       toast.success('Profil diperbarui');
@@ -233,22 +237,36 @@ export function SettingsPage() {
                 </div>
                 <div>
                   <p className="mb-2 text-sm font-medium text-ink">Mata uang</p>
-                  <div className="flex flex-wrap gap-2">
-                    {CURRENCIES.map((code) => (
-                      <button
-                        key={code}
-                        type="button"
-                        onClick={() => setCurrency(code)}
-                        className={cn(
-                          'rounded-xl border px-3 py-2 text-sm font-semibold transition',
-                          currency === code
-                            ? 'border-accent bg-accent-soft text-accent'
-                            : 'border-line text-muted hover:border-accent/40'
-                        )}
-                      >
-                        {code}
-                      </button>
-                    ))}
+                  <div className="grid grid-cols-2 gap-2">
+                    {CURRENCIES.map((item) => {
+                      const active = currency === item.code;
+                      return (
+                        <button
+                          key={item.code}
+                          type="button"
+                          onClick={() => setCurrency(item.code)}
+                          className={cn(
+                            'rounded-2xl border px-3 py-3 text-left transition',
+                            active
+                              ? 'border-accent bg-accent-soft shadow-sm shadow-accent/15'
+                              : 'border-line bg-surface text-muted hover:border-accent/40'
+                          )}
+                        >
+                          <p
+                            className={cn(
+                              'font-display text-lg font-bold',
+                              active ? 'text-accent' : 'text-ink'
+                            )}
+                          >
+                            {item.symbol} {item.code}
+                          </p>
+                          <p className={cn('text-xs font-semibold', active ? 'text-accent' : 'text-muted')}>
+                            {item.label}
+                          </p>
+                          <p className="text-[11px] text-muted">{item.hint}</p>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
                 <div className="flex items-center gap-3 rounded-2xl bg-mist/70 p-3.5">

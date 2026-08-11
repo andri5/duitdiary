@@ -1,8 +1,8 @@
 /**
- * Dashboard market rates — compact USD/IDR + Antam gold strip
+ * Dashboard market rates — USD/IDR + Antam gold + BI Rate strip
  */
 
-import { DollarSign, Gem, RefreshCw } from 'lucide-react';
+import { DollarSign, Gem, Landmark, RefreshCw } from 'lucide-react';
 import { Card } from '@/components/ui';
 import { useMarketRates } from '@/hooks/useMarketRates';
 import { formatCurrency, cn } from '@/lib/utils';
@@ -14,6 +14,7 @@ export function MarketRates() {
     return (
       <div className="mb-4 animate-pulse rounded-2xl border border-line bg-surface/80 px-3 py-2.5">
         <div className="flex gap-3">
+          <div className="h-8 flex-1 rounded-xl bg-mist-deep" />
           <div className="h-8 flex-1 rounded-xl bg-mist-deep" />
           <div className="h-8 flex-1 rounded-xl bg-mist-deep" />
         </div>
@@ -40,7 +41,7 @@ export function MarketRates() {
   const items = [
     {
       key: 'usd',
-      label: 'USD',
+      label: 'USD / IDR',
       value: formatCurrency(data.usdIdr.rate),
       icon: DollarSign,
       tone: 'bg-accent-soft text-accent',
@@ -53,12 +54,29 @@ export function MarketRates() {
       icon: Gem,
       tone: 'bg-amber-soft text-amber',
     },
+    ...(data.biRate
+      ? [
+          {
+            key: 'bi',
+            label: 'BI Rate',
+            value: data.biRate.percentLabel,
+            sub: data.biRate.effectiveDate,
+            icon: Landmark,
+            tone: 'bg-violet-100 text-violet-700',
+          },
+        ]
+      : []),
   ] as const;
 
   return (
     <Card padding="none" className="mb-4 overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2 sm:px-3.5">
-        <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
+        <div
+          className={cn(
+            'grid min-w-0 flex-1 gap-2',
+            items.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'
+          )}
+        >
           {items.map((item) => (
             <div
               key={item.key}

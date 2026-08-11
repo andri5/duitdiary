@@ -161,7 +161,14 @@ export function ExpensesPage() {
               </div>
 
               <Button
-                variant={showFilters ? 'primary' : 'outline'}
+                variant={showFilters || hasActiveFilters ? 'gradient' : 'outline'}
+                className={cn(
+                  'min-w-[7.5rem] font-bold',
+                  !showFilters &&
+                    !hasActiveFilters &&
+                    'border-accent/35 bg-accent-soft/40 text-accent shadow-sm shadow-accent/10 hover:bg-accent-soft hover:border-accent/50',
+                  (showFilters || hasActiveFilters) && 'shadow-md shadow-accent/25'
+                )}
                 leftIcon={<Filter className="h-4 w-4" />}
                 rightIcon={
                   <ChevronDown
@@ -172,7 +179,9 @@ export function ExpensesPage() {
               >
                 Filter
                 {hasActiveFilters && (
-                  <span className="ml-1 rounded-md bg-white/20 px-1.5 text-xs">•</span>
+                  <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-white/25 px-1.5 text-[11px] font-extrabold">
+                    !
+                  </span>
                 )}
               </Button>
             </div>
@@ -186,43 +195,73 @@ export function ExpensesPage() {
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                <div className="mt-4 grid gap-3 border-t border-line pt-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <Select
-                    label="Kategori"
-                    placeholder="Semua kategori"
-                    options={categoryOptions}
-                    value={filters.categoryId || ''}
-                    onChange={(e) =>
-                      updateFilters({ categoryId: e.target.value || undefined })
-                    }
-                  />
-                  <Input
-                    label="Dari Tanggal"
-                    type="date"
-                    leftIcon={<Calendar className="h-4 w-4" />}
-                    value={filters.startDate || ''}
-                    onChange={(e) =>
-                      updateFilters({ startDate: e.target.value || undefined })
-                    }
-                  />
-                  <Input
-                    label="Sampai Tanggal"
-                    type="date"
-                    leftIcon={<Calendar className="h-4 w-4" />}
-                    value={filters.endDate || ''}
-                    onChange={(e) =>
-                      updateFilters({ endDate: e.target.value || undefined })
-                    }
-                  />
-                  <div className="flex items-end">
-                    <Button
-                      variant="ghost"
-                      onClick={clearFilters}
-                      leftIcon={<X className="h-4 w-4" />}
-                      className="w-full"
-                    >
-                      Reset Filter
-                    </Button>
+                <div className="mt-4 rounded-2xl border border-accent/25 bg-gradient-to-br from-accent-soft/70 via-surface to-mist/60 p-4 shadow-md shadow-accent/10 ring-1 ring-accent/10">
+                  <div className="mb-4 flex items-start gap-3">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-accent text-white shadow-md shadow-accent/30">
+                      <Filter className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-display text-base font-extrabold text-ink">
+                        Filter pengeluaran
+                      </p>
+                      <p className="text-sm text-muted">
+                        Saring daftar dengan kategori dan rentang tanggal
+                      </p>
+                    </div>
+                    {hasActiveFilters ? (
+                      <span className="ml-auto inline-flex items-center rounded-full bg-accent px-2.5 py-1 text-[11px] font-extrabold text-white">
+                        Aktif
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="rounded-2xl border border-accent/30 bg-surface p-3 shadow-sm">
+                      <Select
+                        label="Kategori"
+                        placeholder="Semua kategori"
+                        options={categoryOptions}
+                        value={filters.categoryId || ''}
+                        onChange={(e) =>
+                          updateFilters({ categoryId: e.target.value || undefined })
+                        }
+                        className="border-accent/35 bg-accent-soft/20 font-semibold"
+                      />
+                    </div>
+                    <div className="rounded-2xl border border-line bg-surface p-3 shadow-sm">
+                      <Input
+                        label="Dari Tanggal"
+                        type="date"
+                        leftIcon={<Calendar className="h-4 w-4" />}
+                        value={filters.startDate || ''}
+                        onChange={(e) =>
+                          updateFilters({ startDate: e.target.value || undefined })
+                        }
+                        className="border-accent/20 bg-mist/40 font-semibold"
+                      />
+                    </div>
+                    <div className="rounded-2xl border border-line bg-surface p-3 shadow-sm">
+                      <Input
+                        label="Sampai Tanggal"
+                        type="date"
+                        leftIcon={<Calendar className="h-4 w-4" />}
+                        value={filters.endDate || ''}
+                        onChange={(e) =>
+                          updateFilters({ endDate: e.target.value || undefined })
+                        }
+                        className="border-accent/20 bg-mist/40 font-semibold"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <Button
+                        variant="outline"
+                        onClick={clearFilters}
+                        leftIcon={<X className="h-4 w-4" />}
+                        className="w-full border-coral/30 bg-coral-soft/50 font-bold text-coral hover:border-coral/50 hover:bg-coral-soft"
+                      >
+                        Reset Filter
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </motion.div>

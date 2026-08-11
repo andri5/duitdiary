@@ -18,6 +18,13 @@ export interface MarketQuotes {
     updatedAt: string;
     source: string;
   };
+  biRate?: {
+    rate: number;
+    percentLabel: string;
+    effectiveDate?: string;
+    updatedAt?: string;
+    source?: string;
+  } | null;
   fetchedAt: string;
 }
 

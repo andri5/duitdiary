@@ -17,13 +17,20 @@ export type UploadReceiptResult = {
 /** `/uploads/receipts/x.jpg` → absolute content URL for authenticated GET */
 export function toContentUrl(publicPath: string | null | undefined): string | null {
   if (!publicPath) return null;
-  const match = publicPath.match(/^\/uploads\/(receipts|avatars)\/([^/?#]+)$/);
-  if (!match) {
-    if (publicPath.startsWith('http://') || publicPath.startsWith('https://')) {
-      return publicPath;
+  if (publicPath.startsWith('http://') || publicPath.startsWith('https://')) {
+    try {
+      const parsed = new URL(publicPath);
+      const match = parsed.pathname.match(/^\/uploads\/(receipts|avatars)\/([^/?#]+)$/);
+      if (match) {
+        return `${API_BASE_URL}/uploads/content/${match[1]}/${match[2]}`;
+      }
+    } catch {
+      // fall through
     }
-    return null;
+    return publicPath;
   }
+  const match = publicPath.match(/^\/uploads\/(receipts|avatars)\/([^/?#]+)$/);
+  if (!match) return null;
   return `${API_BASE_URL}/uploads/content/${match[1]}/${match[2]}`;
 }
 

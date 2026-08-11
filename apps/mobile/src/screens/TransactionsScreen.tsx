@@ -368,9 +368,17 @@ export function TransactionsScreen() {
                   <Text style={styles.rowTitle} numberOfLines={1}>
                     {item.description || item.category.name || 'Transaksi'}
                   </Text>
-                  <Text style={styles.rowMeta}>
-                    {item.category.name || '—'} · {formatDateShort(item.date)}
-                  </Text>
+                  <View style={styles.rowMetaRow}>
+                    <Text style={styles.rowMeta} numberOfLines={1}>
+                      {item.category.name || '—'} · {formatDateShort(item.date)}
+                    </Text>
+                    {item.receiptUrl ? (
+                      <View style={styles.receiptBadge}>
+                        <Ionicons name="attach" size={11} color={colors.brand} />
+                        <Text style={styles.receiptBadgeText}>Struk</Text>
+                      </View>
+                    ) : null}
+                  </View>
                 </View>
                 <Text
                   style={[
@@ -618,7 +626,26 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
   },
   rowBody: { flex: 1, minWidth: 0 },
   rowTitle: { fontWeight: '700', color: colors.text, fontSize: r.ms(13) },
-  rowMeta: { color: colors.faint, fontSize: r.ms(11), marginTop: 1 },
+  rowMetaRow: {
+    marginTop: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  rowMeta: { color: colors.faint, fontSize: r.ms(11) },
+  receiptBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: colors.brandSoft,
+    borderRadius: 999,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: colors.brandSoftBorder,
+  },
+  receiptBadgeText: { color: colors.brand, fontWeight: '800', fontSize: r.ms(10) },
   rowAmount: { fontWeight: '800', fontSize: r.ms(12), marginLeft: 4 },
   modalBackdrop: {
     flex: 1,
