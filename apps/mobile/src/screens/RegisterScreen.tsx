@@ -24,12 +24,14 @@ import {
 import { FadeInUp, ScalePress } from '../components/motion';
 import { spacing, type ThemeColors } from '../theme';
 import { useColors } from '../themeContext';
+import { useResponsive } from '../hooks/useResponsive';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
 export function RegisterScreen({ navigation }: Props) {
   const colors = useColors();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const r = useResponsive();
+  const styles = useMemo(() => createStyles(colors, r), [colors, r]);
   const insets = useSafeAreaInsets();
   const { setUser } = useAuth();
   const [name, setName] = useState('');
@@ -69,7 +71,7 @@ export function RegisterScreen({ navigation }: Props) {
 
       <ScrollView
         contentContainerStyle={{
-          paddingHorizontal: spacing.xl,
+          paddingHorizontal: r.pagePadding,
           paddingBottom: Math.max(insets.bottom, 16) + 24,
           paddingTop: 8,
         }}
@@ -78,7 +80,7 @@ export function RegisterScreen({ navigation }: Props) {
       >
         <FadeInUp>
           <ScalePress onPress={() => navigation.navigate('Login')} style={styles.back}>
-            <Ionicons name="arrow-back" size={16} color={colors.brand} />
+            <Ionicons name="arrow-back" size={r.ms(16)} color={colors.brand} />
             <Text style={styles.backText}>Kembali ke masuk</Text>
           </ScalePress>
           <BrandMark size="lg" />
@@ -125,7 +127,7 @@ export function RegisterScreen({ navigation }: Props) {
           <Pressable style={styles.termsRow} onPress={() => setTermsAccepted((v) => !v)}>
             <View style={[styles.checkbox, termsAccepted && styles.checkboxOn]}>
               {termsAccepted ? (
-                <Ionicons name="checkmark" size={14} color={colors.onBrand} />
+                <Ionicons name="checkmark" size={r.ms(14)} color={colors.onBrand} />
               ) : null}
             </View>
             <Text style={styles.termsText}>
@@ -160,7 +162,7 @@ export function RegisterScreen({ navigation }: Props) {
   );
 }
 
-function createStyles(colors: ThemeColors) {
+function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
   return StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg, overflow: 'hidden' },
   glowA: {
@@ -194,15 +196,15 @@ function createStyles(colors: ThemeColors) {
     borderWidth: 1,
     borderColor: colors.brandSoftBorder,
   },
-  backText: { color: colors.brand, fontWeight: '800', fontSize: 13 },
+  backText: { color: colors.brand, fontWeight: '800', fontSize: r.ms(13) },
   title: {
     marginTop: 18,
-    fontSize: 32,
+    fontSize: r.ms(32),
     fontWeight: '800',
     color: colors.text,
     letterSpacing: -0.6,
   },
-  sub: { marginTop: 6, marginBottom: 18, color: colors.muted, fontSize: 15, lineHeight: 22 },
+  sub: { marginTop: 6, marginBottom: 18, color: colors.muted, fontSize: r.ms(15), lineHeight: r.ms(22) },
   termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 14 },
   checkbox: {
     width: 24,
@@ -216,7 +218,7 @@ function createStyles(colors: ThemeColors) {
     marginTop: 1,
   },
   checkboxOn: { backgroundColor: colors.brand, borderColor: colors.brand },
-  termsText: { flex: 1, color: colors.muted, lineHeight: 20, fontSize: 13, fontWeight: '600' },
+  termsText: { flex: 1, color: colors.muted, lineHeight: r.ms(20), fontSize: r.ms(13), fontWeight: '600' },
   termsLink: { color: colors.brand, fontWeight: '800' },
   footer: {
     marginTop: 4,
@@ -235,6 +237,6 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 12,
     marginBottom: 12,
   },
-  error: { flex: 1, color: colors.expense, fontWeight: '700', fontSize: 13 },
+  error: { flex: 1, color: colors.expense, fontWeight: '700', fontSize: r.ms(13) },
 });
 }

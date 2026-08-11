@@ -27,13 +27,15 @@ import { PageLoader } from '../components/PageStatus';
 import { useDialog } from '../components/AppDialog';
 import { spacing, type ThemeColors } from '../theme';
 import { useColors } from '../themeContext';
+import { useResponsive } from '../hooks/useResponsive';
 import type { MainStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<MainStackParamList, 'CategoryForm'>;
 
 export function CategoryFormScreen({ navigation, route }: Props) {
   const colors = useColors();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const r = useResponsive();
+  const styles = useMemo(() => createStyles(colors, r), [colors, r]);
   const editId = route.params?.id;
   const isEdit = Boolean(editId);
   const insets = useSafeAreaInsets();
@@ -153,7 +155,7 @@ export function CategoryFormScreen({ navigation, route }: Props) {
         <PopIn>
           <View style={[styles.previewCard, { borderColor: color }]}>
             <View style={[styles.previewGlow, { backgroundColor: `${color}22` }]} />
-            <CategoryIcon icon={icon} color={color} size={28} box={64} />
+            <CategoryIcon icon={icon} color={color} size={r.ms(28)} box={r.ms(64)} />
             <Text style={styles.previewName} numberOfLines={1}>
               {name.trim() || 'Nama kategori'}
             </Text>
@@ -167,14 +169,14 @@ export function CategoryFormScreen({ navigation, route }: Props) {
             >
               <Ionicons
                 name={isIncome ? 'arrow-down' : 'arrow-up'}
-                size={12}
+                size={r.ms(12)}
                 color={isIncome ? colors.income : colors.expense}
               />
               <Text
                 style={{
                   color: isIncome ? colors.income : colors.expense,
                   fontWeight: '800',
-                  fontSize: 12,
+                  fontSize: r.ms(12),
                 }}
               >
                 {isIncome ? 'Pemasukan' : 'Pengeluaran'}
@@ -211,7 +213,11 @@ export function CategoryFormScreen({ navigation, route }: Props) {
                     active && { backgroundColor: soft, borderColor: tint },
                   ]}
                 >
-                  <Ionicons name={ion} size={18} color={active ? tint : colors.muted} />
+                  <Ionicons
+                    name={ion}
+                    size={r.ms(18)}
+                    color={active ? tint : colors.muted}
+                  />
                   <Text style={[styles.typeText, active && { color: tint }]}>{label}</Text>
                 </ScalePress>
               );
@@ -234,7 +240,9 @@ export function CategoryFormScreen({ navigation, route }: Props) {
                     active && styles.swatchActive,
                   ]}
                 >
-                  {active ? <Ionicons name="checkmark" size={14} color="#fff" /> : null}
+                  {active ? (
+                    <Ionicons name="checkmark" size={r.ms(14)} color="#fff" />
+                  ) : null}
                 </ScalePress>
               );
             })}
@@ -253,7 +261,12 @@ export function CategoryFormScreen({ navigation, route }: Props) {
                     active && { borderColor: color, backgroundColor: `${color}18` },
                   ]}
                 >
-                  <CategoryIcon icon={ic} color={color || colors.brand} size={18} box={36} />
+                  <CategoryIcon
+                    icon={ic}
+                    color={color || colors.brand}
+                    size={r.ms(18)}
+                    box={r.ms(36)}
+                  />
                 </ScalePress>
               );
             })}
@@ -266,7 +279,7 @@ export function CategoryFormScreen({ navigation, route }: Props) {
               <ActivityIndicator color="#fff" />
             ) : (
               <>
-                <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                <Ionicons name="checkmark-circle" size={r.ms(18)} color="#fff" />
                 <Text style={styles.saveText}>
                   {isEdit ? 'Simpan perubahan' : 'Simpan kategori'}
                 </Text>
@@ -282,10 +295,10 @@ export function CategoryFormScreen({ navigation, route }: Props) {
   );
 }
 
-function createStyles(colors: ThemeColors) {
+function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
   return StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg },
-  content: { paddingHorizontal: spacing.xl, paddingTop: 12 },
+  content: { paddingHorizontal: r.pagePadding, paddingTop: r.ms(12) },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg },
   previewCard: {
     alignItems: 'center',
@@ -306,7 +319,7 @@ function createStyles(colors: ThemeColors) {
   },
   previewName: {
     marginTop: 12,
-    fontSize: 20,
+    fontSize: r.ms(20),
     fontWeight: '800',
     color: colors.text,
     letterSpacing: -0.3,
@@ -325,7 +338,7 @@ function createStyles(colors: ThemeColors) {
     color: colors.muted,
     marginBottom: 8,
     marginTop: 10,
-    fontSize: 11,
+    fontSize: r.ms(11),
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
@@ -337,7 +350,7 @@ function createStyles(colors: ThemeColors) {
     paddingHorizontal: 14,
     paddingVertical: 12,
     color: colors.text,
-    fontSize: 15,
+    fontSize: r.ms(15),
     fontWeight: '600',
   },
   typeRow: { flexDirection: 'row', gap: 10 },
@@ -352,7 +365,7 @@ function createStyles(colors: ThemeColors) {
     borderWidth: 1.5,
     borderColor: colors.border,
   },
-  typeText: { fontWeight: '800', color: colors.muted, fontSize: 13 },
+  typeText: { fontWeight: '800', color: colors.muted, fontSize: r.ms(13) },
   swatchWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   swatch: {
     width: 36,
@@ -379,16 +392,16 @@ function createStyles(colors: ThemeColors) {
     borderColor: colors.border,
   },
   saveBtn: {
-    marginTop: 22,
+    marginTop: r.ms(22),
     backgroundColor: colors.brand,
     borderRadius: 16,
-    paddingVertical: 14,
+    paddingVertical: r.ms(14),
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 8,
   },
-  saveText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  saveText: { color: '#fff', fontWeight: '800', fontSize: r.ms(15) },
   cancel: { textAlign: 'center', color: colors.muted, fontWeight: '700' },
   error: {
     backgroundColor: colors.dangerBg,

@@ -8,6 +8,7 @@ import { BrandMark } from '../components/ui';
 import { FadeInUp, ScalePress } from '../components/motion';
 import { spacing, type ThemeColors } from '../theme';
 import { useColors } from '../themeContext';
+import { useResponsive } from '../hooks/useResponsive';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Terms'>;
 
@@ -44,7 +45,8 @@ const SECTIONS = [
 
 export function TermsScreen({ navigation }: Props) {
   const colors = useColors();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const r = useResponsive();
+  const styles = useMemo(() => createStyles(colors, r), [colors, r]);
   const insets = useSafeAreaInsets();
   return (
     <ScrollView
@@ -52,14 +54,14 @@ export function TermsScreen({ navigation }: Props) {
       contentContainerStyle={{
         paddingTop: Math.max(insets.top, 12) + 12,
         paddingBottom: Math.max(insets.bottom, 16) + 28,
-        paddingHorizontal: spacing.xl,
+        paddingHorizontal: r.pagePadding,
       }}
     >
       <View style={styles.glow} pointerEvents="none" />
 
       <FadeInUp>
         <ScalePress onPress={() => navigation.goBack()} style={styles.back}>
-          <Ionicons name="arrow-back" size={16} color={colors.brand} />
+          <Ionicons name="arrow-back" size={r.ms(16)} color={colors.brand} />
           <Text style={styles.backText}>Kembali</Text>
         </ScalePress>
 
@@ -78,7 +80,7 @@ export function TermsScreen({ navigation }: Props) {
           <View style={[styles.card, { borderColor: `${section.tint}33` }]}>
             <View style={styles.cardTop}>
               <View style={[styles.iconBox, { backgroundColor: section.soft }]}>
-                <Ionicons name={section.icon} size={18} color={section.tint} />
+                <Ionicons name={section.icon} size={r.ms(18)} color={section.tint} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.cardTitle}>{section.title}</Text>
@@ -95,7 +97,7 @@ export function TermsScreen({ navigation }: Props) {
 
       <FadeInUp delay={240}>
         <View style={styles.footer}>
-          <Ionicons name="time-outline" size={14} color={colors.muted} />
+          <Ionicons name="time-outline" size={r.ms(14)} color={colors.muted} />
           <Text style={styles.meta}>Terakhir diperbarui: Agustus 2026</Text>
         </View>
       </FadeInUp>
@@ -103,7 +105,7 @@ export function TermsScreen({ navigation }: Props) {
   );
 }
 
-function createStyles(colors: ThemeColors) {
+function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
   return StyleSheet.create({
     wrap: { flex: 1, backgroundColor: colors.bg },
     glow: {
@@ -128,7 +130,7 @@ function createStyles(colors: ThemeColors) {
       borderWidth: 1,
       borderColor: colors.brandSoftBorder,
     },
-    backText: { color: colors.brand, fontWeight: '800', fontSize: 13 },
+    backText: { color: colors.brand, fontWeight: '800', fontSize: r.ms(13) },
     hero: {
       backgroundColor: colors.surface,
       borderRadius: 24,
@@ -142,13 +144,13 @@ function createStyles(colors: ThemeColors) {
       alignSelf: 'flex-start',
       color: colors.brand,
       fontWeight: '800',
-      fontSize: 11,
+      fontSize: r.ms(11),
       letterSpacing: 1.2,
       textTransform: 'uppercase',
     },
     title: {
       marginTop: 6,
-      fontSize: 28,
+      fontSize: r.ms(28),
       fontWeight: '800',
       color: colors.text,
       letterSpacing: -0.5,
@@ -156,8 +158,8 @@ function createStyles(colors: ThemeColors) {
     lead: {
       marginTop: 8,
       color: colors.muted,
-      lineHeight: 21,
-      fontSize: 14,
+      lineHeight: r.ms(21),
+      fontSize: r.ms(14),
       fontWeight: '600',
     },
     card: {
@@ -175,10 +177,10 @@ function createStyles(colors: ThemeColors) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    cardTitle: { fontWeight: '800', color: colors.text, fontSize: 15 },
+    cardTitle: { fontWeight: '800', color: colors.text, fontSize: r.ms(15) },
     accent: { marginTop: 6, width: 24, height: 3, borderRadius: 999 },
-    step: { fontWeight: '900', fontSize: 15 },
-    body: { color: colors.muted, lineHeight: 21, fontSize: 13, fontWeight: '600' },
+    step: { fontWeight: '900', fontSize: r.ms(15) },
+    body: { color: colors.muted, lineHeight: r.ms(21), fontSize: r.ms(13), fontWeight: '600' },
     footer: {
       marginTop: 8,
       flexDirection: 'row',
@@ -186,6 +188,6 @@ function createStyles(colors: ThemeColors) {
       gap: 6,
       justifyContent: 'center',
     },
-    meta: { fontSize: 12, color: colors.muted, fontWeight: '600' },
+    meta: { fontSize: r.ms(12), color: colors.muted, fontWeight: '600' },
   });
 }

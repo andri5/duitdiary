@@ -5,10 +5,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FadeInUp, PulseGlow } from '../components/motion';
 import { radii, spacing, type ThemeColors } from '../theme';
 import { useColors } from '../themeContext';
+import { useResponsive } from '../hooks/useResponsive';
 
 export function MaintenanceScreen({ onRetry }: { onRetry?: () => void }) {
   const colors = useColors();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const r = useResponsive();
+  const styles = useMemo(() => createStyles(colors, r), [colors, r]);
   const insets = useSafeAreaInsets();
 
   return (
@@ -25,7 +27,7 @@ export function MaintenanceScreen({ onRetry }: { onRetry?: () => void }) {
       <FadeInUp style={styles.content}>
         <PulseGlow>
           <View style={styles.iconBox}>
-            <Ionicons name="construct-outline" size={32} color={colors.amber} />
+            <Ionicons name="construct-outline" size={r.ms(32)} color={colors.amber} />
           </View>
         </PulseGlow>
         <Text style={styles.badge}>Maintenance</Text>
@@ -36,7 +38,7 @@ export function MaintenanceScreen({ onRetry }: { onRetry?: () => void }) {
         </Text>
         {onRetry ? (
           <Pressable style={styles.btn} onPress={onRetry}>
-            <Ionicons name="refresh" size={18} color={colors.onBrand} />
+            <Ionicons name="refresh" size={r.ms(18)} color={colors.onBrand} />
             <Text style={styles.btnText}>Coba lagi</Text>
           </Pressable>
         ) : null}
@@ -45,12 +47,12 @@ export function MaintenanceScreen({ onRetry }: { onRetry?: () => void }) {
   );
 }
 
-function createStyles(colors: ThemeColors) {
+function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
   return StyleSheet.create({
     wrap: {
       flex: 1,
       backgroundColor: '#07111f',
-      paddingHorizontal: spacing.xl,
+      paddingHorizontal: r.pagePadding,
       justifyContent: 'center',
     },
     glow: {
@@ -75,14 +77,14 @@ function createStyles(colors: ThemeColors) {
     badge: {
       color: colors.amber,
       fontWeight: '800',
-      fontSize: 11,
+      fontSize: r.ms(11),
       letterSpacing: 1.4,
       textTransform: 'uppercase',
       marginBottom: 8,
     },
     title: {
       color: '#fff',
-      fontSize: 26,
+      fontSize: r.ms(26),
       fontWeight: '800',
       textAlign: 'center',
       letterSpacing: -0.4,
@@ -90,8 +92,8 @@ function createStyles(colors: ThemeColors) {
     body: {
       marginTop: 12,
       color: 'rgba(255,255,255,0.65)',
-      fontSize: 15,
-      lineHeight: 22,
+      fontSize: r.ms(15),
+      lineHeight: r.ms(22),
       textAlign: 'center',
       maxWidth: 340,
     },
@@ -105,6 +107,6 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: 14,
       paddingHorizontal: 20,
     },
-    btnText: { color: colors.onBrand, fontWeight: '800', fontSize: 15 },
+    btnText: { color: colors.onBrand, fontWeight: '800', fontSize: r.ms(15) },
   });
 }

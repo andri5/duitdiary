@@ -8,12 +8,14 @@ import type { RootStackParamList } from '../authContext';
 import { FadeInUp, ScalePress, PulseGlow } from '../components/motion';
 import { radii, spacing, type ThemeColors } from '../theme';
 import { useColors } from '../themeContext';
+import { useResponsive } from '../hooks/useResponsive';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Welcome'>;
 
 export function WelcomeScreen({ navigation }: Props) {
   const colors = useColors();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const r = useResponsive();
+  const styles = useMemo(() => createStyles(colors, r), [colors, r]);
   const insets = useSafeAreaInsets();
 
   return (
@@ -91,7 +93,7 @@ export function WelcomeScreen({ navigation }: Props) {
   );
 }
 
-function createStyles(colors: ThemeColors) {
+function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
   return StyleSheet.create({
   wrap: {
     flex: 1,
@@ -126,8 +128,8 @@ function createStyles(colors: ThemeColors) {
   },
   content: {
     flex: 1,
-    paddingHorizontal: spacing.xl,
-    paddingTop: 24,
+    paddingHorizontal: r.pagePadding,
+    paddingTop: r.ms(24),
   },
   brandPill: {
     alignSelf: 'flex-start',
@@ -151,13 +153,13 @@ function createStyles(colors: ThemeColors) {
   },
   brandName: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: r.ms(20),
     fontWeight: '800',
     letterSpacing: -0.4,
   },
   brandTag: {
     color: 'rgba(255,255,255,0.55)',
-    fontSize: 10,
+    fontSize: r.ms(10),
     fontWeight: '700',
     letterSpacing: 1.6,
     textTransform: 'uppercase',
@@ -165,28 +167,28 @@ function createStyles(colors: ThemeColors) {
   },
   hero: {
     color: '#fff',
-    fontSize: 36,
+    fontSize: r.ms(36),
     fontWeight: '800',
     letterSpacing: -0.8,
-    lineHeight: 42,
+    lineHeight: r.ms(42),
   },
   heroAccent: {
     color: colors.brandBright,
-    fontSize: 34,
+    fontSize: r.ms(34),
     fontWeight: '800',
     letterSpacing: -0.6,
-    lineHeight: 40,
-    marginBottom: 14,
+    lineHeight: r.ms(40),
+    marginBottom: r.ms(14),
   },
   desc: {
     color: 'rgba(255,255,255,0.65)',
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: r.ms(16),
+    lineHeight: r.ms(24),
     maxWidth: 340,
   },
   points: { marginTop: 28, gap: 12 },
   pointRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  pointText: { color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: '600' },
+  pointText: { color: 'rgba(255,255,255,0.6)', fontSize: r.ms(14), fontWeight: '600' },
   primaryBtn: {
     backgroundColor: colors.brand,
     borderRadius: radii.lg,
@@ -197,7 +199,7 @@ function createStyles(colors: ThemeColors) {
     justifyContent: 'center',
     gap: 8,
   },
-  primaryBtnText: { color: colors.onBrand, fontWeight: '800', fontSize: 16 },
+  primaryBtnText: { color: colors.onBrand, fontWeight: '800', fontSize: r.ms(16) },
   secondaryBtn: {
     marginTop: 12,
     borderRadius: radii.lg,
@@ -207,12 +209,12 @@ function createStyles(colors: ThemeColors) {
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.04)',
   },
-  secondaryBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  secondaryBtnText: { color: '#fff', fontWeight: '700', fontSize: r.ms(15) },
   footer: {
     marginTop: 18,
     textAlign: 'center',
     color: 'rgba(255,255,255,0.4)',
-    fontSize: 12,
+    fontSize: r.ms(12),
   },
 });
 }

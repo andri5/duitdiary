@@ -24,12 +24,14 @@ import {
 import { FadeInUp, ScalePress } from '../components/motion';
 import { spacing, type ThemeColors } from '../theme';
 import { useColors } from '../themeContext';
+import { useResponsive } from '../hooks/useResponsive';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ResetPassword'>;
 
 export function ResetPasswordScreen({ navigation, route }: Props) {
   const colors = useColors();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const r = useResponsive();
+  const styles = useMemo(() => createStyles(colors, r), [colors, r]);
   const insets = useSafeAreaInsets();
   const token = useMemo(() => (route.params?.token || '').trim(), [route.params?.token]);
   const [tokenInput, setTokenInput] = useState('');
@@ -153,7 +155,7 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
   );
 }
 
-function createStyles(colors: ThemeColors) {
+function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
   return StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg, overflow: 'hidden' },
   glow: {
@@ -165,7 +167,7 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 85,
     backgroundColor: 'rgba(15,155,142,0.12)',
   },
-  scroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.xl },
+  scroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: r.pagePadding },
   back: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
@@ -179,15 +181,15 @@ function createStyles(colors: ThemeColors) {
     borderWidth: 1,
     borderColor: colors.brandSoftBorder,
   },
-  backText: { color: colors.brand, fontWeight: '800', fontSize: 13 },
+  backText: { color: colors.brand, fontWeight: '800', fontSize: r.ms(13) },
   title: {
     marginTop: 18,
-    fontSize: 30,
+    fontSize: r.ms(30),
     fontWeight: '800',
     color: colors.text,
     letterSpacing: -0.5,
   },
-  sub: { marginTop: 6, marginBottom: 18, color: colors.muted, lineHeight: 21, fontSize: 14 },
+  sub: { marginTop: 6, marginBottom: 18, color: colors.muted, lineHeight: r.ms(21), fontSize: r.ms(14) },
   bannerError: {
     flexDirection: 'row',
     gap: 8,
@@ -197,7 +199,7 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 12,
     marginBottom: 12,
   },
-  bannerErrorText: { flex: 1, color: colors.expense, fontWeight: '700', fontSize: 13 },
+  bannerErrorText: { flex: 1, color: colors.expense, fontWeight: '700', fontSize: r.ms(13) },
   bannerOk: {
     flexDirection: 'row',
     gap: 8,
@@ -207,6 +209,6 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 12,
     marginBottom: 12,
   },
-  bannerOkText: { flex: 1, color: colors.income, fontWeight: '700', fontSize: 13 },
+  bannerOkText: { flex: 1, color: colors.income, fontWeight: '700', fontSize: r.ms(13) },
 });
 }
