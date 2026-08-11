@@ -5,6 +5,7 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import { emitAppStatus } from './appStatus';
 
 const ACCESS_KEY = 'dd_access';
 const REFRESH_KEY = 'dd_refresh';
@@ -55,8 +56,38 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
+    const status = error.response?.status as number | undefined;
+    const code = error.code as string | undefined;
+    const apiCode = error.response?.data?.code as string | undefined;
+    const apiMessage = error.response?.data?.message as string | undefined;
+
+    if (!error.response) {
+      if (code === 'ECONNABORTED') {
+        emitAppStatus({
+          type: 'offline',
+          message: 'Koneksi terlalu lama. Periksa internet lalu coba lagi.',
+        });
+      } else {
+        emitAppStatus({
+          type: 'offline',
+          message: 'Tidak bisa terhubung ke server. Periksa internet kamu.',
+        });
+      }
+    } else if (
+      status === 503 ||
+      apiCode === 'MAINTENANCE' ||
+      apiCode === 'LOGIN_UNAVAILABLE'
+    ) {
+      emitAppStatus({
+        type: 'maintenance',
+        message:
+          apiMessage ||
+          'DuitDiary sedang dalam perawatan. Silakan coba beberapa saat lagi.',
+      });
+    }
+
     const original = error.config;
-    if (error.response?.status === 401 && original && !original._retry) {
+    if (status === 401 && original && !original._retry) {
       original._retry = true;
       const refresh = await getRefreshToken();
       if (!refresh) {

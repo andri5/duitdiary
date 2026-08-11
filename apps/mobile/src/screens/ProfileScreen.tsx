@@ -1,10 +1,17 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import type { User } from '../lib/auth';
 import { logout } from '../lib/auth';
-import { colors } from '../theme';
+import { BrandMark, PrimaryButton } from '../components/ui';
+import { FadeInUp, ScalePress, PopIn } from '../components/motion';
+import { useDialog } from '../components/AppDialog';
+import { radii, spacing, type ThemeColors } from '../theme';
+import { useColors } from '../themeContext';
+import { useResponsive } from '../hooks/useResponsive';
 import type { MainStackParamList } from '../navigation/types';
 
 export function ProfileScreen({
@@ -14,101 +21,214 @@ export function ProfileScreen({
   user: User;
   onLogout: () => void;
 }) {
+  const colors = useColors();
+  const r = useResponsive();
+  const styles = useMemo(() => createStyles(colors, r), [colors, r]);
   const insets = useSafeAreaInsets();
+  const { showDialog } = useDialog();
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
 
-  const handleLogout = async () => {
-    await logout();
-    onLogout();
+  const handleLogout = () => {
+    showDialog({
+      variant: 'danger',
+      title: 'Keluar dari akun?',
+      message: 'Kamu perlu masuk lagi untuk mengakses data.',
+      confirmLabel: 'Keluar',
+      cancelLabel: 'Batal',
+      showCancel: true,
+      onConfirm: async () => {
+        await logout();
+        onLogout();
+      },
+    });
   };
 
+  const menus = [
+    {
+      key: 'settings',
+      title: 'Pengaturan',
+      sub: 'Nama, mata uang, foto',
+      icon: 'settings-outline' as const,
+      soft: true,
+      onPress: () => navigation.navigate('Settings'),
+    },
+    {
+      key: 'categories',
+      title: 'Kategori',
+      sub: 'Tambah & kelola',
+      icon: 'pricetags-outline' as const,
+      soft: true,
+      onPress: () => navigation.navigate('Categories'),
+    },
+    {
+      key: 'help',
+      title: 'Bantuan',
+      sub: 'Panduan singkat',
+      icon: 'help-circle-outline' as const,
+      soft: false,
+      onPress: () => navigation.navigate('Help'),
+    },
+  ];
+
   return (
-    <View
-      style={[
-        styles.wrap,
-        {
-          paddingTop: Math.max(insets.top, 12) + 12,
-          paddingBottom: 24,
-        },
-      ]}
+    <ScrollView
+      style={styles.wrap}
+      contentContainerStyle={{
+        paddingTop: Math.max(insets.top, 10) + 8,
+        paddingBottom: Math.max(insets.bottom, 16) + 24,
+        paddingHorizontal: r.pagePadding,
+      }}
     >
-      <Text style={styles.brand}>DuitDiary</Text>
-      <Text style={styles.title}>Profil</Text>
+      <FadeInUp>
+        <View style={styles.topBar}>
+          <View style={{ flex: 1 }}>
+            <BrandMark size="sm" />
+            <Text style={styles.title}>Profil</Text>
+          </View>
+        </View>
+      </FadeInUp>
 
-      <View style={styles.card}>
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.email}>{user.email}</Text>
-        {user.currency ? (
-          <Text style={styles.meta}>Mata uang: {user.currency}</Text>
-        ) : null}
-      </View>
+      <PopIn delay={50}>
+        <View style={styles.profileCard}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarLetter}>
+              {(user.name || user.email || 'U').charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.name} numberOfLines={1}>
+              {user.name}
+            </Text>
+            <Text style={styles.email} numberOfLines={1}>
+              {user.email}
+            </Text>
+            {user.currency ? (
+              <View style={styles.currencyPill}>
+                <Text style={styles.currencyText}>{user.currency}</Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+      </PopIn>
 
-      <Pressable style={styles.menuBtn} onPress={() => navigation.navigate('Settings')}>
-        <Text style={styles.menuTitle}>Pengaturan</Text>
-        <Text style={styles.menuSub}>Nama, mata uang, dan foto profil</Text>
-      </Pressable>
+      {menus.map((item, i) => (
+        <FadeInUp key={item.key} delay={90 + i * 55} distance={12}>
+          <ScalePress
+            onPress={item.onPress}
+            style={[styles.menuBtn, item.soft ? styles.menuSoft : styles.menuPlain]}
+          >
+            <View style={[styles.menuIcon, item.soft && styles.menuIconSoft]}>
+              <Ionicons
+                name={item.icon}
+                size={17}
+                color={item.soft ? colors.brandDark : colors.muted}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.menuTitle, item.soft && { color: colors.brandDark }]}>
+                {item.title}
+              </Text>
+              <Text style={styles.menuSub}>{item.sub}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={colors.faint} />
+          </ScalePress>
+        </FadeInUp>
+      ))}
 
-      <Pressable style={styles.menuBtn} onPress={() => navigation.navigate('Categories')}>
-        <Text style={styles.menuTitle}>Kelola kategori</Text>
-        <Text style={styles.menuSub}>Tambah, edit, atau hapus kategori</Text>
-      </Pressable>
+      <FadeInUp delay={260}>
+        <View style={styles.versionRow}>
+          <Text style={styles.versionText}>DuitDiary 1.0.0</Text>
+          <Text style={styles.versionDot}>·</Text>
+          <Text style={styles.versionText}>release</Text>
+        </View>
+      </FadeInUp>
 
-      <Pressable
-        style={[styles.menuBtn, styles.menuBtnMuted]}
-        onPress={() => navigation.navigate('Help')}
-      >
-        <Text style={styles.menuTitle}>Bantuan</Text>
-        <Text style={styles.menuSub}>Panduan singkat memakai aplikasi</Text>
-      </Pressable>
-
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Versi aplikasi</Text>
-        <Text style={styles.meta}>DuitDiary 1.0.0 (release)</Text>
-      </View>
-
-      <Pressable style={styles.btn} onPress={handleLogout}>
-        <Text style={styles.btnText}>Keluar</Text>
-      </Pressable>
-    </View>
+      <FadeInUp delay={300}>
+        <PrimaryButton label="Keluar" onPress={handleLogout} variant="danger" />
+      </FadeInUp>
+    </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { flex: 1, paddingHorizontal: 20, backgroundColor: colors.bg },
-  brand: { fontSize: 14, fontWeight: '700', color: colors.brand, marginBottom: 8 },
-  title: { fontSize: 26, fontWeight: '800', color: colors.text, marginBottom: 20 },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 16,
-    marginBottom: 12,
-  },
-  menuBtn: {
-    backgroundColor: '#ecfdf8',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#99f6e4',
-    padding: 16,
-    marginBottom: 12,
-  },
-  menuBtnMuted: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-  },
-  menuTitle: { fontWeight: '800', color: colors.brandDark, fontSize: 16 },
-  menuSub: { marginTop: 4, color: colors.muted, fontSize: 13 },
-  name: { fontSize: 18, fontWeight: '800', color: colors.text },
-  email: { marginTop: 4, color: colors.muted },
-  cardTitle: { fontWeight: '700', color: colors.text, marginBottom: 6 },
-  meta: { color: colors.faint, fontSize: 12, marginTop: 4 },
-  btn: {
-    marginTop: 16,
-    backgroundColor: colors.text,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  btnText: { color: '#fff', fontWeight: '700' },
-});
+function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
+  return StyleSheet.create({
+    wrap: { flex: 1, backgroundColor: colors.bg },
+    topBar: { marginBottom: 12 },
+    title: {
+      marginTop: 4,
+      fontSize: r.ms(22),
+      fontWeight: '800',
+      color: colors.text,
+      letterSpacing: -0.4,
+    },
+    profileCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 12,
+      marginBottom: 12,
+    },
+    avatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 16,
+      backgroundColor: colors.brand,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    avatarLetter: { color: colors.onBrand, fontSize: r.ms(20), fontWeight: '800' },
+    name: { fontSize: r.ms(16), fontWeight: '800', color: colors.text },
+    email: { marginTop: 1, color: colors.muted, fontSize: r.ms(13) },
+    currencyPill: {
+      alignSelf: 'flex-start',
+      marginTop: 6,
+      backgroundColor: colors.brandSoft,
+      borderRadius: radii.pill,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+    },
+    currencyText: { color: colors.brandDark, fontWeight: '800', fontSize: r.ms(11) },
+    menuBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      paddingVertical: 11,
+      paddingHorizontal: 12,
+      marginBottom: 8,
+    },
+    menuSoft: {
+      backgroundColor: colors.brandSoft,
+      borderColor: colors.brandSoftBorder,
+    },
+    menuPlain: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+    },
+    menuIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 10,
+      backgroundColor: colors.mistDeep,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    menuIconSoft: { backgroundColor: colors.surface },
+    menuTitle: { fontWeight: '800', color: colors.text, fontSize: r.ms(14) },
+    menuSub: { marginTop: 1, color: colors.muted, fontSize: r.ms(11) },
+    versionRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 6,
+      marginVertical: 12,
+    },
+    versionText: { color: colors.faint, fontSize: r.ms(12), fontWeight: '600' },
+    versionDot: { color: colors.faint },
+  });
+}

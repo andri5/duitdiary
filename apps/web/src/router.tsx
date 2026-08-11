@@ -16,6 +16,8 @@ import {
   CategoriesPage,
   SettingsPage,
   HelpPage,
+  TermsPage,
+  PrivacyPage,
   NotFoundPage,
   MaintenancePage,
 } from '@/pages';
@@ -38,6 +40,14 @@ const appRoutes = [
         <RegisterPage />
       </PublicRoute>
     ),
+  },
+  {
+    path: ROUTES.TERMS,
+    element: <TermsPage />,
+  },
+  {
+    path: ROUTES.PRIVACY,
+    element: <PrivacyPage />,
   },
   {
     path: ROUTES.FORGOT_PASSWORD,

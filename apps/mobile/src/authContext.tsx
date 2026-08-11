@@ -14,7 +14,11 @@ export const AuthContext = createContext<AuthContextValue>({
 export const useAuth = () => useContext(AuthContext);
 
 export type RootStackParamList = {
+  Welcome: undefined;
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
+  ResetPassword: { token?: string } | undefined;
+  Terms: undefined;
+  Privacy: undefined;
 };

@@ -145,6 +145,8 @@ export const ROUTES = {
   CATEGORIES: '/categories',
   SETTINGS: '/settings',
   HELP: '/help',
+  TERMS: '/terms',
+  PRIVACY: '/privacy',
   MAINTENANCE: '/maintenance',
   NOT_FOUND: '/404',
 } as const;

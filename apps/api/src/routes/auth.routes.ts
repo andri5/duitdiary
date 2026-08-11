@@ -9,6 +9,7 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   updateProfileSchema,
+  changePasswordSchema,
 } from '../utils/validation.js';
 
 const router = Router();
@@ -51,6 +52,13 @@ router.put(
   authMiddleware,
   validate(updateProfileSchema),
   (req, res) => authController.updateProfile(req, res)
+);
+
+router.post(
+  '/change-password',
+  authMiddleware,
+  validate(changePasswordSchema),
+  (req, res) => authController.changePassword(req, res)
 );
 
 router.post(

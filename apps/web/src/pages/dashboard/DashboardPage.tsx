@@ -2,7 +2,7 @@
  * DuitDiary - Dashboard Page
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   TrendingUp,
@@ -15,6 +15,8 @@ import {
   PieChart as PieChartIcon,
   FileSpreadsheet,
   FileText,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -55,6 +57,9 @@ import { exportReportToExcel, exportReportToPdf } from '@/lib/exportReport';
 type Period = 'week' | 'month' | 'year';
 type ExportFormat = 'excel' | 'pdf';
 
+const DASHBOARD_AMOUNTS_VISIBLE_KEY = 'duitdiary_dashboard_amounts_visible';
+const HIDDEN_AMOUNT = '••••••';
+
 const tooltipStyle = {
   borderRadius: '12px',
   border: '1px solid #d7e0ea',
@@ -71,6 +76,7 @@ function CategorySummaryPanel({
   emptyTitle,
   emptyDescription,
   amountTone,
+  amountsVisible,
 }: {
   title: string;
   icon: typeof PieChartIcon;
@@ -80,7 +86,10 @@ function CategorySummaryPanel({
   emptyTitle: string;
   emptyDescription: string;
   amountTone: string;
+  amountsVisible: boolean;
 }) {
+  const showAmount = (n: number) => (amountsVisible ? formatCurrency(n) : HIDDEN_AMOUNT);
+
   if (!items.length) {
     return (
       <Card padding="md" className="h-full">
@@ -103,7 +112,7 @@ function CategorySummaryPanel({
           {title}
         </CardTitle>
         <span className={cn('text-sm font-bold tabular', amountTone)}>
-          {formatCurrency(total)}
+          {showAmount(total)}
         </span>
       </CardHeader>
 
@@ -130,7 +139,9 @@ function CategorySummaryPanel({
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value) => formatCurrency(Number(value))}
+                formatter={(value) =>
+                  amountsVisible ? formatCurrency(Number(value)) : HIDDEN_AMOUNT
+                }
                 contentStyle={tooltipStyle}
               />
             </PieChart>
@@ -139,10 +150,7 @@ function CategorySummaryPanel({
 
         <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
           {items.map((item) => (
-            <div
-              key={item.categoryId}
-              className="rounded-xl bg-mist/70 px-3 py-2.5"
-            >
+            <div key={item.categoryId} className="rounded-xl bg-mist/70 px-3 py-2.5">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2.5">
                   <div
@@ -166,7 +174,7 @@ function CategorySummaryPanel({
                   </div>
                 </div>
                 <p className={cn('flex-shrink-0 text-sm font-bold tabular', amountTone)}>
-                  {formatCurrency(item.total)}
+                  {showAmount(item.total)}
                 </p>
               </div>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line/70">
@@ -190,6 +198,27 @@ export function DashboardPage() {
   const { user } = useAuthStore();
   const [period, setPeriod] = useState<Period>('month');
   const [isExporting, setIsExporting] = useState<ExportFormat | null>(null);
+  const [amountsVisible, setAmountsVisible] = useState(() => {
+    try {
+      const stored = localStorage.getItem(DASHBOARD_AMOUNTS_VISIBLE_KEY);
+      if (stored === null) return true;
+      return stored === '1';
+    } catch {
+      return true;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DASHBOARD_AMOUNTS_VISIBLE_KEY, amountsVisible ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
+  }, [amountsVisible]);
+
+  const showAmount = (n: number) => (amountsVisible ? formatCurrency(n) : HIDDEN_AMOUNT);
+
+  const toggleAmountsVisible = () => setAmountsVisible((v) => !v);
 
   const { data: summary, isLoading: isSummaryLoading } = useDashboard({ period });
   const { data: recentExpenses, isLoading: isExpensesLoading } = useExpenses({
@@ -261,7 +290,7 @@ export function DashboardPage() {
     {
       key: 'income',
       label: 'Pemasukan',
-      value: formatCurrency(summary?.totalIncome || 0),
+      value: showAmount(summary?.totalIncome || 0),
       hint: `${summary?.incomeCount || 0} transaksi`,
       icon: TrendingUp,
       tone: 'text-lime bg-lime-soft',
@@ -269,7 +298,7 @@ export function DashboardPage() {
     {
       key: 'expense',
       label: 'Pengeluaran',
-      value: formatCurrency(summary?.totalExpenses || 0),
+      value: showAmount(summary?.totalExpenses || 0),
       hint: `${summary?.expenseCount || 0} transaksi`,
       icon: TrendingDown,
       tone: 'text-coral bg-coral-soft',
@@ -277,7 +306,7 @@ export function DashboardPage() {
     {
       key: 'balance',
       label: 'Saldo Bersih',
-      value: formatCurrency(summary?.balance || 0),
+      value: showAmount(summary?.balance || 0),
       hint: (summary?.balance || 0) >= 0 ? 'Surplus' : 'Defisit',
       icon: Scale,
       tone:
@@ -327,7 +356,7 @@ export function DashboardPage() {
         />
 
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
             {(['week', 'month', 'year'] as Period[]).map((p) => (
               <button
                 key={p}
@@ -342,6 +371,24 @@ export function DashboardPage() {
                 {periodLabels[p]}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={toggleAmountsVisible}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-surface px-3 py-2 text-sm font-semibold text-muted ring-1 ring-line transition hover:bg-mist hover:text-ink"
+              aria-label={
+                amountsVisible ? 'Sembunyikan nominal' : 'Tampilkan nominal'
+              }
+              title={
+                amountsVisible
+                  ? 'Sembunyikan nominal (angka diganti ••••••)'
+                  : 'Tampilkan nominal'
+              }
+            >
+              {amountsVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+              <span>
+                {amountsVisible ? 'Sembunyikan nominal' : 'Tampilkan nominal'}
+              </span>
+            </button>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -424,6 +471,7 @@ export function DashboardPage() {
                   emptyTitle="Belum ada pengeluaran"
                   emptyDescription="Tambahkan pengeluaran untuk melihat breakdown kategori"
                   amountTone="text-coral"
+                  amountsVisible={amountsVisible}
                 />
                 <CategorySummaryPanel
                   title="Ringkasan Pemasukan"
@@ -434,11 +482,12 @@ export function DashboardPage() {
                   emptyTitle="Belum ada pemasukan"
                   emptyDescription="Tambahkan pemasukan untuk melihat breakdown kategori"
                   amountTone="text-lime"
+                  amountsVisible={amountsVisible}
                 />
               </div>
             </CollapsibleSection>
 
-            <DashboardInsights summary={summary} />
+            {amountsVisible ? <DashboardInsights summary={summary} /> : null}
 
             <Card padding="md" className="mb-4">
               <CardHeader>
@@ -465,15 +514,19 @@ export function DashboardPage() {
                         axisLine={false}
                         width={56}
                         tickFormatter={(v) =>
-                          v >= 1_000_000
-                            ? `${(v / 1_000_000).toFixed(1)}jt`
-                            : v >= 1_000
-                              ? `${Math.round(v / 1_000)}rb`
-                              : String(v)
+                          amountsVisible
+                            ? v >= 1_000_000
+                              ? `${(v / 1_000_000).toFixed(1)}jt`
+                              : v >= 1_000
+                                ? `${Math.round(v / 1_000)}rb`
+                                : String(v)
+                            : '••'
                         }
                       />
                       <Tooltip
-                        formatter={(value) => formatCurrency(Number(value))}
+                        formatter={(value) =>
+                          amountsVisible ? formatCurrency(Number(value)) : HIDDEN_AMOUNT
+                        }
                         contentStyle={tooltipStyle}
                       />
                       <Legend
@@ -541,7 +594,7 @@ export function DashboardPage() {
                           </div>
                         </div>
                         <p className="flex-shrink-0 text-sm font-bold font-mono text-lime">
-                          +{formatCurrency(item.amount)}
+                          +{showAmount(item.amount)}
                         </p>
                       </div>
                     ))}
@@ -606,7 +659,7 @@ export function DashboardPage() {
                           </div>
                         </div>
                         <p className="flex-shrink-0 text-sm font-bold amount-negative">
-                          -{formatCurrency(expense.amount)}
+                          -{showAmount(expense.amount)}
                         </p>
                       </div>
                     ))}

@@ -143,6 +143,26 @@ export class AuthController {
       sendError(res, message, 400, 'PROFILE_UPDATE_FAILED');
     }
   }
+
+  async changePassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId } = (req as AuthenticatedRequest).user!;
+      const data = req.body as { currentPassword: string; newPassword: string };
+      const result = await authService.changePassword(userId, data);
+      sendSuccess(res, result, result.message);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Gagal mengubah password';
+      if (message === 'User not found') {
+        sendUnauthorized(res, message);
+        return;
+      }
+      if (message === 'Password saat ini salah') {
+        sendUnauthorized(res, message);
+        return;
+      }
+      sendError(res, message, 400, 'CHANGE_PASSWORD_FAILED');
+    }
+  }
 }
 
 export const authController = new AuthController();

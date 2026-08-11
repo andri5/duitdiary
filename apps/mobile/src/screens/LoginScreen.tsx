@@ -1,21 +1,37 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Text,
-  TextInput,
   Pressable,
   StyleSheet,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { login } from '../lib/auth';
 import { useAuth, type RootStackParamList } from '../authContext';
+import {
+  BrandMark,
+  AppTextInput,
+  PasswordInput,
+  PrimaryButton,
+  Card,
+  FormLabel,
+} from '../components/ui';
+import { FadeInUp, ScalePress } from '../components/motion';
+import { spacing, type ThemeColors } from '../theme';
+import { useColors } from '../themeContext';
+import { useResponsive } from '../hooks/useResponsive';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export function LoginScreen({ navigation }: Props) {
+  const colors = useColors();
+  const r = useResponsive();
+  const styles = useMemo(() => createStyles(colors, r), [colors, r]);
   const insets = useSafeAreaInsets();
   const { setUser } = useAuth();
   const [email, setEmail] = useState('');
@@ -41,95 +57,150 @@ export function LoginScreen({ navigation }: Props) {
 
   return (
     <KeyboardAvoidingView
-      style={[
-        styles.wrap,
-        { paddingTop: Math.max(insets.top, 16), paddingBottom: Math.max(insets.bottom, 16) },
-      ]}
+      style={[styles.wrap, { paddingTop: Math.max(insets.top, 12) }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Text style={styles.brand}>DuitDiary</Text>
-      <Text style={styles.title}>Masuk</Text>
-      <Text style={styles.sub}>Lanjutkan pencatatan keuanganmu</Text>
+      <View style={styles.glowA} pointerEvents="none" />
+      <View style={styles.glowB} pointerEvents="none" />
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          r.pageStyle,
+          { paddingBottom: Math.max(insets.bottom, 16) + 24 },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
+        <View style={r.contentStyle}>
+        <FadeInUp>
+          <ScalePress onPress={() => navigation.navigate('Welcome')} style={styles.back}>
+            <Ionicons name="arrow-back" size={16} color={colors.brand} />
+            <Text style={styles.backText}>Selamat datang</Text>
+          </ScalePress>
+          <BrandMark size="lg" />
+          <Text style={styles.title}>Masuk</Text>
+          <Text style={styles.sub}>Lanjutkan pencatatan keuanganmu</Text>
+        </FadeInUp>
 
-      <TextInput
-        style={styles.input}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        style={styles.input}
-        secureTextEntry
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-      />
+        <View style={styles.formCard}>
+          <Card>
+            {error ? (
+              <View style={styles.errorBox}>
+                <Ionicons name="alert-circle" size={16} color={colors.expense} />
+                <Text style={styles.error}>{error}</Text>
+              </View>
+            ) : null}
 
-      <Pressable style={styles.btn} onPress={onSubmit} disabled={loading}>
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.btnText}>Masuk</Text>
-        )}
-      </Pressable>
+            <FormLabel>Email</FormLabel>
+            <AppTextInput
+              icon="mail-outline"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoCorrect={false}
+              placeholder="nama@email.com"
+              value={email}
+              onChangeText={setEmail}
+            />
 
-      <Pressable style={styles.secondaryBtn} onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.secondaryBtnText}>Daftar akun baru</Text>
-      </Pressable>
+            <FormLabel>Password</FormLabel>
+            <PasswordInput
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              autoComplete="password"
+              textContentType="password"
+            />
 
-      <Pressable onPress={() => navigation.navigate('ForgotPassword')}>
-        <Text style={styles.link}>Lupa password?</Text>
-      </Pressable>
+            <PrimaryButton
+              label="Masuk"
+              icon="log-in-outline"
+              onPress={onSubmit}
+              loading={loading}
+              disabled={loading}
+            />
 
-      <Pressable onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.link}>Belum punya akun? Ketuk di sini</Text>
-      </Pressable>
+            <Pressable
+              style={styles.forgot}
+              onPress={() => navigation.navigate('ForgotPassword')}
+            >
+              <Text style={styles.link}>Lupa password?</Text>
+            </Pressable>
+          </Card>
+        </View>
+
+        <FadeInUp delay={140}>
+          <View style={styles.footer}>
+            <Text style={styles.footerMuted}>Belum punya akun?</Text>
+            <Pressable onPress={() => navigation.navigate('Register')}>
+              <Text style={styles.link}>Daftar sekarang</Text>
+            </Pressable>
+          </View>
+        </FadeInUp>
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: '#f4f7fb' },
-  brand: { fontSize: 14, fontWeight: '700', color: '#0f9b8e', marginBottom: 8 },
-  title: { fontSize: 28, fontWeight: '800', color: '#0f172a' },
-  sub: { marginTop: 6, marginBottom: 20, color: '#64748b' },
-  input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#d7e0ea',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 10,
+function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
+  return StyleSheet.create({
+  wrap: { flex: 1, backgroundColor: colors.bg, overflow: 'hidden' },
+  glowA: {
+    position: 'absolute',
+    top: -60,
+    right: -40,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(15,155,142,0.12)',
   },
-  btn: {
-    backgroundColor: '#0f9b8e',
-    borderRadius: 14,
-    paddingVertical: 14,
+  glowB: {
+    position: 'absolute',
+    bottom: 80,
+    left: -50,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: 'rgba(28,200,180,0.1)',
+  },
+  scroll: { flexGrow: 1, justifyContent: 'center' },
+  formCard: { marginBottom: spacing.lg },
+  back: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6,
-  },
-  btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  secondaryBtn: {
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 10,
+    gap: 6,
+    marginBottom: 16,
+    backgroundColor: colors.brandSoft,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#0f9b8e',
-    backgroundColor: '#fff',
+    borderColor: colors.brandSoftBorder,
   },
-  secondaryBtnText: { color: '#0f9b8e', fontWeight: '700', fontSize: 16 },
-  link: { marginTop: 18, textAlign: 'center', color: '#0f9b8e', fontWeight: '600' },
-  error: {
-    backgroundColor: '#fdecec',
-    color: '#e24b4a',
+  backText: { color: colors.brand, fontWeight: '800', fontSize: r.ms(13) },
+  title: {
+    marginTop: 18,
+    fontSize: r.ms(32),
+    fontWeight: '800',
+    color: colors.text,
+    letterSpacing: -0.6,
+  },
+  sub: { marginTop: 6, marginBottom: 20, color: colors.muted, fontSize: r.ms(15), lineHeight: 22 },
+  forgot: { marginTop: 14, alignItems: 'center' },
+  link: { color: colors.brand, fontWeight: '800', fontSize: r.ms(14) },
+  footer: { alignItems: 'center', gap: 6 },
+  footerMuted: { color: colors.muted, fontSize: r.ms(14), fontWeight: '600' },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.expenseSoft,
     padding: 10,
     borderRadius: 12,
-    marginBottom: 10,
+    marginBottom: 12,
   },
+  error: { flex: 1, color: colors.expense, fontWeight: '700', fontSize: r.ms(13) },
 });
+}

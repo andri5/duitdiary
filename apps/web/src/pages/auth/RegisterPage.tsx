@@ -193,8 +193,13 @@ export function RegisterPage() {
             />
             <span>
               Saya setuju dengan{' '}
-              <span className="font-semibold text-accent">Syarat & Ketentuan</span> dan{' '}
-              <span className="font-semibold text-accent">Kebijakan Privasi</span>
+              <Link to={ROUTES.TERMS} className="font-semibold text-accent hover:underline">
+                Syarat & Ketentuan
+              </Link>{' '}
+              dan{' '}
+              <Link to={ROUTES.PRIVACY} className="font-semibold text-accent hover:underline">
+                Kebijakan Privasi
+              </Link>
             </span>
           </label>
 

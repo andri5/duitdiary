@@ -49,9 +49,19 @@ export async function logout(): Promise<void> {
   }
 }
 
-export async function forgotPassword(email: string): Promise<string> {
+export async function forgotPassword(
+  email: string
+): Promise<{ message: string; resetUrl?: string }> {
   const { data } = await api.post('/auth/forgot-password', { email });
-  return (data.message as string) || 'Jika email terdaftar, link reset akan dikirim.';
+  return {
+    message: (data.message as string) || 'Jika email terdaftar, link reset akan dikirim.',
+    resetUrl: (data.data as { resetUrl?: string } | undefined)?.resetUrl,
+  };
+}
+
+export async function resetPassword(token: string, password: string): Promise<string> {
+  const { data } = await api.post('/auth/reset-password', { token, password });
+  return (data.message as string) || 'Password berhasil diubah.';
 }
 
 export async function updateProfile(input: {
@@ -60,4 +70,12 @@ export async function updateProfile(input: {
 }): Promise<User> {
   const { data } = await api.put('/auth/profile', input);
   return data.data as User;
+}
+
+export async function changePassword(input: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<string> {
+  const { data } = await api.post('/auth/change-password', input);
+  return (data.message as string) || 'Password berhasil diubah.';
 }

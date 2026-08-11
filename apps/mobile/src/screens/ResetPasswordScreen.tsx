@@ -11,11 +11,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { forgotPassword } from '../lib/auth';
+import { resetPassword } from '../lib/auth';
 import type { RootStackParamList } from '../authContext';
 import {
   BrandMark,
   AppTextInput,
+  PasswordInput,
   PrimaryButton,
   Card,
   FormLabel,
@@ -24,54 +25,46 @@ import { FadeInUp, ScalePress } from '../components/motion';
 import { spacing, type ThemeColors } from '../theme';
 import { useColors } from '../themeContext';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'ForgotPassword'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'ResetPassword'>;
 
-function extractTokenFromResetUrl(url?: string): string | null {
-  if (!url) return null;
-  try {
-    const parsed = new URL(url);
-    const fromQuery = parsed.searchParams.get('token');
-    if (fromQuery) return fromQuery;
-    const hash = parsed.hash.replace(/^#/, '');
-    if (hash.includes('token=')) {
-      const params = new URLSearchParams(hash.includes('?') ? hash.split('?')[1] : hash);
-      return params.get('token');
-    }
-  } catch {
-    const match = url.match(/[?&#]token=([^&]+)/);
-    if (match?.[1]) return decodeURIComponent(match[1]);
-  }
-  return null;
-}
-
-export function ForgotPasswordScreen({ navigation }: Props) {
+export function ResetPasswordScreen({ navigation, route }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
-  const [email, setEmail] = useState('');
+  const token = useMemo(() => (route.params?.token || '').trim(), [route.params?.token]);
+  const [tokenInput, setTokenInput] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const effectiveToken = token || tokenInput.trim();
+
   const onSubmit = async () => {
     setError(null);
     setSuccess(null);
-    if (!email.trim()) {
-      setError('Masukkan email.');
+    if (!effectiveToken) {
+      setError('Token reset tidak valid. Ajukan ulang lupa password.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password baru minimal 6 karakter.');
+      return;
+    }
+    if (password !== confirm) {
+      setError('Konfirmasi password tidak cocok.');
       return;
     }
     setLoading(true);
     try {
-      const result = await forgotPassword(email.trim());
-      setSuccess(result.message);
-      const token = extractTokenFromResetUrl(result.resetUrl);
-      if (token) {
-        navigation.navigate('ResetPassword', { token });
-      }
+      const message = await resetPassword(effectiveToken, password);
+      setSuccess(message);
+      setTimeout(() => navigation.navigate('Login'), 1200);
     } catch (e: unknown) {
       const message =
         (e as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Gagal mengirim link reset.';
+        'Gagal mengatur password baru.';
       setError(message);
     } finally {
       setLoading(false);
@@ -92,15 +85,13 @@ export function ForgotPasswordScreen({ navigation }: Props) {
         keyboardShouldPersistTaps="handled"
       >
         <FadeInUp>
-          <ScalePress onPress={() => navigation.navigate('Login')} style={styles.back}>
+          <ScalePress onPress={() => navigation.navigate('ForgotPassword')} style={styles.back}>
             <Ionicons name="arrow-back" size={16} color={colors.brand} />
-            <Text style={styles.backText}>Kembali ke masuk</Text>
+            <Text style={styles.backText}>Kembali</Text>
           </ScalePress>
           <BrandMark size="lg" />
-          <Text style={styles.title}>Lupa password</Text>
-          <Text style={styles.sub}>
-            Kami kirim link reset ke email. Buka tautan di HP atau tempel token di layar reset.
-          </Text>
+          <Text style={styles.title}>Password baru</Text>
+          <Text style={styles.sub}>Masukkan password baru untuk akunmu.</Text>
         </FadeInUp>
 
         <Card>
@@ -117,34 +108,46 @@ export function ForgotPasswordScreen({ navigation }: Props) {
             </View>
           ) : null}
 
-          <FormLabel>Email</FormLabel>
-          <AppTextInput
-            icon="mail-outline"
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoCorrect={false}
-            placeholder="nama@email.com"
-            value={email}
-            onChangeText={setEmail}
+          {!token ? (
+            <>
+              <FormLabel>Token reset</FormLabel>
+              <AppTextInput
+                icon="key-outline"
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="Tempel token reset"
+                value={tokenInput}
+                onChangeText={setTokenInput}
+              />
+            </>
+          ) : null}
+
+          <FormLabel>Password baru</FormLabel>
+          <PasswordInput
+            placeholder="Minimal 6 karakter"
+            value={password}
+            onChangeText={setPassword}
+            autoComplete="new-password"
+            textContentType="newPassword"
+          />
+
+          <FormLabel>Konfirmasi</FormLabel>
+          <PasswordInput
+            placeholder="Ulangi password baru"
+            value={confirm}
+            onChangeText={setConfirm}
+            autoComplete="new-password"
+            textContentType="newPassword"
           />
 
           <PrimaryButton
-            label="Kirim link reset"
-            icon="send-outline"
+            label="Simpan password"
+            icon="shield-checkmark-outline"
             onPress={onSubmit}
             loading={loading}
-            disabled={loading}
+            disabled={loading || !effectiveToken}
           />
         </Card>
-
-        <FadeInUp delay={120}>
-          <Pressable
-            onPress={() => navigation.navigate('ResetPassword', {})}
-            style={styles.linkWrap}
-          >
-            <Text style={styles.link}>Sudah punya token? Reset di sini</Text>
-          </Pressable>
-        </FadeInUp>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -155,12 +158,12 @@ function createStyles(colors: ThemeColors) {
   wrap: { flex: 1, backgroundColor: colors.bg, overflow: 'hidden' },
   glow: {
     position: 'absolute',
-    top: 40,
-    right: -50,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(217,119,6,0.12)',
+    top: 60,
+    left: -40,
+    width: 170,
+    height: 170,
+    borderRadius: 85,
+    backgroundColor: 'rgba(15,155,142,0.12)',
   },
   scroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.xl },
   back: {
@@ -205,7 +208,5 @@ function createStyles(colors: ThemeColors) {
     marginBottom: 12,
   },
   bannerOkText: { flex: 1, color: colors.income, fontWeight: '700', fontSize: 13 },
-  linkWrap: { alignItems: 'center', marginTop: 4 },
-  link: { color: colors.brand, fontWeight: '800' },
 });
 }

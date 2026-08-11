@@ -9,4 +9,5 @@ export { IncomesPage } from './incomes';
 export { CategoriesPage } from './categories';
 export { SettingsPage } from './settings';
 export { HelpPage } from './help';
+export { TermsPage, PrivacyPage } from './legal';
 export { NotFoundPage, MaintenancePage } from './status';

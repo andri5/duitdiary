@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,10 @@ import {
   Pressable,
   ScrollView,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -21,15 +21,23 @@ import {
   updateCategory,
   type TxType,
 } from '../lib/finance';
-import { colors } from '../theme';
+import { CategoryIcon } from '../components/CategoryIcon';
+import { FadeInUp, ScalePress, PopIn } from '../components/motion';
+import { PageLoader } from '../components/PageStatus';
+import { useDialog } from '../components/AppDialog';
+import { spacing, type ThemeColors } from '../theme';
+import { useColors } from '../themeContext';
 import type { MainStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<MainStackParamList, 'CategoryForm'>;
 
 export function CategoryFormScreen({ navigation, route }: Props) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const editId = route.params?.id;
   const isEdit = Boolean(editId);
   const insets = useSafeAreaInsets();
+  const { showDialog } = useDialog();
 
   const [name, setName] = useState('');
   const [type, setType] = useState<TxType>('EXPENSE');
@@ -59,9 +67,12 @@ export function CategoryFormScreen({ navigation, route }: Props) {
         setIcon(found.icon || CATEGORY_ICONS[0]);
       } catch {
         if (!cancelled) {
-          Alert.alert('Gagal', 'Kategori tidak ditemukan.', [
-            { text: 'OK', onPress: () => navigation.goBack() },
-          ]);
+          showDialog({
+            variant: 'error',
+            title: 'Kategori tidak ditemukan',
+            message: 'Data mungkin sudah dihapus.',
+            onConfirm: () => navigation.goBack(),
+          });
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -70,7 +81,7 @@ export function CategoryFormScreen({ navigation, route }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [editId, navigation]);
+  }, [editId, navigation, showDialog]);
 
   const onSave = async () => {
     setError(null);
@@ -88,18 +99,27 @@ export function CategoryFormScreen({ navigation, route }: Props) {
       };
       if (isEdit && editId) {
         await updateCategory(editId, payload);
-        Alert.alert('Berhasil', 'Kategori diperbarui.');
+        showDialog({
+          variant: 'success',
+          title: 'Kategori diperbarui',
+          message: 'Perubahan sudah disimpan.',
+          onConfirm: () => navigation.goBack(),
+        });
       } else {
         await createCategory(payload);
-        Alert.alert('Berhasil', 'Kategori ditambahkan.');
+        showDialog({
+          variant: 'success',
+          title: 'Kategori ditambahkan',
+          message: 'Kategori baru siap dipakai.',
+          onConfirm: () => navigation.goBack(),
+        });
       }
-      navigation.goBack();
     } catch (e: unknown) {
       const message =
         (e as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         'Gagal menyimpan kategori.';
       setError(message);
-      Alert.alert('Gagal', message);
+      showDialog({ variant: 'error', title: 'Gagal menyimpan', message });
     } finally {
       setSaving(false);
     }
@@ -108,10 +128,12 @@ export function CategoryFormScreen({ navigation, route }: Props) {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={colors.brand} size="large" />
+        <PageLoader label="Memuat kategori…" />
       </View>
     );
   }
+
+  const isIncome = type === 'INCOME';
 
   return (
     <KeyboardAvoidingView
@@ -128,77 +150,185 @@ export function CategoryFormScreen({ navigation, route }: Props) {
       >
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <Text style={styles.label}>Nama</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Misal: Makanan"
-          value={name}
-          onChangeText={setName}
-        />
-
-        <Text style={styles.label}>Tipe</Text>
-        <View style={styles.typeRow}>
-          {(['EXPENSE', 'INCOME'] as const).map((t) => (
-            <Pressable
-              key={t}
-              onPress={() => setType(t)}
-              style={[styles.typeChip, type === t && styles.typeChipActive]}
-            >
-              <Text style={[styles.typeText, type === t && styles.typeTextActive]}>
-                {t === 'EXPENSE' ? 'Pengeluaran' : 'Pemasukan'}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
-        <Text style={styles.label}>Warna</Text>
-        <View style={styles.swatchWrap}>
-          {CATEGORY_COLORS.map((c) => (
-            <Pressable
-              key={c}
-              onPress={() => setColor(c)}
+        <PopIn>
+          <View style={[styles.previewCard, { borderColor: color }]}>
+            <View style={[styles.previewGlow, { backgroundColor: `${color}22` }]} />
+            <CategoryIcon icon={icon} color={color} size={28} box={64} />
+            <Text style={styles.previewName} numberOfLines={1}>
+              {name.trim() || 'Nama kategori'}
+            </Text>
+            <View
               style={[
-                styles.swatch,
-                { backgroundColor: c },
-                color === c && styles.swatchActive,
+                styles.previewBadge,
+                {
+                  backgroundColor: isIncome ? colors.incomeSoft : colors.expenseSoft,
+                },
               ]}
-            />
-          ))}
-        </View>
-
-        <Text style={styles.label}>Ikon</Text>
-        <View style={styles.iconWrap}>
-          {CATEGORY_ICONS.map((ic) => (
-            <Pressable
-              key={ic}
-              onPress={() => setIcon(ic)}
-              style={[styles.iconChip, icon === ic && styles.iconChipActive]}
             >
-              <Text style={[styles.iconText, icon === ic && styles.iconTextActive]}>{ic}</Text>
-            </Pressable>
-          ))}
-        </View>
+              <Ionicons
+                name={isIncome ? 'arrow-down' : 'arrow-up'}
+                size={12}
+                color={isIncome ? colors.income : colors.expense}
+              />
+              <Text
+                style={{
+                  color: isIncome ? colors.income : colors.expense,
+                  fontWeight: '800',
+                  fontSize: 12,
+                }}
+              >
+                {isIncome ? 'Pemasukan' : 'Pengeluaran'}
+              </Text>
+            </View>
+          </View>
+        </PopIn>
 
-        <Pressable style={styles.saveBtn} onPress={onSave} disabled={saving}>
-          {saving ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.saveText}>{isEdit ? 'Simpan perubahan' : 'Simpan'}</Text>
-          )}
-        </Pressable>
-        <Pressable onPress={() => navigation.goBack()} style={{ marginTop: 14 }}>
-          <Text style={styles.cancel}>Batal</Text>
-        </Pressable>
+        <FadeInUp delay={60}>
+          <Text style={styles.label}>Nama</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Misal: Makanan"
+            placeholderTextColor={colors.faint}
+            value={name}
+            onChangeText={setName}
+          />
+
+          <Text style={styles.label}>Tipe</Text>
+          <View style={styles.typeRow}>
+            {(
+              [
+                ['EXPENSE', 'Pengeluaran', 'arrow-up-circle', colors.expense, colors.expenseSoft],
+                ['INCOME', 'Pemasukan', 'arrow-down-circle', colors.income, colors.incomeSoft],
+              ] as const
+            ).map(([t, label, ion, tint, soft]) => {
+              const active = type === t;
+              return (
+                <ScalePress
+                  key={t}
+                  onPress={() => setType(t)}
+                  style={[
+                    styles.typeChip,
+                    active && { backgroundColor: soft, borderColor: tint },
+                  ]}
+                >
+                  <Ionicons name={ion} size={18} color={active ? tint : colors.muted} />
+                  <Text style={[styles.typeText, active && { color: tint }]}>{label}</Text>
+                </ScalePress>
+              );
+            })}
+          </View>
+        </FadeInUp>
+
+        <FadeInUp delay={100}>
+          <Text style={styles.label}>Warna</Text>
+          <View style={styles.swatchWrap}>
+            {CATEGORY_COLORS.map((c) => {
+              const active = color === c;
+              return (
+                <ScalePress
+                  key={c}
+                  onPress={() => setColor(c)}
+                  style={[
+                    styles.swatch,
+                    { backgroundColor: c },
+                    active && styles.swatchActive,
+                  ]}
+                >
+                  {active ? <Ionicons name="checkmark" size={14} color="#fff" /> : null}
+                </ScalePress>
+              );
+            })}
+          </View>
+
+          <Text style={styles.label}>Ikon</Text>
+          <View style={styles.iconWrap}>
+            {CATEGORY_ICONS.map((ic) => {
+              const active = icon === ic;
+              return (
+                <ScalePress
+                  key={ic}
+                  onPress={() => setIcon(ic)}
+                  style={[
+                    styles.iconChip,
+                    active && { borderColor: color, backgroundColor: `${color}18` },
+                  ]}
+                >
+                  <CategoryIcon icon={ic} color={color || colors.brand} size={18} box={36} />
+                </ScalePress>
+              );
+            })}
+          </View>
+        </FadeInUp>
+
+        <FadeInUp delay={140}>
+          <ScalePress style={styles.saveBtn} onPress={onSave} disabled={saving}>
+            {saving ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                <Text style={styles.saveText}>
+                  {isEdit ? 'Simpan perubahan' : 'Simpan kategori'}
+                </Text>
+              </>
+            )}
+          </ScalePress>
+          <Pressable onPress={() => navigation.goBack()} style={{ marginTop: 14 }}>
+            <Text style={styles.cancel}>Batal</Text>
+          </Pressable>
+        </FadeInUp>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 20, paddingTop: 16 },
+  content: { paddingHorizontal: spacing.xl, paddingTop: 12 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg },
-  label: { fontWeight: '600', color: colors.muted, marginBottom: 6, marginTop: 8 },
+  previewCard: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: 24,
+    borderWidth: 2,
+    paddingVertical: 22,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  previewGlow: {
+    position: 'absolute',
+    top: -30,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+  },
+  previewName: {
+    marginTop: 12,
+    fontSize: 20,
+    fontWeight: '800',
+    color: colors.text,
+    letterSpacing: -0.3,
+  },
+  previewBadge: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
+  label: {
+    fontWeight: '800',
+    color: colors.muted,
+    marginBottom: 8,
+    marginTop: 10,
+    fontSize: 11,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
   input: {
     backgroundColor: colors.surface,
     borderWidth: 1,
@@ -206,44 +336,60 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: '600',
   },
-  typeRow: { flexDirection: 'row', gap: 8 },
+  typeRow: { flexDirection: 'row', gap: 10 },
   typeChip: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 14,
+    paddingVertical: 14,
+    borderRadius: 16,
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
     backgroundColor: colors.surface,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
   },
-  typeChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
-  typeText: { fontWeight: '700', color: colors.muted },
-  typeTextActive: { color: '#fff' },
+  typeText: { fontWeight: '800', color: colors.muted, fontSize: 13 },
   swatchWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  swatch: { width: 32, height: 32, borderRadius: 16 },
-  swatchActive: { borderWidth: 3, borderColor: colors.text },
+  swatch: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  swatchActive: {
+    borderWidth: 3,
+    borderColor: '#fff',
+    shadowColor: '#07111f',
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
   iconWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   iconChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 12,
+    padding: 4,
+    borderRadius: 14,
     backgroundColor: colors.surface,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
   },
-  iconChipActive: { backgroundColor: '#ecfdf8', borderColor: colors.brand },
-  iconText: { fontSize: 11, color: colors.muted, fontWeight: '600' },
-  iconTextActive: { color: colors.brand },
   saveBtn: {
-    marginTop: 24,
+    marginTop: 22,
     backgroundColor: colors.brand,
-    borderRadius: 14,
+    borderRadius: 16,
     paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
   },
-  saveText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  cancel: { textAlign: 'center', color: colors.muted, fontWeight: '600' },
+  saveText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  cancel: { textAlign: 'center', color: colors.muted, fontWeight: '700' },
   error: {
     backgroundColor: colors.dangerBg,
     color: colors.dangerText,
@@ -252,3 +398,4 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 });
+}

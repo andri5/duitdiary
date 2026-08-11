@@ -79,6 +79,27 @@ export async function resetPassword(
   return response.data.data;
 }
 
+export async function updateProfile(data: {
+  name?: string;
+  currency?: string;
+}): Promise<User> {
+  const response = await api.put<ApiResponse<User>>('/auth/profile', data);
+  const user = response.data.data;
+  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+  return user;
+}
+
+export async function changePassword(data: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<{ message: string }> {
+  const response = await api.post<ApiResponse<{ message: string }>>(
+    '/auth/change-password',
+    data
+  );
+  return response.data.data;
+}
+
 /**
  * Persist user profile. Tokens stay in HttpOnly cookies for web;
  * optionally mirror in memory for Bearer dual-mode (e.g. tests).

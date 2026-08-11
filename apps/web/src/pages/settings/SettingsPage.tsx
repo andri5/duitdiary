@@ -2,7 +2,7 @@
  * DuitDiary - Settings Page
  */
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   User,
   Mail,
@@ -12,15 +12,19 @@ import {
   Camera,
   Loader2,
   Check,
+  Lock,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MainLayout, PageHeader, PageTransition } from '@/components/layout';
-import { Button, Card, CardHeader, CardTitle, Badge, UserAvatar } from '@/components/ui';
+import { Button, Card, CardHeader, CardTitle, Badge, UserAvatar, Input } from '@/components/ui';
 import { useAuthStore, useUIStore } from '@/stores';
 import { ROUTES, THEME_OPTIONS, type AppTheme } from '@/lib/constants';
 import { formatDate, cn } from '@/lib/utils';
 import { uploadAvatar } from '@/services/upload.service';
+import { updateProfile, changePassword } from '@/services/auth.service';
+
+const CURRENCIES = ['IDR', 'USD', 'SGD', 'MYR'] as const;
 
 const themePreview: Record<AppTheme, { from: string; to: string; accent: string }> = {
   neo: { from: '#f3f6f9', to: '#ffffff', accent: '#0f9b8e' },
@@ -34,6 +38,22 @@ export function SettingsPage() {
   const { theme, setTheme } = useUIStore();
   const fileRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  const [name, setName] = useState(user?.name || '');
+  const [currency, setCurrency] = useState(user?.currency || 'IDR');
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name);
+      setCurrency((user.currency || 'IDR').toUpperCase().slice(0, 3));
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     await logout();
@@ -73,6 +93,54 @@ export function SettingsPage() {
     } finally {
       setIsUploading(false);
       if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name.trim().length < 2) {
+      toast.error('Nama minimal 2 karakter');
+      return;
+    }
+    setSavingProfile(true);
+    try {
+      const updated = await updateProfile({
+        name: name.trim(),
+        currency: currency.slice(0, 3).toUpperCase(),
+      });
+      setUser(updated);
+      toast.success('Profil diperbarui');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Gagal menyimpan profil');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      toast.error('Password baru minimal 6 karakter');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Konfirmasi password tidak cocok');
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      const result = await changePassword({
+        currentPassword,
+        newPassword,
+      });
+      toast.success(result.message || 'Password berhasil diubah');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Gagal mengubah password');
+    } finally {
+      setSavingPassword(false);
     }
   };
 
@@ -142,44 +210,104 @@ export function SettingsPage() {
         </Card>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <Card padding="md">
-            <CardHeader>
-              <CardTitle>Informasi Profil</CardTitle>
-            </CardHeader>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 rounded-2xl bg-mist/70 p-3.5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
-                  <User className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm text-muted">Nama Lengkap</p>
-                  <p className="truncate font-semibold text-ink">{user?.name}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 rounded-2xl bg-mist/70 p-3.5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
-                  <Mail className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm text-muted">Email</p>
-                  <p className="truncate font-semibold text-ink">{user?.email}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 rounded-2xl bg-mist/70 p-3.5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-lime-soft text-lime">
-                  <Shield className="h-5 w-5" />
+          <div className="space-y-4">
+            <Card padding="md">
+              <CardHeader>
+                <CardTitle>Edit Profil</CardTitle>
+              </CardHeader>
+              <form onSubmit={handleSaveProfile} className="space-y-3">
+                <Input
+                  label="Nama Lengkap"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  leftIcon={<User className="h-4 w-4" />}
+                />
+                <div className="flex items-center gap-3 rounded-2xl bg-mist/70 p-3.5">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm text-muted">Email</p>
+                    <p className="truncate font-semibold text-ink">{user?.email}</p>
+                  </div>
                 </div>
                 <div>
-                  <p className="text-sm text-muted">Status Akun</p>
-                  <Badge variant="success" size="sm" className="mt-1">
-                    Aktif
-                  </Badge>
+                  <p className="mb-2 text-sm font-medium text-ink">Mata uang</p>
+                  <div className="flex flex-wrap gap-2">
+                    {CURRENCIES.map((code) => (
+                      <button
+                        key={code}
+                        type="button"
+                        onClick={() => setCurrency(code)}
+                        className={cn(
+                          'rounded-xl border px-3 py-2 text-sm font-semibold transition',
+                          currency === code
+                            ? 'border-accent bg-accent-soft text-accent'
+                            : 'border-line text-muted hover:border-accent/40'
+                        )}
+                      >
+                        {code}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </div>
-          </Card>
+                <div className="flex items-center gap-3 rounded-2xl bg-mist/70 p-3.5">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-lime-soft text-lime">
+                    <Shield className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted">Status Akun</p>
+                    <Badge variant="success" size="sm" className="mt-1">
+                      Aktif
+                    </Badge>
+                  </div>
+                </div>
+                <Button type="submit" variant="gradient" className="w-full" isLoading={savingProfile}>
+                  Simpan Profil
+                </Button>
+              </form>
+            </Card>
+
+            <Card padding="md">
+              <CardHeader>
+                <CardTitle>Ganti Password</CardTitle>
+              </CardHeader>
+              <form onSubmit={handleChangePassword} className="space-y-3">
+                <Input
+                  label="Password saat ini"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  leftIcon={<Lock className="h-4 w-4" />}
+                  autoComplete="current-password"
+                />
+                <Input
+                  label="Password baru"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  leftIcon={<Lock className="h-4 w-4" />}
+                  autoComplete="new-password"
+                />
+                <Input
+                  label="Konfirmasi password baru"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  leftIcon={<Lock className="h-4 w-4" />}
+                  autoComplete="new-password"
+                />
+                <Button
+                  type="submit"
+                  variant="outline"
+                  className="w-full"
+                  isLoading={savingPassword}
+                >
+                  Ubah Password
+                </Button>
+              </form>
+            </Card>
+          </div>
 
           <div className="space-y-4">
             <Card padding="md">

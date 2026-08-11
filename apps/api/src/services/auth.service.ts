@@ -280,6 +280,37 @@ export class AuthService {
     return this.formatUser(user);
   }
 
+  async changePassword(
+    userId: string,
+    data: { currentPassword: string; newPassword: string }
+  ): Promise<{ message: string }> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, password: true },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const isValid = await bcrypt.compare(data.currentPassword, user.password);
+    if (!isValid) {
+      throw new Error('Password saat ini salah');
+    }
+
+    if (data.currentPassword === data.newPassword) {
+      throw new Error('Password baru harus berbeda dari password saat ini');
+    }
+
+    const hashedPassword = await bcrypt.hash(data.newPassword, 12);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    return { message: 'Password berhasil diubah' };
+  }
+
   private async saveRefreshToken(userId: string, token: string): Promise<void> {
     const expiresAt = new Date(Date.now() + parseExpiresIn(config.jwt.refreshExpiresIn));
 

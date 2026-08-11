@@ -32,6 +32,15 @@ export type Transaction = {
   receiptUrl?: string | null;
 };
 
+export type CategoryBreakdownItem = {
+  categoryId: string;
+  categoryName: string;
+  total: number;
+  percentage: number;
+  color?: string | null;
+  categoryColor?: string | null;
+};
+
 export type DashboardSummary = {
   period: string;
   periodStart: string;
@@ -43,6 +52,9 @@ export type DashboardSummary = {
   incomeCount: number;
   recentExpenses?: Transaction[];
   recentIncomes?: Transaction[];
+  categoryBreakdown?: CategoryBreakdownItem[];
+  expenseCategoryBreakdown?: CategoryBreakdownItem[];
+  topCategories?: CategoryBreakdownItem[];
 };
 
 export type MarketQuotes = {
@@ -75,10 +87,18 @@ export const CATEGORY_ICONS = [
   'shopping-bag',
   'gamepad-2',
   'heart-pulse',
+  'graduation-cap',
   'home',
+  'zap',
+  'plane',
+  'gift',
   'wallet',
   'banknote',
   'briefcase',
+  'laptop',
+  'line-chart',
+  'piggy-bank',
+  'sparkles',
   'more-horizontal',
 ] as const;
 
@@ -152,18 +172,30 @@ export async function getTransactions(opts?: {
   page?: number;
   limit?: number;
   type?: TxType;
-}): Promise<{ items: Transaction[]; total: number }> {
+  startDate?: string;
+  endDate?: string;
+  categoryId?: string;
+  search?: string;
+}): Promise<{ items: Transaction[]; total: number; page: number; totalPages: number }> {
   const params = new URLSearchParams();
-  params.set('page', String(opts?.page ?? 1));
-  params.set('limit', String(opts?.limit ?? 30));
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  params.set('page', String(page));
+  params.set('limit', String(limit));
   params.set('sortBy', 'date');
   params.set('sortOrder', 'desc');
   if (opts?.type) params.set('type', opts.type);
+  if (opts?.startDate) params.set('startDate', opts.startDate);
+  if (opts?.endDate) params.set('endDate', opts.endDate);
+  if (opts?.categoryId) params.set('categoryId', opts.categoryId);
+  if (opts?.search?.trim()) params.set('search', opts.search.trim());
 
   const { data } = await api.get(`/expenses?${params.toString()}`);
   const items = ((data.data || []) as Record<string, unknown>[]).map(normalizeTx);
   const total = (data.meta?.total as number) ?? items.length;
-  return { items, total };
+  const totalPages =
+    (data.meta?.totalPages as number) ?? Math.max(1, Math.ceil(total / limit));
+  return { items, total, page, totalPages };
 }
 
 export async function getTransaction(id: string): Promise<Transaction> {
