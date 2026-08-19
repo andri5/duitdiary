@@ -202,7 +202,7 @@ export function DashboardScreen({ user }: { user: User }) {
       <FadeInUp>
         <View style={styles.topBar}>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Pressable onPress={() => Linking.openURL('https://duitdiary.app')}>
+            <Pressable onPress={() => Linking.openURL('http://10.44.202.55:5173')}>
               <BrandMark size="sm" />
             </Pressable>
             <Text style={styles.hello} numberOfLines={1}>

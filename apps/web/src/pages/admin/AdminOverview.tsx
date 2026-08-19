@@ -12,12 +12,13 @@ interface Stats {
 }
 
 export function AdminOverview() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['admin', 'stats'],
     queryFn: async () => {
       const res = await api.get('/admin/stats');
       return res.data.data as Stats;
     },
+    retry: 1,
   });
 
   const cards = [
@@ -35,6 +36,10 @@ export function AdminOverview() {
 
       {isLoading ? (
         <p className="text-muted">Memuat...</p>
+      ) : error ? (
+        <Card padding="md">
+          <p className="text-sm text-coral">Gagal memuat data admin. Pastikan kamu login ulang sebagai ADMIN.</p>
+        </Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {cards.map((c) => (

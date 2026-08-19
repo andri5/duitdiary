@@ -4,6 +4,7 @@ import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { RegisterScreen } from './src/screens/RegisterScreen';
@@ -78,7 +79,11 @@ function AppInner() {
   if (booting) {
     return (
       <View style={styles.boot}>
-        <PageLoader label="Menyiapkan DuitDiary…" />
+        <View style={styles.splashIcon}>
+          <Ionicons name="wallet" size={36} color="#fff" />
+        </View>
+        <Text style={styles.splashName}>DuitDiary</Text>
+        <Text style={styles.splashTag}>Diary Keuanganmu</Text>
       </View>
     );
   }
@@ -137,6 +142,32 @@ export default function App() {
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    boot: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg },
+    boot: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#07111f',
+    },
+    splashIcon: {
+      width: 72,
+      height: 72,
+      borderRadius: 22,
+      backgroundColor: colors.brand,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 16,
+    },
+    splashName: {
+      color: '#fff',
+      fontSize: 26,
+      fontWeight: '800',
+      letterSpacing: -0.5,
+    },
+    splashTag: {
+      color: 'rgba(255,255,255,0.5)',
+      fontSize: 13,
+      fontWeight: '600',
+      marginTop: 4,
+    },
   });
 }
