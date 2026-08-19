@@ -94,7 +94,7 @@ export function RecurringPage() {
       <PageTransition>
         <PageHeader
           eyebrow="Otomatis"
-          title="Transaksi Berulang"
+          title="Transaksi Otomatis"
           description="Atur pengeluaran rutin (langganan, cicilan, dll.) — fondasi auto-create menyusul."
           action={
             <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setShowForm((v) => !v)}>

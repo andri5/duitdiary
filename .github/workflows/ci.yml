@@ -2,68 +2,90 @@ name: CI - Build & Test
 
 on:
   push:
-    branches: [ main, master, develop, feature/* ]
+    branches: [main, master, develop, feature/*]
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
 
 jobs:
-  test-and-build:
+  build-and-test:
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Lint code
-      run: npm run lint --workspaces --if-present
-      continue-on-error: true
-    
-    - name: Build API
-      run: npm --workspace apps/api run build --if-present
-    
-    - name: Build Web
-      run: npm --workspace apps/web run build --if-present
-    
-    - name: Run tests
-      run: npm run test --workspaces --if-present
-      continue-on-error: true
-    
-    - name: Upload coverage
-      uses: codecov/codecov-action@v3
-      if: always()
-      with:
-        files: ./coverage/coverage-final.json
-        fail_ci_if_error: false
+        node-version: [20.x]
 
-  # Job untuk validasi database schema (API only)
-  database-validation:
-    runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'apps/api/prisma/')
-    
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Validate Prisma schema
-      run: npm --workspace apps/api run prisma:validate --if-present
-      continue-on-error: true
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint code
+        run: npm run lint --workspaces --if-present
+        continue-on-error: true
+
+      - name: Type-check API
+        run: npm --workspace apps/api run build --if-present
+
+      - name: Type-check & build Web
+        run: npm --workspace apps/web run build --if-present
+
+      - name: Run API unit tests
+        run: npm --workspace apps/api run test -- --run
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          files: ./apps/api/coverage/coverage-final.json
+          fail_ci_if_error: false
+
+  prisma-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate Prisma schema
+        run: npx --workspace apps/api prisma validate
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: build-and-test
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx --workspace apps/web playwright install --with-deps chromium
+
+      - name: Run E2E tests (chromium only)
+        run: npx --workspace apps/web playwright test --project=chromium
+        continue-on-error: true
+        env:
+          CI: true

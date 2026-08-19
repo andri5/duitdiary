@@ -24,6 +24,7 @@ import {
   CircleHelp,
   PiggyBank,
   Repeat,
+  MoreHorizontal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore, useUIStore } from '@/stores';
@@ -64,8 +65,8 @@ const primaryNav = [
   },
   {
     icon: Repeat,
-    label: 'Berulang',
-    shortLabel: 'Berulang',
+    label: 'Transaksi Otomatis',
+    shortLabel: 'Otomatis',
     path: ROUTES.RECURRING,
   },
   {
@@ -86,6 +87,13 @@ const primaryNav = [
     shortLabel: 'Akun',
     path: ROUTES.SETTINGS,
   },
+];
+
+const moreMenuItems = [
+  { icon: Repeat, label: 'Transaksi Otomatis', path: ROUTES.RECURRING },
+  { icon: FolderOpen, label: 'Kategori', path: ROUTES.CATEGORIES },
+  { icon: CircleHelp, label: 'Bantuan', path: ROUTES.HELP },
+  { icon: Settings, label: 'Akun', path: ROUTES.SETTINGS },
 ];
 
 function isPathActive(pathname: string, path: string) {
@@ -110,11 +118,13 @@ export function MainLayout({ children }: MainLayoutProps) {
     isTransactionActive(location.pathname)
   );
   const [mobileTransactionOpen, setMobileTransactionOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   useEffect(() => {
     setMobileMenuOpen(false);
     setQuickAddOpen(false);
     setMobileTransactionOpen(false);
+    setMoreMenuOpen(false);
     if (isTransactionActive(location.pathname)) {
       setTransactionOpen(true);
     }
@@ -459,24 +469,74 @@ export function MainLayout({ children }: MainLayoutProps) {
         </div>
       </main>
 
-      {/* Mobile bottom nav */}
+      {/* "More" menu popover (mobile) */}
+      <AnimatePresence>
+        {moreMenuOpen && (
+          <>
+            <motion.button
+              type="button"
+              aria-label="Tutup menu"
+              className="fixed inset-0 z-40 lg:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMoreMenuOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12 }}
+              className="fixed inset-x-3 z-50 rounded-2xl border border-line bg-surface p-2 shadow-[var(--shadow-lift)] lg:hidden"
+              style={{ bottom: 'calc(4.75rem + var(--safe-bottom))' }}
+            >
+              <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                Lainnya
+              </p>
+              {moreMenuItems.map((item) => {
+                const active = isPathActive(location.pathname, item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={cn(
+                      'flex items-center gap-3 rounded-xl px-3 py-3 transition hover:bg-mist',
+                      active && 'bg-accent-soft/50'
+                    )}
+                    onClick={() => setMoreMenuOpen(false)}
+                  >
+                    <span
+                      className={cn(
+                        'flex h-9 w-9 items-center justify-center rounded-xl',
+                        active ? 'bg-accent-soft text-accent' : 'bg-mist text-muted'
+                      )}
+                    >
+                      <item.icon className="h-4 w-4" />
+                    </span>
+                    <span className={cn('text-sm font-semibold', active ? 'text-accent' : 'text-ink')}>
+                      {item.label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile bottom nav — 4 tabs */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line/80 bg-surface/95 px-0.5 pb-[calc(0.35rem+var(--safe-bottom))] pt-1.5 backdrop-blur-xl lg:hidden">
-        <div className="mx-auto grid max-w-lg grid-cols-5 gap-0">
+        <div className="mx-auto grid max-w-lg grid-cols-4 gap-0">
           <Link
             to={ROUTES.DASHBOARD}
             className={cn(
               'flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-0.5 py-1.5 text-[10px] font-semibold transition sm:text-[11px]',
-              isPathActive(location.pathname, ROUTES.DASHBOARD)
-                ? 'text-accent'
-                : 'text-muted'
+              isPathActive(location.pathname, ROUTES.DASHBOARD) ? 'text-accent' : 'text-muted'
             )}
           >
             <span
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-xl transition sm:h-9 sm:w-9',
-                isPathActive(location.pathname, ROUTES.DASHBOARD)
-                  ? 'bg-accent-soft text-accent'
-                  : 'bg-transparent'
+                isPathActive(location.pathname, ROUTES.DASHBOARD) ? 'bg-accent-soft text-accent' : 'bg-transparent'
               )}
             >
               <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -487,22 +547,19 @@ export function MainLayout({ children }: MainLayoutProps) {
           <button
             type="button"
             onClick={() => {
+              setMoreMenuOpen(false);
               setQuickAddOpen(false);
               setMobileTransactionOpen((open) => !open);
             }}
             className={cn(
               'flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-0.5 py-1.5 text-[10px] font-semibold transition sm:text-[11px]',
-              isTransactionActive(location.pathname) || mobileTransactionOpen
-                ? 'text-accent'
-                : 'text-muted'
+              isTransactionActive(location.pathname) || mobileTransactionOpen ? 'text-accent' : 'text-muted'
             )}
           >
             <span
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-xl transition sm:h-9 sm:w-9',
-                isTransactionActive(location.pathname) || mobileTransactionOpen
-                  ? 'bg-accent-soft text-accent'
-                  : 'bg-transparent'
+                isTransactionActive(location.pathname) || mobileTransactionOpen ? 'bg-accent-soft text-accent' : 'bg-transparent'
               )}
             >
               <ArrowLeftRight className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -510,29 +567,50 @@ export function MainLayout({ children }: MainLayoutProps) {
             <span className="w-full truncate text-center">Transaksi</span>
           </button>
 
-          {primaryNav.slice(1).map((item) => {
-            const isActive = isPathActive(location.pathname, item.path);
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  'flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-0.5 py-1.5 text-[10px] font-semibold transition sm:text-[11px]',
-                  isActive ? 'text-accent' : 'text-muted'
-                )}
-              >
-                <span
-                  className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded-xl transition sm:h-9 sm:w-9',
-                    isActive ? 'bg-accent-soft text-accent' : 'bg-transparent'
-                  )}
-                >
-                  <item.icon className="h-4 w-4 sm:h-5 sm:w-5" />
-                </span>
-                <span className="w-full truncate text-center">{item.shortLabel}</span>
-              </Link>
-            );
-          })}
+          <Link
+            to={ROUTES.BUDGET}
+            className={cn(
+              'flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-0.5 py-1.5 text-[10px] font-semibold transition sm:text-[11px]',
+              isPathActive(location.pathname, ROUTES.BUDGET) ? 'text-accent' : 'text-muted'
+            )}
+          >
+            <span
+              className={cn(
+                'flex h-8 w-8 items-center justify-center rounded-xl transition sm:h-9 sm:w-9',
+                isPathActive(location.pathname, ROUTES.BUDGET) ? 'bg-accent-soft text-accent' : 'bg-transparent'
+              )}
+            >
+              <PiggyBank className="h-4 w-4 sm:h-5 sm:w-5" />
+            </span>
+            <span className="w-full truncate text-center">Budget</span>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => {
+              setQuickAddOpen(false);
+              setMobileTransactionOpen(false);
+              setMoreMenuOpen((open) => !open);
+            }}
+            className={cn(
+              'flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-0.5 py-1.5 text-[10px] font-semibold transition sm:text-[11px]',
+              moreMenuOpen || moreMenuItems.some((m) => isPathActive(location.pathname, m.path))
+                ? 'text-accent'
+                : 'text-muted'
+            )}
+          >
+            <span
+              className={cn(
+                'flex h-8 w-8 items-center justify-center rounded-xl transition sm:h-9 sm:w-9',
+                moreMenuOpen || moreMenuItems.some((m) => isPathActive(location.pathname, m.path))
+                  ? 'bg-accent-soft text-accent'
+                  : 'bg-transparent'
+              )}
+            >
+              <MoreHorizontal className="h-4 w-4 sm:h-5 sm:w-5" />
+            </span>
+            <span className="w-full truncate text-center">Lainnya</span>
+          </button>
         </div>
       </nav>
     </div>

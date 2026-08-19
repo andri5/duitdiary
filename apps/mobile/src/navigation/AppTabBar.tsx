@@ -96,7 +96,7 @@ export function AppTabBar({ state, descriptors, navigation, onCapture }: Props) 
           <View style={styles.captureFab}>
             <Ionicons name="camera" size={camSize} color={colors.onBrand} />
           </View>
-          <Text style={styles.captureLabel}>Foto</Text>
+          <Text style={styles.captureLabel}>Foto Struk</Text>
         </Pressable>
 
         {rightNames.map(renderTab)}

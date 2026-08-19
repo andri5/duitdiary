@@ -222,7 +222,7 @@ export function BudgetScreen({ navigation }: Props) {
           <Text style={styles.cardLabel}>Total budget</Text>
           <AppTextInput
             value={totalBudget}
-            onChangeText={setTotalBudget}
+            onChangeText={(v) => setTotalBudget(v.replace(/[^0-9]/g, ''))}
             keyboardType="numeric"
             placeholder="Contoh: 5000000"
           />
@@ -236,7 +236,7 @@ export function BudgetScreen({ navigation }: Props) {
                 <AppTextInput
                   value={categoryAmounts[cat.id] ?? ''}
                   onChangeText={(v) =>
-                    setCategoryAmounts((prev) => ({ ...prev, [cat.id]: v }))
+                    setCategoryAmounts((prev) => ({ ...prev, [cat.id]: v.replace(/[^0-9]/g, '') }))
                   }
                   keyboardType="numeric"
                   placeholder="Limit"

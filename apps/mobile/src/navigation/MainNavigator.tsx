@@ -49,7 +49,7 @@ function MainTabs({ user, onLogout }: { user: User; onLogout: () => void }) {
       <Tab.Screen
         name="Capture"
         component={CapturePlaceholder}
-        options={{ title: 'Foto' }}
+        options={{ title: 'Foto Struk' }}
         listeners={{
           tabPress: (e) => {
             e.preventDefault();

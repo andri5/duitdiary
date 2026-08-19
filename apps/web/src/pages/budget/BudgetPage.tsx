@@ -132,10 +132,14 @@ export function BudgetPage() {
                   Total budget pengeluaran
                 </label>
                 <Input
+                  type="text"
                   inputMode="numeric"
                   placeholder="Contoh: 5000000"
                   value={totalBudget}
-                  onChange={(e) => setTotalBudget(e.target.value)}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/[^0-9]/g, '');
+                    setTotalBudget(v);
+                  }}
                 />
               </div>
 
@@ -170,11 +174,13 @@ export function BudgetPage() {
                           inputMode="numeric"
                           placeholder="Limit kategori"
                           value={categoryAmounts[cat.id] ?? ''}
-                          onChange={(e) =>
+                          onChange={(e) => {
+                            const v = e.target.value.replace(/[^0-9]/g, '');
                             setCategoryAmounts((prev) => ({
                               ...prev,
-                              [cat.id]: e.target.value,
-                            }))
+                              [cat.id]: v,
+                            }));
+                          }
                           }
                         />
                       </div>

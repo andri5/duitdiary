@@ -46,8 +46,8 @@ export function ProfileScreen({
   const menus = [
     {
       key: 'recurring',
-      title: 'Berulang',
-      sub: 'Langganan & rutin',
+      title: 'Transaksi Otomatis',
+      sub: 'Atur pengeluaran & pemasukan rutin',
       icon: 'repeat-outline' as const,
       soft: true,
       onPress: () => navigation.navigate('Recurring'),
@@ -63,7 +63,7 @@ export function ProfileScreen({
     {
       key: 'settings',
       title: 'Pengaturan',
-      sub: 'Nama, mata uang, foto',
+      sub: 'Nama, mata uang, foto struk',
       icon: 'settings-outline' as const,
       soft: true,
       onPress: () => navigation.navigate('Settings'),

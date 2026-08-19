@@ -240,9 +240,8 @@ export function SettingsScreen({ navigation }: Props) {
               {user?.email || '—'}
             </Text>
             <View style={styles.heroPill}>
-              <Text style={styles.heroPillSymbol}>{activeCurrency.symbol}</Text>
               <Text style={styles.heroPillText}>
-                {activeCurrency.code} · {activeCurrency.label}
+                {activeCurrency.code} {activeCurrency.label}
               </Text>
             </View>
           </View>
@@ -600,8 +599,8 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
       borderWidth: 1.5,
       borderColor: colors.border,
       backgroundColor: colors.bg,
-      padding: 12,
-      minHeight: r.isCompact ? 140 : 156,
+      padding: 10,
+      minHeight: r.isCompact ? 130 : 148,
       overflow: 'hidden',
     },
     themePreview: {
@@ -626,13 +625,13 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
       height: 8,
       borderRadius: 999,
     },
-    themeIconRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    themeName: { fontWeight: '900', color: colors.text, fontSize: 14 },
+    themeIconRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    themeName: { fontWeight: '900', color: colors.text, fontSize: 11, flexShrink: 1 },
     themeHint: {
-      marginTop: 4,
-      marginBottom: 10,
+      marginTop: 2,
+      marginBottom: 8,
       color: colors.faint,
-      fontSize: 11,
+      fontSize: 10,
       fontWeight: '600',
     },
     checkBadge: {

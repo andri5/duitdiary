@@ -6,6 +6,7 @@ import {
   ScrollView,
   RefreshControl,
   Pressable,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -198,7 +199,9 @@ export function DashboardScreen({ user }: { user: User }) {
       <FadeInUp>
         <View style={styles.topBar}>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <BrandMark size="sm" />
+            <Pressable onPress={() => Linking.openURL('https://duitdiary.app')}>
+              <BrandMark size="sm" />
+            </Pressable>
             <Text style={styles.hello} numberOfLines={1}>
               {getGreeting()}, {user.name.split(' ')[0]}
             </Text>
@@ -217,11 +220,14 @@ export function DashboardScreen({ user }: { user: User }) {
           <View style={styles.marketCard}>
             <View style={styles.marketHeader}>
               <Text style={styles.marketHeaderTitle}>Pasar hari ini</Text>
-              <Text style={styles.marketHeaderHint}>Kurs · Emas · BI</Text>
+              <Text style={styles.marketHeaderHint}>Kurs · Emas · BI · IHSG</Text>
             </View>
             <View style={styles.marketStrip}>
               {market.usdIdr ? (
-                <View style={styles.marketCell}>
+                <Pressable
+                  style={styles.marketCell}
+                  onPress={() => Linking.openURL('https://www.bi.go.id/id/statistik/informasi-kurs/transaksi-bi/default.aspx')}
+                >
                   <View style={[styles.marketIcon, { backgroundColor: colors.brandSoft }]}>
                     <Ionicons name="logo-usd" size={15} color={colors.brand} />
                   </View>
@@ -229,15 +235,13 @@ export function DashboardScreen({ user }: { user: User }) {
                   <Text style={styles.marketValue} numberOfLines={1}>
                     {formatIDRCompact(market.usdIdr.rate)}
                   </Text>
-                  {market.ihsg ? (
-                    <Text style={styles.marketSub} numberOfLines={1}>
-                      IHSG {formatIHSG(market.ihsg.value)}
-                    </Text>
-                  ) : null}
-                </View>
+                </Pressable>
               ) : null}
               {market.gold ? (
-                <View style={[styles.marketCell, styles.marketCellDivider]}>
+                <Pressable
+                  style={[styles.marketCell, styles.marketCellDivider]}
+                  onPress={() => Linking.openURL('https://www.logammulia.com/id')}
+                >
                   <View style={[styles.marketIcon, { backgroundColor: colors.amberSoft }]}>
                     <Ionicons name="diamond-outline" size={15} color={colors.amber} />
                   </View>
@@ -250,15 +254,13 @@ export function DashboardScreen({ user }: { user: User }) {
                       BB {formatIDRCompact(market.gold.buybackPerGram)}
                     </Text>
                   ) : null}
-                  {market.ihsg ? (
-                    <Text style={styles.marketSub} numberOfLines={1}>
-                      IHSG {formatIHSG(market.ihsg.value)}
-                    </Text>
-                  ) : null}
-                </View>
+                </Pressable>
               ) : null}
               {market.biRate ? (
-                <View style={[styles.marketCell, styles.marketCellDivider]}>
+                <Pressable
+                  style={[styles.marketCell, styles.marketCellDivider]}
+                  onPress={() => Linking.openURL('https://www.bi.go.id/id/statistik/indikator/bi-rate.aspx')}
+                >
                   <View style={[styles.marketIcon, { backgroundColor: colors.brandSoft }]}>
                     <Ionicons name="stats-chart-outline" size={15} color={colors.brand} />
                   </View>
@@ -268,7 +270,28 @@ export function DashboardScreen({ user }: { user: User }) {
                       ? `${market.biRate.rate.toFixed(2)}%`
                       : market.biRate.percentLabel}
                   </Text>
-                </View>
+                </Pressable>
+              ) : null}
+              {market.ihsg ? (
+                <Pressable
+                  style={[styles.marketCell, styles.marketCellDivider]}
+                  onPress={() => Linking.openURL('https://www.idx.co.id/id')}
+                >
+                  <View style={[styles.marketIcon, { backgroundColor: market.ihsg.changePct >= 0 ? '#dcfce7' : '#ffe4e6' }]}>
+                    <Ionicons
+                      name="trending-up-outline"
+                      size={15}
+                      color={market.ihsg.changePct >= 0 ? '#16a34a' : '#e11d48'}
+                    />
+                  </View>
+                  <Text style={styles.marketLabel}>IHSG</Text>
+                  <Text style={styles.marketValue} numberOfLines={1}>
+                    {formatIHSG(market.ihsg.value)}
+                  </Text>
+                  <Text style={[styles.marketSub, { color: market.ihsg.changePct >= 0 ? '#16a34a' : '#e11d48' }]} numberOfLines={1}>
+                    {market.ihsg.changePct >= 0 ? '+' : ''}{market.ihsg.changePctLabel}
+                  </Text>
+                </Pressable>
               ) : null}
             </View>
           </View>
