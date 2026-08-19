@@ -16,7 +16,7 @@ interface AuthLayoutProps {
 export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
   return (
     <div className="relative flex min-h-dvh overflow-x-clip">
-      <div className="absolute inset-0 bg-ink">
+      <div className="absolute inset-0 bg-[#0a1628]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(28,200,180,0.22),transparent_40%),radial-gradient(circle_at_80%_10%,rgba(15,155,142,0.18),transparent_35%),radial-gradient(circle_at_70%_80%,rgba(94,234,212,0.12),transparent_40%)]" />
         <div
           className="absolute inset-0 opacity-[0.12]"
@@ -65,7 +65,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
               arus kas harianmu
             </span>
           </h1>
-          <p className="mx-auto mt-3 max-w-md text-sm text-white/65 sm:mt-4 sm:text-base lg:mx-0 lg:text-lg">
+          <p className="mx-auto mt-3 max-w-md text-sm text-white/90 sm:mt-4 sm:text-base lg:mx-0 lg:text-lg">
             Catat pemasukan dan pengeluaran dalam satu ruang yang cepat dan jelas.
           </p>
 
@@ -81,7 +81,17 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
           transition={{ duration: 0.45, delay: 0.08 }}
           className="mx-auto w-full max-w-md"
         >
-          <div className="rounded-[1.5rem] border border-line bg-surface/95 p-5 shadow-[0_30px_80px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:rounded-[1.75rem] sm:p-8">
+          <div
+            className="rounded-[1.5rem] border border-white/15 bg-white p-5 shadow-[0_30px_80px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:rounded-[1.75rem] sm:p-8"
+            style={{
+              '--color-ink': '#07111f',
+              '--color-ink-soft': '#122033',
+              '--color-surface': '#ffffff',
+              '--color-line': '#d7e0ea',
+              '--color-muted': '#5b6b7c',
+              '--color-accent-soft': '#d9f5f1',
+            } as React.CSSProperties}
+          >
             <div className="mb-5 sm:mb-6">
               <h2 className="font-display text-xl font-bold text-ink sm:text-2xl">{title}</h2>
               {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
