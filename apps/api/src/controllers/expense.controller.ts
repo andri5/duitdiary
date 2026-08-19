@@ -4,6 +4,7 @@ import { sendSuccess, sendCreated, sendError, sendNotFound } from '../utils/resp
 import { expenseQuerySchema } from '../utils/validation.js';
 import type { CreateExpenseInput, UpdateExpenseInput } from '../utils/validation.js';
 import type { AuthenticatedRequest } from '../types/index.js';
+import { paramString } from '../utils/params.js';
 
 export class ExpenseController {
   async getAll(req: Request, res: Response): Promise<void> {
@@ -21,7 +22,7 @@ export class ExpenseController {
   async getById(req: Request, res: Response): Promise<void> {
     try {
       const { userId } = (req as AuthenticatedRequest).user!;
-      const { id } = req.params;
+      const id = paramString(req.params.id);
       const expense = await expenseService.getById(id, userId);
       
       if (!expense) {
@@ -55,7 +56,7 @@ export class ExpenseController {
   async update(req: Request, res: Response): Promise<void> {
     try {
       const { userId } = (req as AuthenticatedRequest).user!;
-      const { id } = req.params;
+      const id = paramString(req.params.id);
       const data: UpdateExpenseInput = req.body;
       const expense = await expenseService.update(id, userId, data);
       
@@ -78,7 +79,7 @@ export class ExpenseController {
   async delete(req: Request, res: Response): Promise<void> {
     try {
       const { userId } = (req as AuthenticatedRequest).user!;
-      const { id } = req.params;
+      const id = paramString(req.params.id);
       const deleted = await expenseService.delete(id, userId);
       
       if (!deleted) {

@@ -51,6 +51,7 @@ import type { CategoryBreakdown } from '@/types';
 import { DashboardInsights } from './components/DashboardInsights';
 import { CollapsibleSection } from './components/CollapsibleSection';
 import { MarketRates } from './components/MarketRates';
+import { BudgetSummaryCard } from './components/BudgetSummaryCard';
 import { fetchAllTransactionsForRange } from '@/lib/fetchTransactions';
 import { exportReportToExcel, exportReportToPdf } from '@/lib/exportReport';
 
@@ -444,6 +445,8 @@ export function DashboardPage() {
                 </motion.div>
               ))}
             </div>
+
+            <BudgetSummaryCard />
 
             <MarketRates />
 

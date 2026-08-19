@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import NetInfo from '@react-native-community/netinfo';
 import { subscribeAppStatus, emitAppStatus, resetAppStatusDedup } from '../lib/appStatus';
+import { flushOfflineQueue } from '../lib/offlineQueue';
 import { FancyDialog } from './AppDialog';
 
 export function AppStatusProvider({ children }: { children: ReactNode }) {
@@ -32,6 +33,7 @@ export function AppStatusProvider({ children }: { children: ReactNode }) {
         });
       } else if (state.isConnected === true && state.isInternetReachable !== false) {
         resetAppStatusDedup();
+        void flushOfflineQueue();
       }
     });
     return () => unsub();

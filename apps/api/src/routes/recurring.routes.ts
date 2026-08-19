@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { recurringService } from '../services/recurring.service.js';
 import { authMiddleware, validate } from '../middlewares/index.js';
 import { sendCreated, sendError, sendNotFound, sendSuccess } from '../utils/response.js';
+import { paramString } from '../utils/params.js';
 import type { AuthenticatedRequest } from '../types/index.js';
 
 const createRecurringSchema = z.object({
@@ -42,7 +43,7 @@ router.patch('/:id/active', async (req, res) => {
   try {
     const { userId } = (req as AuthenticatedRequest).user!;
     const isActive = Boolean(req.body?.isActive);
-    const row = await recurringService.setActive(userId, req.params.id, isActive);
+    const row = await recurringService.setActive(userId, paramString(req.params.id), isActive);
     if (!row) {
       sendNotFound(res, 'Recurring transaction not found');
       return;

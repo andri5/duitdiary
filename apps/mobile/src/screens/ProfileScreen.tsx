@@ -45,6 +45,14 @@ export function ProfileScreen({
 
   const menus = [
     {
+      key: 'recurring',
+      title: 'Berulang',
+      sub: 'Langganan & rutin',
+      icon: 'repeat-outline' as const,
+      soft: true,
+      onPress: () => navigation.navigate('Recurring'),
+    },
+    {
       key: 'budget',
       title: 'Budget',
       sub: 'Limit pengeluaran bulanan',

@@ -23,6 +23,7 @@ import {
   ArrowLeftRight,
   CircleHelp,
   PiggyBank,
+  Repeat,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore, useUIStore } from '@/stores';
@@ -60,6 +61,12 @@ const primaryNav = [
     label: 'Budget',
     shortLabel: 'Budget',
     path: ROUTES.BUDGET,
+  },
+  {
+    icon: Repeat,
+    label: 'Berulang',
+    shortLabel: 'Berulang',
+    path: ROUTES.RECURRING,
   },
   {
     icon: FolderOpen,

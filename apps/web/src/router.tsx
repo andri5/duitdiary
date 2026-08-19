@@ -15,6 +15,7 @@ import {
   IncomesPage,
   CategoriesPage,
   BudgetPage,
+  RecurringPage,
   SettingsPage,
   HelpPage,
   TermsPage,
@@ -135,6 +136,14 @@ const appRoutes = [
     element: (
       <ProtectedRoute>
         <BudgetPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: ROUTES.RECURRING,
+    element: (
+      <ProtectedRoute>
+        <RecurringPage />
       </ProtectedRoute>
     ),
   },

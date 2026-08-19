@@ -19,6 +19,7 @@ import {
   type MarketQuotes,
   type Transaction,
 } from '../lib/finance';
+import { getBudgetStatus, type BudgetStatus } from '../lib/budget';
 import { buildDashboardInsights, getInsightToneColor } from '../lib/dashboardInsights';
 import { formatIDR, formatIDRCompact, formatDateShort } from '../lib/format';
 import { BrandMark } from '../components/ui';
@@ -106,6 +107,7 @@ export function DashboardScreen({ user }: { user: User }) {
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [market, setMarket] = useState<MarketQuotes | null>(null);
+  const [budgetStatus, setBudgetStatus] = useState<BudgetStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,12 +123,14 @@ export function DashboardScreen({ user }: { user: User }) {
       if (!silent) setLoading(true);
       setError(null);
       try {
-        const [data, quotes] = await Promise.all([
+        const [data, quotes, budget] = await Promise.all([
           getDashboardSummary(period),
           getMarketQuotes(),
+          getBudgetStatus(),
         ]);
         setSummary(data);
         setMarket(quotes);
+        setBudgetStatus(budget);
       } catch {
         setError('Gagal memuat ringkasan. Tarik untuk refresh.');
       } finally {
@@ -270,6 +274,52 @@ export function DashboardScreen({ user }: { user: User }) {
           })}
         </View>
       </FadeInUp>
+
+      {budgetStatus?.hasBudget ? (
+        <FadeInUp delay={55}>
+          <ScalePress style={styles.budgetCard} onPress={() => navigation.navigate('Budget')}>
+            <View style={styles.budgetTop}>
+              <Text style={styles.budgetLabel}>Budget bulan ini</Text>
+              <Text style={styles.budgetLink}>Detail</Text>
+            </View>
+            {(budgetStatus.isNearLimit || budgetStatus.isOverLimit) && (
+              <Text
+                style={[
+                  styles.budgetAlert,
+                  { color: budgetStatus.isOverLimit ? colors.expense : colors.amber },
+                ]}
+              >
+                {budgetStatus.isOverLimit ? 'Melewati limit!' : 'Sudah ≥ 80%'}
+              </Text>
+            )}
+            <Text style={styles.budgetAmount}>
+              {showAmount(budgetStatus.totalSpent)} / {showAmount(budgetStatus.totalBudget)}
+            </Text>
+            <View style={styles.budgetTrack}>
+              <View
+                style={[
+                  styles.budgetFill,
+                  {
+                    width: `${Math.min(budgetStatus.percentUsed, 100)}%` as `${number}%`,
+                    backgroundColor: budgetStatus.isOverLimit
+                      ? colors.expense
+                      : budgetStatus.isNearLimit
+                        ? colors.amber
+                        : colors.brand,
+                  },
+                ]}
+              />
+            </View>
+          </ScalePress>
+        </FadeInUp>
+      ) : (
+        <FadeInUp delay={55}>
+          <ScalePress style={styles.budgetCardEmpty} onPress={() => navigation.navigate('Budget')}>
+            <Ionicons name="wallet-outline" size={18} color={colors.brand} />
+            <Text style={styles.budgetEmptyText}>Atur budget bulan ini</Text>
+          </ScalePress>
+        </FadeInUp>
+      )}
 
       {loading && !summary ? (
         <PageLoader label="Memuat beranda…" />
@@ -482,6 +532,38 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
       fontWeight: '600',
       textAlign: 'center',
     },
+    budgetCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 12,
+      marginBottom: 12,
+    },
+    budgetCardEmpty: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      backgroundColor: colors.brandSoft,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.brandSoftBorder,
+      padding: 12,
+      marginBottom: 12,
+    },
+    budgetEmptyText: { fontWeight: '700', color: colors.brandDark, fontSize: r.ms(13) },
+    budgetTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+    budgetLabel: { fontSize: r.ms(12), fontWeight: '700', color: colors.muted },
+    budgetLink: { fontSize: r.ms(12), fontWeight: '700', color: colors.brand },
+    budgetAlert: { fontSize: r.ms(11), fontWeight: '800', marginBottom: 4 },
+    budgetAmount: { fontSize: r.ms(14), fontWeight: '800', color: colors.text, marginBottom: 8 },
+    budgetTrack: {
+      height: 8,
+      borderRadius: 999,
+      backgroundColor: colors.track,
+      overflow: 'hidden',
+    },
+    budgetFill: { height: '100%', borderRadius: 999 },
     periodSeg: {
       flexDirection: 'row',
       backgroundColor: colors.surface,
