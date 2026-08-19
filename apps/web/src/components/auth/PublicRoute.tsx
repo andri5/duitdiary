@@ -15,16 +15,14 @@ interface PublicRouteProps {
   allowAuthenticated?: boolean;
 }
 
-const AUTH_RECOVERY_PATHS = new Set([
-  ROUTES.FORGOT_PASSWORD,
-  ROUTES.RESET_PASSWORD,
-]);
-
 export function PublicRoute({ children, allowAuthenticated = false }: PublicRouteProps) {
   const { isAuthenticated, isBootstrapping } = useAuthStore();
   const location = useLocation();
 
-  const isRecovery = allowAuthenticated || AUTH_RECOVERY_PATHS.has(location.pathname);
+  const isRecovery =
+    allowAuthenticated ||
+    location.pathname === ROUTES.FORGOT_PASSWORD ||
+    location.pathname === ROUTES.RESET_PASSWORD;
 
   if (isBootstrapping) {
     return (

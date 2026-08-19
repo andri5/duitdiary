@@ -37,7 +37,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         const stored = await SecureStore.getItemAsync(THEME_KEY);
-        if (!cancelled && (stored === 'neo' || stored === 'midnight')) {
+        if (!cancelled && (stored === 'neo' || stored === 'midnight' || stored === 'ocean')) {
           setThemeState(stored);
         }
       } catch {

@@ -14,6 +14,7 @@ import {
   ExpenseFormPage,
   IncomesPage,
   CategoriesPage,
+  BudgetPage,
   SettingsPage,
   HelpPage,
   TermsPage,
@@ -126,6 +127,14 @@ const appRoutes = [
     element: (
       <ProtectedRoute>
         <CategoriesPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: ROUTES.BUDGET,
+    element: (
+      <ProtectedRoute>
+        <BudgetPage />
       </ProtectedRoute>
     ),
   },

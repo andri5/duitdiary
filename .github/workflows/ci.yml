@@ -32,11 +32,9 @@ jobs:
     
     - name: Build API
       run: npm --workspace apps/api run build --if-present
-      continue-on-error: true
     
     - name: Build Web
       run: npm --workspace apps/web run build --if-present
-      continue-on-error: true
     
     - name: Run tests
       run: npm run test --workspaces --if-present

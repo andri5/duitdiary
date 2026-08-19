@@ -143,6 +143,7 @@ export const ROUTES = {
   INCOME_NEW: '/incomes/new',
   INCOME_EDIT: '/incomes/:id/edit',
   CATEGORIES: '/categories',
+  BUDGET: '/budget',
   SETTINGS: '/settings',
   HELP: '/help',
   TERMS: '/terms',
@@ -161,6 +162,7 @@ export const QUERY_KEYS = {
   INCOME: (id: string) => ['income', id],
   DASHBOARD: ['dashboard'],
   DASHBOARD_SUMMARY: (period: string) => ['dashboard', 'summary', period],
+  BUDGET: (month?: string) => ['budget', month ?? 'current'],
 } as const;
 
 // Validation

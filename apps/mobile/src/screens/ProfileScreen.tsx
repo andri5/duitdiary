@@ -45,6 +45,14 @@ export function ProfileScreen({
 
   const menus = [
     {
+      key: 'budget',
+      title: 'Budget',
+      sub: 'Limit pengeluaran bulanan',
+      icon: 'wallet-outline' as const,
+      soft: true,
+      onPress: () => navigation.navigate('Budget'),
+    },
+    {
       key: 'settings',
       title: 'Pengaturan',
       sub: 'Nama, mata uang, foto',

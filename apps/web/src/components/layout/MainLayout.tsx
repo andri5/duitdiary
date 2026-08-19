@@ -22,6 +22,7 @@ import {
   X,
   ArrowLeftRight,
   CircleHelp,
+  PiggyBank,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore, useUIStore } from '@/stores';
@@ -53,6 +54,12 @@ const primaryNav = [
     label: 'Dashboard',
     shortLabel: 'Home',
     path: ROUTES.DASHBOARD,
+  },
+  {
+    icon: PiggyBank,
+    label: 'Budget',
+    shortLabel: 'Budget',
+    path: ROUTES.BUDGET,
   },
   {
     icon: FolderOpen,

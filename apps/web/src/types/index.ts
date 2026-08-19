@@ -166,3 +166,35 @@ export interface ApiError {
   message: string;
   statusCode: number;
 }
+
+export interface CategoryBudgetStatus {
+  categoryId: string;
+  categoryName: string;
+  categoryIcon: string;
+  categoryColor: string;
+  budgetAmount: number;
+  spent: number;
+  remaining: number;
+  percentUsed: number;
+  isNearLimit: boolean;
+  isOverLimit: boolean;
+}
+
+export interface BudgetStatus {
+  id: string | null;
+  month: string;
+  totalBudget: number;
+  totalSpent: number;
+  totalRemaining: number;
+  percentUsed: number;
+  isNearLimit: boolean;
+  isOverLimit: boolean;
+  hasBudget: boolean;
+  categoryBudgets: CategoryBudgetStatus[];
+}
+
+export interface SaveBudgetData {
+  month: string;
+  totalBudget: number;
+  categoryBudgets?: { categoryId: string; amount: number }[];
+}

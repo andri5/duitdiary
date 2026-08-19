@@ -16,6 +16,7 @@ import {
   type DashboardSummary,
 } from '../lib/finance';
 import { formatIDR, formatDateShort } from '../lib/format';
+import { shareSummaryReport } from '../lib/exportSummary';
 import { BrandMark } from '../components/ui';
 import { FadeInUp, ScalePress, PopIn, AnimatedBar } from '../components/motion';
 import { PageLoader } from '../components/PageStatus';
@@ -90,9 +91,22 @@ export function SummaryScreen() {
     >
       <View style={r.contentStyle}>
       <FadeInUp>
-        <BrandMark size="sm" />
-        <Text style={styles.title}>Ringkasan</Text>
-        <Text style={styles.sub}>Pemasukan & pengeluaran periode ini</Text>
+        <View style={styles.titleRow}>
+          <View style={{ flex: 1 }}>
+            <BrandMark size="sm" />
+            <Text style={styles.title}>Ringkasan</Text>
+            <Text style={styles.sub}>Pemasukan & pengeluaran periode ini</Text>
+          </View>
+          {summary ? (
+            <ScalePress
+              style={styles.shareBtn}
+              onPress={() => void shareSummaryReport(summary, period)}
+            >
+              <Ionicons name="share-outline" size={18} color={colors.brand} />
+              <Text style={styles.shareText}>Bagikan</Text>
+            </ScalePress>
+          ) : null}
+        </View>
       </FadeInUp>
 
       <FadeInUp delay={40}>
@@ -215,6 +229,29 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
   return StyleSheet.create({
     wrap: { flex: 1, backgroundColor: colors.bg },
     content: { flexGrow: 1 },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 10,
+      marginBottom: 2,
+    },
+    shareBtn: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.brandSoftBorder,
+      backgroundColor: colors.brandSoft,
+      minWidth: 72,
+    },
+    shareText: {
+      marginTop: 2,
+      fontSize: r.ms(10),
+      fontWeight: '700',
+      color: colors.brandDark,
+    },
     title: {
       marginTop: 8,
       fontSize: r.ms(26),

@@ -227,6 +227,13 @@ export const createBudgetSchema = z.object({
 
 export const updateBudgetSchema = createBudgetSchema.partial();
 
+export const budgetQuerySchema = z.object({
+  month: z
+    .string()
+    .regex(/^\d{4}-\d{2}$/, 'Month must be in YYYY-MM format')
+    .optional(),
+});
+
 // ==================== TYPE EXPORTS ====================
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -244,4 +251,5 @@ export type ExpenseQueryInput = z.infer<typeof expenseQuerySchema>;
 export type DashboardQueryInput = z.infer<typeof dashboardQuerySchema>;
 export type CreateBudgetInput = z.infer<typeof createBudgetSchema>;
 export type UpdateBudgetInput = z.infer<typeof updateBudgetSchema>;
+export type BudgetQueryInput = z.infer<typeof budgetQuerySchema>;
 export type TransactionTypeInput = z.infer<typeof transactionTypeSchema>;

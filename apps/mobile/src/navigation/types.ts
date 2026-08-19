@@ -12,6 +12,7 @@ export type MainStackParamList = {
   CategoryForm: { id?: string } | undefined;
   Settings: undefined;
   Help: undefined;
+  Budget: undefined;
 };
 
 export type MainTabParamList = {

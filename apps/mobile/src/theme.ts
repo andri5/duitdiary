@@ -2,7 +2,7 @@
  * Neo Ledger + Midnight themes — aligned with apps/web
  */
 
-export type AppThemeId = 'neo' | 'midnight';
+export type AppThemeId = 'neo' | 'midnight' | 'ocean';
 
 export type ThemeColors = {
   bg: string;
@@ -94,16 +94,47 @@ export const midnightColors: ThemeColors = {
   statusBar: 'light',
 };
 
+export const oceanColors: ThemeColors = {
+  bg: '#f0f7fb',
+  mistDeep: '#dceaf2',
+  surface: '#ffffff',
+  border: '#cfe0ea',
+  text: '#0f172a',
+  textSoft: '#1e293b',
+  muted: '#64748b',
+  faint: '#94a3b8',
+  brand: '#0e7490',
+  brandBright: '#06b6d4',
+  brandDark: '#155e75',
+  brandSoft: '#cffafe',
+  brandSoftBorder: '#a5f3fc',
+  income: '#059669',
+  incomeSoft: '#d1fae5',
+  incomeBorder: '#a7f3d0',
+  expense: '#e11d48',
+  expenseSoft: '#ffe4e6',
+  expenseBorder: '#fecdd3',
+  amber: '#d97706',
+  amberSoft: '#fef3c7',
+  dangerBg: '#ffe4e6',
+  dangerText: '#e11d48',
+  onBrand: '#ffffff',
+  track: '#eef6fa',
+  shadow: 'rgba(15, 23, 42, 0.06)',
+  statusBar: 'dark',
+};
+
 export const themes: Record<AppThemeId, ThemeColors> = {
   neo: neoColors,
   midnight: midnightColors,
+  ocean: oceanColors,
 };
 
 export const THEME_OPTIONS: {
   id: AppThemeId;
   name: string;
   hint: string;
-  icon: 'sunny-outline' | 'moon-outline';
+  icon: 'sunny-outline' | 'moon-outline' | 'water-outline';
   previewFrom: string;
   previewTo: string;
   accent: string;
@@ -125,6 +156,15 @@ export const THEME_OPTIONS: {
     previewFrom: '#0b1118',
     previewTo: '#151e2a',
     accent: '#1cc8b4',
+  },
+  {
+    id: 'ocean',
+    name: 'Ocean Mist',
+    hint: 'Biru laut lembut',
+    icon: 'water-outline',
+    previewFrom: '#eef6fa',
+    previewTo: '#ffffff',
+    accent: '#0e7490',
   },
 ];
 

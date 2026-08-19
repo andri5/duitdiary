@@ -5,6 +5,8 @@ import expenseRoutes from './expense.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
 import uploadRoutes from './upload.routes.js';
 import marketRoutes from './market.routes.js';
+import budgetRoutes from './budget.routes.js';
+import recurringRoutes from './recurring.routes.js';
 
 const router = Router();
 
@@ -24,5 +26,7 @@ router.use('/expenses', expenseRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/uploads', uploadRoutes);
 router.use('/market', marketRoutes);
+router.use('/budgets', budgetRoutes);
+router.use('/recurring', recurringRoutes);
 
 export default router;
