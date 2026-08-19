@@ -26,6 +26,7 @@ import {
   Repeat,
   MoreHorizontal,
   Target,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore, useUIStore } from '@/stores';
@@ -318,6 +319,32 @@ export function MainLayout({ children }: MainLayoutProps) {
               </Link>
             );
           })}
+
+          {/* Admin link */}
+          {user?.role === 'ADMIN' && (
+            <Link
+              to={ROUTES.ADMIN}
+              className={cn(
+                'group mt-2 flex items-center gap-3 rounded-2xl border border-violet-500/30 px-3 py-3 text-sm font-semibold transition-all',
+                location.pathname.startsWith('/admin')
+                  ? 'bg-violet-600/20 text-violet-300 ring-1 ring-violet-500/40'
+                  : 'text-violet-300/70 hover:bg-violet-600/10 hover:text-violet-300',
+                !isSidebarOpen && 'justify-center px-2'
+              )}
+            >
+              <span
+                className={cn(
+                  'flex h-9 w-9 items-center justify-center rounded-xl transition-colors',
+                  location.pathname.startsWith('/admin')
+                    ? 'bg-violet-600 text-white'
+                    : 'bg-violet-600/20 text-violet-300 group-hover:bg-violet-600/30'
+                )}
+              >
+                <Shield className="h-4 w-4" />
+              </span>
+              {isSidebarOpen && <span>Admin Panel</span>}
+            </Link>
+          )}
         </nav>
 
         <div className="relative space-y-2 border-t border-white/10 p-3">

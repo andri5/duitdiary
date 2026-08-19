@@ -18,6 +18,10 @@ import {
   RecurringPage,
   SavingsPage,
   LandingPage,
+  AdminLayout,
+  AdminOverview,
+  AdminUsers,
+  AdminFeedback,
   SettingsPage,
   HelpPage,
   TermsPage,
@@ -180,6 +184,19 @@ const appRoutes = [
   {
     path: ROUTES.NOT_FOUND,
     element: <NotFoundPage />,
+  },
+  {
+    path: ROUTES.ADMIN,
+    element: (
+      <ProtectedRoute>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <AdminOverview /> },
+      { path: 'users', element: <AdminUsers /> },
+      { path: 'feedback', element: <AdminFeedback /> },
+    ],
   },
   {
     path: ROUTES.HOME,

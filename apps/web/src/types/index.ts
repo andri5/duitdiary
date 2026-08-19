@@ -10,6 +10,7 @@ export interface User {
   name: string;
   avatar?: string | null;
   currency?: string;
+  role?: 'USER' | 'ADMIN';
   createdAt: string;
   updatedAt?: string;
 }

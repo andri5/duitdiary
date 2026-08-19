@@ -11,6 +11,7 @@ export { BudgetPage } from './budget';
 export { RecurringPage } from './recurring';
 export { SavingsPage } from './savings';
 export { LandingPage } from './landing';
+export { AdminLayout, AdminOverview, AdminUsers, AdminFeedback } from './admin';
 export { SettingsPage } from './settings';
 export { HelpPage } from './help';
 export { TermsPage, PrivacyPage } from './legal';
