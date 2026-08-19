@@ -65,6 +65,14 @@ export type MarketQuotes = {
     label?: string;
     updatedAt?: string;
   };
+  ihsg?: {
+    value: number;
+    change: number;
+    changePct: number;
+    changePctLabel: string;
+    updatedAt?: string;
+    source?: string;
+  } | null;
   biRate?: {
     rate: number;
     percentLabel: string;

@@ -50,7 +50,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
               <Wallet className="h-5 w-5" />
             </div>
             <div className="text-left">
-              <p className="font-display text-xl font-bold tracking-[-0.04em] text-white">
+              <p className="font-display text-xl font-bold tracking-[-0.04em] text-white/80">
                 DuitDiary
               </p>
               <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/55">
@@ -81,7 +81,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
           transition={{ duration: 0.45, delay: 0.08 }}
           className="mx-auto w-full max-w-md"
         >
-          <div className="rounded-[1.5rem] border border-white/15 bg-white/95 p-5 shadow-[0_30px_80px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:rounded-[1.75rem] sm:p-8">
+          <div className="rounded-[1.5rem] border border-line bg-surface/95 p-5 shadow-[0_30px_80px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:rounded-[1.75rem] sm:p-8">
             <div className="mb-5 sm:mb-6">
               <h2 className="font-display text-xl font-bold text-ink sm:text-2xl">{title}</h2>
               {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}

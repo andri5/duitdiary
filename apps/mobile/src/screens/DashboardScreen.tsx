@@ -115,6 +115,8 @@ export function DashboardScreen({ user }: { user: User }) {
   const [amountsVisible, setAmountsVisible] = useState(true);
 
   const showAmount = (n: number) => (amountsVisible ? formatIDR(n) : HIDDEN_AMOUNT);
+  const formatIHSG = (n: number) =>
+    new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(n);
 
   const openEdit = (id: string) => navigation.navigate('TransactionForm', { id });
 
@@ -203,7 +205,7 @@ export function DashboardScreen({ user }: { user: User }) {
         </View>
       </FadeInUp>
 
-      {(market?.usdIdr || market?.gold || market?.biRate) && (
+      {(market?.usdIdr || market?.gold || market?.biRate || market?.ihsg) && (
         <FadeInUp delay={40}>
           <View style={styles.marketCard}>
             <View style={styles.marketHeader}>
@@ -220,6 +222,11 @@ export function DashboardScreen({ user }: { user: User }) {
                   <Text style={styles.marketValue} numberOfLines={1}>
                     {formatIDRCompact(market.usdIdr.rate)}
                   </Text>
+                  {market.ihsg ? (
+                    <Text style={styles.marketSub} numberOfLines={1}>
+                      IHSG {formatIHSG(market.ihsg.value)}
+                    </Text>
+                  ) : null}
                 </View>
               ) : null}
               {market.gold ? (
@@ -234,6 +241,11 @@ export function DashboardScreen({ user }: { user: User }) {
                   {market.gold.buybackPerGram ? (
                     <Text style={styles.marketSub} numberOfLines={1}>
                       BB {formatIDRCompact(market.gold.buybackPerGram)}
+                    </Text>
+                  ) : null}
+                  {market.ihsg ? (
+                    <Text style={styles.marketSub} numberOfLines={1}>
+                      IHSG {formatIHSG(market.ihsg.value)}
                     </Text>
                   ) : null}
                 </View>

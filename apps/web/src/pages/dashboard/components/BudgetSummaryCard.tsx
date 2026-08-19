@@ -2,9 +2,13 @@ import { Link } from 'react-router-dom';
 import { AlertTriangle, PiggyBank } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui';
 import { useBudget } from '@/hooks/useBudget';
-import { formatCurrency, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { ROUTES } from '@/lib/constants';
 import { BudgetProgress } from '@/pages/budget/components/BudgetProgress';
+
+function formatNominal(n: number) {
+  return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(n);
+}
 
 export function BudgetSummaryCard() {
   const { budget, isLoading } = useBudget();
@@ -48,7 +52,7 @@ export function BudgetSummaryCard() {
           <div>
             <p className="text-sm font-semibold text-ink">Budget bulan ini</p>
             <p className="text-xs text-muted">
-              {formatCurrency(budget.totalSpent)} / {formatCurrency(budget.totalBudget)}
+              {formatNominal(budget.totalSpent)} / {formatNominal(budget.totalBudget)}
             </p>
           </div>
           <Link to={ROUTES.BUDGET} className="text-sm font-semibold text-accent hover:underline">
@@ -78,7 +82,7 @@ export function BudgetSummaryCard() {
           overLimit={budget.isOverLimit}
         />
         <p className="mt-2 text-xs text-muted">
-          Sisa {formatCurrency(budget.totalRemaining)} · {budget.percentUsed}% terpakai
+          Sisa {formatNominal(budget.totalRemaining)} · {budget.percentUsed}% terpakai
         </p>
       </CardContent>
     </Card>

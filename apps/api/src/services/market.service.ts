@@ -1,5 +1,5 @@
 /**
- * Market quotes — USD/IDR + gold (Antam 1g) + BI Rate
+ * Market quotes — USD/IDR + gold (Antam 1g) + BI Rate + IHSG
  * Cached in-memory to avoid hammering upstream APIs.
  */
 
@@ -25,10 +25,20 @@ type BiRateQuote = {
   source: string;
 };
 
+type IhsgQuote = {
+  value: number;
+  change: number;
+  changePct: number;
+  changePctLabel: string;
+  updatedAt: string;
+  source: string;
+};
+
 export type MarketQuotes = {
   usdIdr: UsdQuote;
   gold: GoldQuote;
   biRate: BiRateQuote | null;
+  ihsg: IhsgQuote | null;
   fetchedAt: string;
 };
 
@@ -41,6 +51,8 @@ const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 const USD_URL = 'https://open.er-api.com/v6/latest/USD';
 const GOLD_URL = 'https://logam-mulia-api.iamutaki.workers.dev/api/prices/anekalogam';
 const BI_RATE_URL = 'https://bi-rate.vercel.app/api/bi-rate?startPage=1&endPage=1';
+const IHSG_URL =
+  'https://query1.finance.yahoo.com/v8/finance/chart/%5EJKSE?interval=1d&range=5d';
 
 let cache: CacheEntry | null = null;
 
@@ -161,16 +173,76 @@ async function fetchBiRate(): Promise<BiRateQuote> {
   };
 }
 
+async function fetchIhsg(): Promise<IhsgQuote> {
+  const response = await fetch(IHSG_URL);
+  if (!response.ok) {
+    throw new Error(`IHSG upstream failed (${response.status})`);
+  }
+
+  const json = (await response.json()) as {
+    chart?: {
+      result?: Array<{
+        timestamp?: number[];
+        indicators?: {
+          quote?: Array<{
+            close?: Array<number | null>;
+          }>;
+        };
+      }>;
+    };
+  };
+
+  const result = json.chart?.result?.[0];
+  const closes = result?.indicators?.quote?.[0]?.close ?? [];
+  if (!Array.isArray(closes) || closes.length === 0) {
+    throw new Error('IHSG payload invalid');
+  }
+
+  let lastIdx = -1;
+  let prevIdx = -1;
+  for (let i = 0; i < closes.length; i++) {
+    const v = closes[i];
+    if (typeof v === 'number' && Number.isFinite(v)) {
+      prevIdx = lastIdx;
+      lastIdx = i;
+    }
+  }
+
+  if (lastIdx < 0) {
+    throw new Error('IHSG close not found');
+  }
+
+  const value = Number(closes[lastIdx]);
+  const prev = prevIdx >= 0 ? Number(closes[prevIdx]) : value;
+  const change = value - prev;
+  const changePct = prev !== 0 ? (change / prev) * 100 : 0;
+  const changePctLabel = `${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%`;
+
+  const ts = result?.timestamp?.[lastIdx];
+  const updatedAt =
+    typeof ts === 'number' ? new Date(ts * 1000).toISOString() : new Date().toISOString();
+
+  return {
+    value,
+    change,
+    changePct,
+    changePctLabel,
+    updatedAt,
+    source: 'Yahoo Finance ^JKSE',
+  };
+}
+
 export class MarketService {
   async getQuotes(): Promise<MarketQuotes> {
     if (cache && Date.now() < cache.expiresAt) {
       return cache.data;
     }
 
-    const [usdResult, goldResult, biResult] = await Promise.allSettled([
+    const [usdResult, goldResult, biResult, ihsgResult] = await Promise.allSettled([
       fetchUsdIdr(),
       fetchGold(),
       fetchBiRate(),
+      fetchIhsg(),
     ]);
 
     if (usdResult.status !== 'fulfilled' || goldResult.status !== 'fulfilled') {
@@ -187,6 +259,7 @@ export class MarketService {
       usdIdr: usdResult.value,
       gold: goldResult.value,
       biRate: biResult.status === 'fulfilled' ? biResult.value : null,
+      ihsg: ihsgResult.status === 'fulfilled' ? ihsgResult.value : null,
       fetchedAt: new Date().toISOString(),
     };
 

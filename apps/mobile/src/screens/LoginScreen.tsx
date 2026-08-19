@@ -23,15 +23,16 @@ import {
 } from '../components/ui';
 import { FadeInUp, ScalePress } from '../components/motion';
 import { spacing, type ThemeColors } from '../theme';
-import { useColors } from '../themeContext';
+import { useColors, useTheme } from '../themeContext';
 import { useResponsive } from '../hooks/useResponsive';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export function LoginScreen({ navigation }: Props) {
   const colors = useColors();
+  const { isDark } = useTheme();
   const r = useResponsive();
-  const styles = useMemo(() => createStyles(colors, r), [colors, r]);
+  const styles = useMemo(() => createStyles(colors, r, isDark), [colors, r, isDark]);
   const insets = useSafeAreaInsets();
   const { setUser } = useAuth();
   const [email, setEmail] = useState('');
@@ -143,7 +144,11 @@ export function LoginScreen({ navigation }: Props) {
   );
 }
 
-function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
+function createStyles(
+  colors: ThemeColors,
+  r: ReturnType<typeof useResponsive>,
+  isDark: boolean
+) {
   return StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg, overflow: 'hidden' },
   glowA: {
@@ -153,7 +158,7 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(15,155,142,0.12)',
+      backgroundColor: isDark ? 'rgba(15,155,142,0.06)' : 'rgba(15,155,142,0.12)',
   },
   glowB: {
     position: 'absolute',
@@ -162,7 +167,7 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: 'rgba(28,200,180,0.1)',
+      backgroundColor: isDark ? 'rgba(28,200,180,0.05)' : 'rgba(28,200,180,0.1)',
   },
   scroll: { flexGrow: 1, justifyContent: 'center' },
   formCard: { marginBottom: spacing.lg },

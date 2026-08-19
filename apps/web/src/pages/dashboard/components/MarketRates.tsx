@@ -10,6 +10,9 @@ import { formatCurrency, cn } from '@/lib/utils';
 export function MarketRates() {
   const { data, isLoading, isError, isFetching, refetch } = useMarketRates();
 
+  const formatIHSG = (n: number) =>
+    new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(n);
+
   if (isLoading) {
     return (
       <div className="mb-4 animate-pulse rounded-2xl border border-line bg-surface/80 px-3 py-2.5">
@@ -43,6 +46,7 @@ export function MarketRates() {
       key: 'usd',
       label: 'USD / IDR',
       value: formatCurrency(data.usdIdr.rate),
+      sub: data.ihsg ? `IHSG ${formatIHSG(data.ihsg.value)}` : undefined,
       icon: DollarSign,
       tone: 'bg-accent-soft text-accent',
     },
@@ -50,7 +54,11 @@ export function MarketRates() {
       key: 'gold',
       label: 'Emas 1g',
       value: formatCurrency(data.gold.sellPerGram),
-      sub: `BB ${formatCurrency(data.gold.buybackPerGram)}`,
+      sub: data.ihsg
+        ? `BB ${formatCurrency(data.gold.buybackPerGram)} · IHSG ${formatIHSG(
+            data.ihsg.value
+          )}`
+        : `BB ${formatCurrency(data.gold.buybackPerGram)}`,
       icon: Gem,
       tone: 'bg-amber-soft text-amber',
     },

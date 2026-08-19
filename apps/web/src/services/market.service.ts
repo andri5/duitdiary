@@ -25,6 +25,14 @@ export interface MarketQuotes {
     updatedAt?: string;
     source?: string;
   } | null;
+  ihsg?: {
+    value: number;
+    change: number;
+    changePct: number;
+    changePctLabel: string;
+    updatedAt: string;
+    source: string;
+  } | null;
   fetchedAt: string;
 }
 

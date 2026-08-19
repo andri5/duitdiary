@@ -26,6 +26,12 @@ function formatMonthLabel(month: string) {
   });
 }
 
+function formatNominal(n: number) {
+  return new Intl.NumberFormat('id-ID', {
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
 export function BudgetPage() {
   const [month, setMonth] = useState(currentMonthValue());
   const { budget, isLoading, saveBudget, isSaving, deleteBudget, isDeleting } = useBudget(month);
@@ -227,7 +233,7 @@ export function BudgetPage() {
                     <div className="mb-2 flex items-center justify-between text-sm">
                       <span className="font-semibold text-ink">Total</span>
                       <span className="text-muted">
-                        {formatCurrency(budget.totalSpent)} / {formatCurrency(budget.totalBudget)}
+                        {formatNominal(budget.totalSpent)} / {formatNominal(budget.totalBudget)}
                       </span>
                     </div>
                     <BudgetProgress
@@ -236,7 +242,7 @@ export function BudgetPage() {
                       overLimit={budget.isOverLimit}
                     />
                     <p className="mt-1 text-xs text-muted">
-                      Sisa {formatCurrency(budget.totalRemaining)} ({budget.percentUsed}% terpakai)
+                      Sisa {formatNominal(budget.totalRemaining)} ({budget.percentUsed}% terpakai)
                     </p>
                   </div>
 
