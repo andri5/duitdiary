@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Alert } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -160,7 +160,13 @@ export function ProfileScreen({
         </FadeInUp>
       ))}
 
-      <FadeInUp delay={260}>
+      {user.role === 'ADMIN' && (
+        <FadeInUp delay={250}>
+          <AdminSection colors={colors} r={r} />
+        </FadeInUp>
+      )}
+
+      <FadeInUp delay={280}>
         <FeedbackCard colors={colors} r={r} />
       </FadeInUp>
 
@@ -376,5 +382,235 @@ function fbStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
     sendText: { fontSize: r.ms(13), fontWeight: '700', color: '#fff' },
     sentTitle: { fontSize: r.ms(16), fontWeight: '800', color: colors.text, marginTop: 8 },
     sentHint: { fontSize: r.ms(12), color: colors.muted, marginTop: 2 },
+  });
+}
+
+interface AdminStats {
+  users: number;
+  transactions: number;
+  feedback: number;
+  savingsGoals: number;
+  todayUsers: number;
+}
+
+interface AdminUserItem {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  _count: { expenses: number };
+}
+
+interface FeedbackItem {
+  id: string;
+  name: string | null;
+  message: string;
+  rating: number;
+  createdAt: string;
+}
+
+function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof useResponsive> }) {
+  const [tab, setTab] = useState<'stats' | 'users' | 'feedback'>('stats');
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [users, setUsers] = useState<AdminUserItem[]>([]);
+  const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const as = useMemo(() => adminStyles(colors, r), [colors, r]);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        if (tab === 'stats') {
+          const res = await apiClient.get('/admin/stats');
+          setStats(res.data?.data);
+        } else if (tab === 'users') {
+          const res = await apiClient.get('/admin/users');
+          setUsers(res.data?.data || []);
+        } else {
+          const res = await apiClient.get('/admin/feedback');
+          setFeedbacks(res.data?.data || []);
+        }
+      } catch { /* ignore */ }
+      setLoading(false);
+    })();
+  }, [tab]);
+
+  const toggleRole = async (id: string, currentRole: string) => {
+    const newRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
+    try {
+      await apiClient.patch(`/admin/users/${id}/role`, { role: newRole });
+      setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, role: newRole } : u)));
+    } catch (e: any) {
+      Alert.alert('Error', e?.response?.data?.message || 'Gagal ubah role');
+    }
+  };
+
+  const deleteFeedback = async (id: string) => {
+    try {
+      await apiClient.delete(`/admin/feedback/${id}`);
+      setFeedbacks((prev) => prev.filter((f) => f.id !== id));
+    } catch { /* ignore */ }
+  };
+
+  const tabs: { key: typeof tab; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+    { key: 'stats', label: 'Stats', icon: 'stats-chart' },
+    { key: 'users', label: 'Users', icon: 'people' },
+    { key: 'feedback', label: 'Feedback', icon: 'chatbubbles' },
+  ];
+
+  return (
+    <View style={as.card}>
+      <View style={as.header}>
+        <View style={as.badge}>
+          <Ionicons name="shield-checkmark" size={14} color="#fff" />
+        </View>
+        <Text style={as.headerText}>Admin Panel</Text>
+      </View>
+
+      <View style={as.tabs}>
+        {tabs.map((t) => (
+          <Pressable
+            key={t.key}
+            style={[as.tab, tab === t.key && as.tabActive]}
+            onPress={() => setTab(t.key)}
+          >
+            <Ionicons name={t.icon} size={13} color={tab === t.key ? '#fff' : colors.muted} />
+            <Text style={[as.tabText, tab === t.key && as.tabTextActive]}>{t.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {loading ? (
+        <ActivityIndicator color={colors.brand} style={{ marginVertical: 16 }} />
+      ) : tab === 'stats' && stats ? (
+        <View style={as.statsGrid}>
+          {[
+            { label: 'Users', value: stats.users, icon: 'people' as const },
+            { label: 'Hari Ini', value: stats.todayUsers, icon: 'person-add' as const },
+            { label: 'Transaksi', value: stats.transactions, icon: 'receipt' as const },
+            { label: 'Feedback', value: stats.feedback, icon: 'chatbubbles' as const },
+          ].map((s) => (
+            <View key={s.label} style={as.statItem}>
+              <Ionicons name={s.icon} size={16} color={colors.brand} />
+              <Text style={as.statValue}>{s.value}</Text>
+              <Text style={as.statLabel}>{s.label}</Text>
+            </View>
+          ))}
+        </View>
+      ) : tab === 'users' ? (
+        <View>
+          {users.map((u) => (
+            <View key={u.id} style={as.userRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={as.userName}>{u.name}</Text>
+                <Text style={as.userEmail}>{u.email}</Text>
+              </View>
+              <Pressable
+                style={[as.roleBadge, u.role === 'ADMIN' && as.roleBadgeAdmin]}
+                onPress={() => toggleRole(u.id, u.role)}
+              >
+                <Text style={[as.roleText, u.role === 'ADMIN' && as.roleTextAdmin]}>
+                  {u.role}
+                </Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      ) : tab === 'feedback' ? (
+        <View>
+          {feedbacks.length === 0 ? (
+            <Text style={as.emptyText}>Belum ada feedback</Text>
+          ) : (
+            feedbacks.slice(0, 10).map((f) => (
+              <View key={f.id} style={as.fbItem}>
+                <View style={{ flex: 1 }}>
+                  {f.rating > 0 && (
+                    <View style={as.fbStars}>
+                      {[1, 2, 3, 4, 5].map((v) => (
+                        <Ionicons
+                          key={v}
+                          name={v <= f.rating ? 'star' : 'star-outline'}
+                          size={10}
+                          color={v <= f.rating ? '#f59e0b' : colors.faint}
+                        />
+                      ))}
+                    </View>
+                  )}
+                  <Text style={as.fbMessage} numberOfLines={2}>"{f.message}"</Text>
+                  <Text style={as.fbName}>{f.name || 'Anonim'}</Text>
+                </View>
+                <Pressable onPress={() => deleteFeedback(f.id)} hitSlop={8}>
+                  <Ionicons name="trash-outline" size={14} color={colors.danger || '#ef4444'} />
+                </Pressable>
+              </View>
+            ))
+          )}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function adminStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: '#7c3aed30',
+      padding: 14,
+      marginBottom: 8,
+    },
+    header: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+    badge: {
+      width: 26, height: 26, borderRadius: 8,
+      backgroundColor: '#7c3aed',
+      alignItems: 'center', justifyContent: 'center',
+    },
+    headerText: { fontSize: r.ms(15), fontWeight: '800', color: colors.text },
+    tabs: {
+      flexDirection: 'row', gap: 6, marginBottom: 12,
+    },
+    tab: {
+      flexDirection: 'row', alignItems: 'center', gap: 4,
+      paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8,
+      backgroundColor: colors.bg,
+    },
+    tabActive: { backgroundColor: '#7c3aed' },
+    tabText: { fontSize: 11, fontWeight: '700', color: colors.muted },
+    tabTextActive: { color: '#fff' },
+    statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    statItem: {
+      width: '47%' as any,
+      backgroundColor: colors.bg,
+      borderRadius: radii.md,
+      padding: 10,
+      alignItems: 'center',
+      gap: 2,
+    },
+    statValue: { fontSize: r.ms(18), fontWeight: '800', color: colors.text },
+    statLabel: { fontSize: 10, fontWeight: '600', color: colors.muted },
+    userRow: {
+      flexDirection: 'row', alignItems: 'center', gap: 8,
+      paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border,
+    },
+    userName: { fontSize: 13, fontWeight: '700', color: colors.text },
+    userEmail: { fontSize: 11, color: colors.muted },
+    roleBadge: {
+      paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6,
+      backgroundColor: colors.bg,
+    },
+    roleBadgeAdmin: { backgroundColor: '#7c3aed20' },
+    roleText: { fontSize: 10, fontWeight: '700', color: colors.muted },
+    roleTextAdmin: { color: '#7c3aed' },
+    emptyText: { fontSize: 12, color: colors.muted, textAlign: 'center', paddingVertical: 16 },
+    fbItem: {
+      flexDirection: 'row', alignItems: 'flex-start', gap: 8,
+      paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border,
+    },
+    fbStars: { flexDirection: 'row', gap: 1, marginBottom: 2 },
+    fbMessage: { fontSize: 12, color: colors.text, lineHeight: 16 },
+    fbName: { fontSize: 10, fontWeight: '600', color: colors.muted, marginTop: 2 },
   });
 }

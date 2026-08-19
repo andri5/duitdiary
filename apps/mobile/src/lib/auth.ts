@@ -10,6 +10,7 @@ export type User = {
   email: string;
   avatar?: string | null;
   currency?: string;
+  role?: 'USER' | 'ADMIN';
 };
 
 export type AuthResult = {
