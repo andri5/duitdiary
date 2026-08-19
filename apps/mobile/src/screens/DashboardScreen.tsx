@@ -219,10 +219,11 @@ export function DashboardScreen({ user }: { user: User }) {
                   ];
                   await exportTransactionsCsv(txs, summary, period);
                 }}
-                style={styles.topIconBtn}
+                style={styles.exportBtn}
                 hitSlop={8}
               >
-                <Ionicons name="download-outline" size={20} color={colors.muted} />
+                <Ionicons name="share-social-outline" size={16} color={colors.brand} />
+                <Text style={styles.exportBtnText}>Export</Text>
               </Pressable>
             )}
             <PrivacyEyeToggle
@@ -514,13 +515,19 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
       letterSpacing: -0.4,
     },
     topActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    topIconBtn: {
-      width: 36,
-      height: 36,
-      borderRadius: 12,
-      backgroundColor: colors.mist,
+    exportBtn: {
+      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
+      gap: 4,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 12,
+      backgroundColor: colors.brandSoft,
+    },
+    exportBtnText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.brand,
     },
     marketCard: {
       backgroundColor: colors.surface,

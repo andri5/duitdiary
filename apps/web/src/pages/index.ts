@@ -9,6 +9,7 @@ export { IncomesPage } from './incomes';
 export { CategoriesPage } from './categories';
 export { BudgetPage } from './budget';
 export { RecurringPage } from './recurring';
+export { SavingsPage } from './savings';
 export { SettingsPage } from './settings';
 export { HelpPage } from './help';
 export { TermsPage, PrivacyPage } from './legal';

@@ -25,6 +25,7 @@ import {
   PiggyBank,
   Repeat,
   MoreHorizontal,
+  Target,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore, useUIStore } from '@/stores';
@@ -64,6 +65,12 @@ const primaryNav = [
     path: ROUTES.BUDGET,
   },
   {
+    icon: Target,
+    label: 'Target Tabungan',
+    shortLabel: 'Tabungan',
+    path: ROUTES.SAVINGS,
+  },
+  {
     icon: Repeat,
     label: 'Transaksi Otomatis',
     shortLabel: 'Otomatis',
@@ -90,6 +97,7 @@ const primaryNav = [
 ];
 
 const moreMenuItems = [
+  { icon: Target, label: 'Target Tabungan', path: ROUTES.SAVINGS },
   { icon: Repeat, label: 'Transaksi Otomatis', path: ROUTES.RECURRING },
   { icon: FolderOpen, label: 'Kategori', path: ROUTES.CATEGORIES },
   { icon: CircleHelp, label: 'Bantuan', path: ROUTES.HELP },

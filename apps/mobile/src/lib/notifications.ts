@@ -1,25 +1,42 @@
 /**
  * Local push notifications for budget alerts and reminders.
+ * Gracefully degrades in Expo Go (no-op).
  */
 
-import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import type { BudgetStatus } from './budget';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+const isExpoGo = Constants.appOwnership === 'expo';
+
+let Notifications: typeof import('expo-notifications') | null = null;
+
+async function loadNotifications() {
+  if (isExpoGo || Notifications) return Notifications;
+  try {
+    Notifications = await import('expo-notifications');
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+  } catch {
+    Notifications = null;
+  }
+  return Notifications;
+}
 
 export async function requestNotificationPermission(): Promise<boolean> {
-  const { status: existing } = await Notifications.getPermissionsAsync();
+  const mod = await loadNotifications();
+  if (!mod) return false;
+
+  const { status: existing } = await mod.getPermissionsAsync();
   if (existing === 'granted') return true;
 
-  const { status } = await Notifications.requestPermissionsAsync();
+  const { status } = await mod.requestPermissionsAsync();
   return status === 'granted';
 }
 
@@ -27,11 +44,14 @@ export async function checkAndNotifyBudgetAlert(budget: BudgetStatus): Promise<v
   if (!budget.hasBudget) return;
 
   const pct = budget.percentUsed;
+  const mod = await loadNotifications();
+  if (!mod) return;
+
   const hasPermission = await requestNotificationPermission();
   if (!hasPermission) return;
 
   if (pct >= 100) {
-    await Notifications.scheduleNotificationAsync({
+    await mod.scheduleNotificationAsync({
       content: {
         title: '⚠️ Budget Terlampaui!',
         body: `Pengeluaran kamu sudah ${pct}% dari budget bulan ini. Kurangi pengeluaran ya!`,
@@ -40,7 +60,7 @@ export async function checkAndNotifyBudgetAlert(budget: BudgetStatus): Promise<v
       trigger: null,
     });
   } else if (pct >= 80) {
-    await Notifications.scheduleNotificationAsync({
+    await mod.scheduleNotificationAsync({
       content: {
         title: '📊 Budget Hampir Habis',
         body: `Pengeluaran sudah mencapai ${pct}% dari budget. Sisa ${formatCompact(budget.totalRemaining)}.`,
@@ -57,21 +77,8 @@ function formatCompact(n: number): string {
   return `Rp ${n}`;
 }
 
-export async function scheduleRecurringReminder(
-  title: string,
-  body: string,
-  delaySeconds: number
-): Promise<string> {
-  const hasPermission = await requestNotificationPermission();
-  if (!hasPermission) return '';
-
-  const id = await Notifications.scheduleNotificationAsync({
-    content: { title, body, data: { type: 'recurring_reminder' } },
-    trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: delaySeconds, repeats: false },
-  });
-  return id;
-}
-
 export async function cancelAllNotifications(): Promise<void> {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  const mod = await loadNotifications();
+  if (!mod) return;
+  await mod.cancelAllScheduledNotificationsAsync();
 }

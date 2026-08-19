@@ -14,6 +14,7 @@ export type MainStackParamList = {
   Help: undefined;
   Budget: undefined;
   Recurring: undefined;
+  Savings: undefined;
 };
 
 export type MainTabParamList = {

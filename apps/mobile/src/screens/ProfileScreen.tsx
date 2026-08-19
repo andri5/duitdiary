@@ -61,6 +61,14 @@ export function ProfileScreen({
       onPress: () => navigation.navigate('Budget'),
     },
     {
+      key: 'savings',
+      title: 'Target Tabungan',
+      sub: 'Atur target saving & pantau progres',
+      icon: 'flag-outline' as const,
+      soft: true,
+      onPress: () => navigation.navigate('Savings'),
+    },
+    {
       key: 'settings',
       title: 'Pengaturan',
       sub: 'Nama, mata uang, foto struk',

@@ -15,6 +15,7 @@ import { SettingsScreen } from '../screens/SettingsScreen';
 import { HelpScreen } from '../screens/HelpScreen';
 import { BudgetScreen } from '../screens/BudgetScreen';
 import { RecurringScreen } from '../screens/RecurringScreen';
+import { SavingsScreen } from '../screens/SavingsScreen';
 import { useColors } from '../themeContext';
 import { AppTabBar } from './AppTabBar';
 import type { MainStackParamList, MainTabParamList } from './types';
@@ -106,6 +107,7 @@ export function MainNavigator({
       <Stack.Screen name="Help" component={HelpScreen} options={{ title: 'Bantuan' }} />
       <Stack.Screen name="Budget" component={BudgetScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Recurring" component={RecurringScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Savings" component={SavingsScreen} options={{ title: 'Target Tabungan' }} />
     </Stack.Navigator>
   );
 }

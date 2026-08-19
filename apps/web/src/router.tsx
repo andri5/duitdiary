@@ -16,6 +16,7 @@ import {
   CategoriesPage,
   BudgetPage,
   RecurringPage,
+  SavingsPage,
   SettingsPage,
   HelpPage,
   TermsPage,
@@ -144,6 +145,14 @@ const appRoutes = [
     element: (
       <ProtectedRoute>
         <RecurringPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: ROUTES.SAVINGS,
+    element: (
+      <ProtectedRoute>
+        <SavingsPage />
       </ProtectedRoute>
     ),
   },

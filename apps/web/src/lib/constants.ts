@@ -145,6 +145,7 @@ export const ROUTES = {
   CATEGORIES: '/categories',
   BUDGET: '/budget',
   RECURRING: '/recurring',
+  SAVINGS: '/savings',
   SETTINGS: '/settings',
   HELP: '/help',
   TERMS: '/terms',
