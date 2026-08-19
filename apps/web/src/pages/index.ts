@@ -10,6 +10,7 @@ export { CategoriesPage } from './categories';
 export { BudgetPage } from './budget';
 export { RecurringPage } from './recurring';
 export { SavingsPage } from './savings';
+export { LandingPage } from './landing';
 export { SettingsPage } from './settings';
 export { HelpPage } from './help';
 export { TermsPage, PrivacyPage } from './legal';

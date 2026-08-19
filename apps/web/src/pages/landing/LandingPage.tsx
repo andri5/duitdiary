@@ -1,0 +1,430 @@
+/**
+ * DuitDiary - Landing Page
+ */
+
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import {
+  Wallet,
+  Receipt,
+  PiggyBank,
+  Target,
+  Camera,
+  BarChart3,
+  Shield,
+  Smartphone,
+  ArrowRight,
+  ChevronRight,
+  Sparkles,
+  TrendingUp,
+  Zap,
+  CheckCircle2,
+} from 'lucide-react';
+import { ROUTES } from '@/lib/constants';
+import { useAuthStore } from '@/stores';
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 28 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.1, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
+  }),
+};
+
+const FEATURES = [
+  {
+    icon: Receipt,
+    title: 'Catat Transaksi',
+    desc: 'Pemasukan & pengeluaran tercatat rapi dalam satu tempat.',
+    tone: 'bg-accent-soft text-accent',
+  },
+  {
+    icon: PiggyBank,
+    title: 'Budget Bulanan',
+    desc: 'Atur limit pengeluaran dan pantau biar tetap on-track.',
+    tone: 'bg-violet-100 text-violet-600',
+  },
+  {
+    icon: Target,
+    title: 'Target Tabungan',
+    desc: 'Set goal saving dan lihat progresmu naik terus.',
+    tone: 'bg-amber-100 text-amber-600',
+  },
+  {
+    icon: Camera,
+    title: 'Foto Struk',
+    desc: 'Snap struk belanja, langsung tercatat otomatis.',
+    tone: 'bg-lime-100 text-lime-600',
+  },
+  {
+    icon: BarChart3,
+    title: 'Laporan & Export',
+    desc: 'Ringkasan keuangan visual yang mudah dipahami.',
+    tone: 'bg-cyan-100 text-cyan-600',
+  },
+  {
+    icon: Shield,
+    title: 'Aman & Privat',
+    desc: 'Data keuanganmu terenkripsi dan hanya kamu yang akses.',
+    tone: 'bg-rose-100 text-rose-500',
+  },
+];
+
+const STEPS = [
+  { num: '01', title: 'Daftar gratis', desc: 'Buat akun dalam hitungan detik.' },
+  { num: '02', title: 'Catat keuangan', desc: 'Pemasukan, pengeluaran, dan target saving.' },
+  { num: '03', title: 'Pantau & kontrol', desc: 'Dashboard real-time, budget alerts, dan laporan.' },
+];
+
+export function LandingPage() {
+  const isLoggedIn = useAuthStore((s) => !!s.user);
+
+  return (
+    <div className="min-h-dvh bg-[#0a1628] text-white selection:bg-accent/30">
+      {/* ---- NAV ---- */}
+      <nav className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#0a1628]/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+          <Link to="/" className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-[#5eead4] shadow-lg shadow-accent/25">
+              <Wallet className="h-4.5 w-4.5 text-white" />
+            </div>
+            <span className="font-display text-lg font-bold tracking-tight">DuitDiary</span>
+          </Link>
+          <div className="flex items-center gap-3">
+            {isLoggedIn ? (
+              <Link
+                to={ROUTES.DASHBOARD}
+                className="rounded-xl bg-accent px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-accent/25 transition hover:bg-accent/90 hover:shadow-accent/35"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to={ROUTES.LOGIN}
+                  className="rounded-xl px-4 py-2.5 text-sm font-semibold text-white/70 transition hover:text-white"
+                >
+                  Masuk
+                </Link>
+                <Link
+                  to={ROUTES.REGISTER}
+                  className="rounded-xl bg-accent px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-accent/25 transition hover:bg-accent/90 hover:shadow-accent/35"
+                >
+                  Daftar Gratis
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* ---- HERO ---- */}
+      <section className="relative overflow-hidden pb-20 pt-20 sm:pb-28 sm:pt-28 lg:pb-36 lg:pt-32">
+        {/* ambient blobs */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-32 top-16 h-[420px] w-[420px] rounded-full bg-accent/20 blur-[120px]" />
+          <div className="absolute -right-24 top-48 h-[340px] w-[340px] rounded-full bg-[#5eead4]/15 blur-[100px]" />
+          <div className="absolute bottom-0 left-1/2 h-[260px] w-[520px] -translate-x-1/2 rounded-full bg-accent/10 blur-[100px]" />
+        </div>
+
+        <div className="relative mx-auto max-w-6xl px-5">
+          <motion.div
+            className="mx-auto max-w-3xl text-center"
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div
+              variants={fadeUp}
+              custom={0}
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-accent/25 bg-accent/10 px-4 py-1.5 text-xs font-semibold text-accent"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Gratis untuk semua orang
+            </motion.div>
+
+            <motion.h1
+              variants={fadeUp}
+              custom={1}
+              className="font-display text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl"
+            >
+              Kelola keuangan,{' '}
+              <span className="bg-gradient-to-r from-accent via-[#5eead4] to-accent bg-clip-text text-transparent">
+                raih tujuanmu
+              </span>
+            </motion.h1>
+
+            <motion.p
+              variants={fadeUp}
+              custom={2}
+              className="mx-auto mt-6 max-w-xl text-base text-white/60 sm:text-lg"
+            >
+              Catat pemasukan, pengeluaran, budget, dan target tabungan — semuanya dalam satu
+              aplikasi yang cepat, intuitif, dan aman.
+            </motion.p>
+
+            <motion.div
+              variants={fadeUp}
+              custom={3}
+              className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
+            >
+              <Link
+                to={isLoggedIn ? ROUTES.DASHBOARD : ROUTES.REGISTER}
+                className="group flex items-center gap-2 rounded-2xl bg-gradient-to-r from-accent to-[#1cc8b4] px-8 py-4 text-base font-bold text-white shadow-xl shadow-accent/30 transition hover:shadow-2xl hover:shadow-accent/40"
+              >
+                {isLoggedIn ? 'Buka Dashboard' : 'Mulai Sekarang'}
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+              </Link>
+              <Link
+                to="#fitur"
+                className="flex items-center gap-1.5 rounded-2xl border border-white/10 px-6 py-4 text-sm font-semibold text-white/70 transition hover:border-white/20 hover:text-white"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('fitur')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                Lihat Fitur
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            </motion.div>
+          </motion.div>
+
+          {/* Hero visual — dashboard preview card */}
+          <motion.div
+            variants={fadeUp}
+            custom={5}
+            initial="hidden"
+            animate="visible"
+            className="relative mx-auto mt-16 max-w-4xl"
+          >
+            <div className="overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-b from-white/[0.06] to-transparent p-1 shadow-2xl shadow-black/40">
+              <div className="rounded-[1.25rem] bg-[#0d1520] p-6 sm:p-8">
+                {/* mock dashboard */}
+                <div className="mb-5 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-white/40">Total Saldo</p>
+                    <p className="font-display text-2xl font-bold text-white sm:text-3xl">
+                      Rp 12.450.000
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-xl bg-lime-500/15 px-3 py-1.5 text-xs font-bold text-lime-400">
+                    <TrendingUp className="h-3.5 w-3.5" />
+                    +18.3%
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: 'Pemasukan', value: 'Rp 8.200.000', color: 'text-accent' },
+                    { label: 'Pengeluaran', value: 'Rp 4.750.000', color: 'text-rose-400' },
+                    { label: 'Tabungan', value: 'Rp 3.000.000', color: 'text-amber-400' },
+                  ].map((s) => (
+                    <div
+                      key={s.label}
+                      className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-3 sm:p-4"
+                    >
+                      <p className="text-[10px] text-white/40 sm:text-xs">{s.label}</p>
+                      <p className={`mt-1 text-sm font-bold sm:text-base ${s.color}`}>
+                        {s.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ---- FEATURES ---- */}
+      <section id="fitur" className="relative py-20 sm:py-28">
+        <div className="mx-auto max-w-6xl px-5">
+          <motion.div
+            className="mb-14 text-center"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+          >
+            <motion.p
+              variants={fadeUp}
+              custom={0}
+              className="mb-3 text-xs font-bold uppercase tracking-widest text-accent"
+            >
+              Fitur Lengkap
+            </motion.p>
+            <motion.h2
+              variants={fadeUp}
+              custom={1}
+              className="font-display text-3xl font-extrabold sm:text-4xl"
+            >
+              Semua yang kamu butuhkan
+            </motion.h2>
+            <motion.p variants={fadeUp} custom={2} className="mx-auto mt-4 max-w-lg text-white/50">
+              DuitDiary dirancang untuk membantu siapa saja mengelola keuangan pribadi dengan mudah.
+            </motion.p>
+          </motion.div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {FEATURES.map((f, i) => (
+              <motion.div
+                key={f.title}
+                variants={fadeUp}
+                custom={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-40px' }}
+                className="group rounded-3xl border border-white/[0.06] bg-white/[0.03] p-6 transition hover:border-accent/20 hover:bg-white/[0.05]"
+              >
+                <div
+                  className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl ${f.tone}`}
+                >
+                  <f.icon className="h-5 w-5" />
+                </div>
+                <h3 className="mb-1.5 font-display text-base font-bold">{f.title}</h3>
+                <p className="text-sm leading-relaxed text-white/50">{f.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---- HOW IT WORKS ---- */}
+      <section className="relative py-20 sm:py-28">
+        <div className="mx-auto max-w-6xl px-5">
+          <motion.div
+            className="mb-14 text-center"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+          >
+            <motion.p
+              variants={fadeUp}
+              custom={0}
+              className="mb-3 text-xs font-bold uppercase tracking-widest text-accent"
+            >
+              Cara Kerja
+            </motion.p>
+            <motion.h2
+              variants={fadeUp}
+              custom={1}
+              className="font-display text-3xl font-extrabold sm:text-4xl"
+            >
+              Tiga langkah simpel
+            </motion.h2>
+          </motion.div>
+
+          <div className="grid gap-6 sm:grid-cols-3">
+            {STEPS.map((s, i) => (
+              <motion.div
+                key={s.num}
+                variants={fadeUp}
+                custom={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-40px' }}
+                className="relative rounded-3xl border border-white/[0.06] bg-white/[0.03] p-6 text-center"
+              >
+                <span className="font-display text-4xl font-black text-accent/20">{s.num}</span>
+                <h3 className="mt-2 font-display text-lg font-bold">{s.title}</h3>
+                <p className="mt-2 text-sm text-white/50">{s.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---- HIGHLIGHTS ---- */}
+      <section className="relative py-20 sm:py-28">
+        <div className="mx-auto max-w-6xl px-5">
+          <div className="overflow-hidden rounded-3xl border border-accent/15 bg-gradient-to-br from-accent/10 via-transparent to-[#5eead4]/10 p-8 sm:p-12">
+            <div className="grid items-center gap-8 lg:grid-cols-2">
+              <div>
+                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-accent">
+                  Kenapa DuitDiary?
+                </p>
+                <h2 className="font-display text-3xl font-extrabold sm:text-4xl">
+                  Dibuat untuk semua orang
+                </h2>
+                <div className="mt-8 space-y-4">
+                  {[
+                    'Gratis tanpa iklan',
+                    'Tampilan modern & responsif',
+                    'Tersedia web & mobile',
+                    'Data terenkripsi & privat',
+                    'Budget alerts otomatis',
+                    'Export laporan kapan saja',
+                  ].map((t) => (
+                    <div key={t} className="flex items-center gap-3">
+                      <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-accent" />
+                      <span className="text-sm text-white/70">{t}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-center">
+                <div className="relative">
+                  <div className="absolute -inset-4 rounded-3xl bg-accent/10 blur-2xl" />
+                  <div className="relative flex h-64 w-56 items-center justify-center rounded-3xl border border-white/10 bg-[#0d1520] shadow-2xl">
+                    <div className="text-center">
+                      <Smartphone className="mx-auto h-12 w-12 text-accent/60" />
+                      <p className="mt-3 text-xs text-white/40">Mobile App</p>
+                      <p className="mt-1 font-display text-sm font-bold">DuitDiary</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---- CTA ---- */}
+      <section className="relative py-20 sm:py-28">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-0 h-[300px] w-[600px] -translate-x-1/2 rounded-full bg-accent/15 blur-[120px]" />
+        </div>
+        <div className="relative mx-auto max-w-2xl px-5 text-center">
+          <Zap className="mx-auto mb-5 h-10 w-10 text-accent" />
+          <h2 className="font-display text-3xl font-extrabold sm:text-4xl">
+            Mulai kelola keuanganmu
+          </h2>
+          <p className="mx-auto mt-4 max-w-md text-white/50">
+            Gabung sekarang dan rasakan kemudahan mencatat keuangan dalam satu ruang.
+          </p>
+          <div className="mt-10">
+            <Link
+              to={isLoggedIn ? ROUTES.DASHBOARD : ROUTES.REGISTER}
+              className="group inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-accent to-[#1cc8b4] px-10 py-4 text-base font-bold text-white shadow-xl shadow-accent/30 transition hover:shadow-2xl hover:shadow-accent/40"
+            >
+              {isLoggedIn ? 'Buka Dashboard' : 'Daftar Gratis'}
+              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ---- FOOTER ---- */}
+      <footer className="border-t border-white/[0.06] py-10">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 sm:flex-row">
+          <div className="flex items-center gap-2">
+            <Wallet className="h-4 w-4 text-accent" />
+            <span className="text-sm font-semibold text-white/70">DuitDiary</span>
+          </div>
+          <div className="flex items-center gap-6 text-xs text-white/40">
+            <Link to={ROUTES.TERMS} className="transition hover:text-white/70">
+              Syarat & Ketentuan
+            </Link>
+            <Link to={ROUTES.PRIVACY} className="transition hover:text-white/70">
+              Kebijakan Privasi
+            </Link>
+            <Link to={ROUTES.HELP} className="transition hover:text-white/70">
+              Bantuan
+            </Link>
+          </div>
+          <p className="text-xs text-white/30">
+            &copy; {new Date().getFullYear()} DuitDiary
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}

@@ -17,6 +17,7 @@ import {
   BudgetPage,
   RecurringPage,
   SavingsPage,
+  LandingPage,
   SettingsPage,
   HelpPage,
   TermsPage,
@@ -182,7 +183,7 @@ const appRoutes = [
   },
   {
     path: ROUTES.HOME,
-    element: <Navigate to={ROUTES.DASHBOARD} replace />,
+    element: <LandingPage />,
   },
   {
     path: '*',
