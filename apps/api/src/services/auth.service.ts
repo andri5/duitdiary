@@ -246,6 +246,7 @@ export class AuthService {
         email: true,
         avatar: true,
         currency: true,
+        role: true,
         createdAt: true,
       },
     });
@@ -273,6 +274,7 @@ export class AuthService {
         email: true,
         avatar: true,
         currency: true,
+        role: true,
         createdAt: true,
       },
     });
