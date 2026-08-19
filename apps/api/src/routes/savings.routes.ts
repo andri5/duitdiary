@@ -1,10 +1,13 @@
 import { Router } from 'express';
 import { savingsService } from '../services/savings.service.js';
+import { authMiddleware } from '../middlewares/index.js';
 import { paramString } from '../utils/params.js';
 import type { Request, Response } from 'express';
 import type { AuthenticatedRequest } from '../types/index.js';
 
 const router = Router();
+
+router.use(authMiddleware);
 
 router.get('/', async (req: Request, res: Response) => {
   const { userId } = (req as AuthenticatedRequest).user!;

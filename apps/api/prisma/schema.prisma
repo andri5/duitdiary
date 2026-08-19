@@ -193,3 +193,14 @@ model SavingsGoal {
   @@index([userId])
   @@map("savings_goals")
 }
+
+// ==================== FEEDBACK ====================
+model Feedback {
+  id        String   @id @default(uuid())
+  name      String?  @db.VarChar(100)
+  message   String   @db.Text
+  rating    Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("feedback")
+}

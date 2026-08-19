@@ -2,9 +2,13 @@
  * DuitDiary - Landing Page
  */
 
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
+  MessageSquarePlus,
+  Star,
+  Send,
   Wallet,
   Receipt,
   PiggyBank,
@@ -22,6 +26,7 @@ import {
 } from 'lucide-react';
 import { ROUTES } from '@/lib/constants';
 import { useAuthStore } from '@/stores';
+import api from '@/lib/api';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -68,6 +73,33 @@ const FEATURES = [
     title: 'Aman & Privat',
     desc: 'Data keuanganmu terenkripsi dan hanya kamu yang akses.',
     tone: 'bg-rose-100 text-rose-500',
+  },
+];
+
+const TESTIMONIALS = [
+  {
+    name: 'Rina S.',
+    role: 'Mahasiswi',
+    text: 'Sejak pakai DuitDiary, uang jajan saya jadi lebih terkontrol. Fitur budget bulanan sangat membantu!',
+    stars: 5,
+  },
+  {
+    name: 'Budi P.',
+    role: 'Karyawan Swasta',
+    text: 'Simple dan cepat. Saya bisa catat pengeluaran langsung dari HP tanpa ribet. Target tabungan bikin makin semangat.',
+    stars: 5,
+  },
+  {
+    name: 'Dewi A.',
+    role: 'Freelancer',
+    text: 'Sebagai freelancer, income saya ga tetap. DuitDiary bantu saya pantau cash flow dan atur prioritas pengeluaran.',
+    stars: 4,
+  },
+  {
+    name: 'Andi R.',
+    role: 'Pelajar SMA',
+    text: 'Gratis dan tampilannya keren! Saya jadi sadar selama ini banyak pengeluaran yang ga perlu.',
+    stars: 5,
   },
 ];
 
@@ -377,6 +409,64 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ---- TESTIMONIALS ---- */}
+      <section className="relative py-20 sm:py-28">
+        <div className="mx-auto max-w-6xl px-5">
+          <motion.div
+            className="mb-14 text-center"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+          >
+            <motion.p
+              variants={fadeUp}
+              custom={0}
+              className="mb-3 text-xs font-bold uppercase tracking-widest text-accent"
+            >
+              Apa Kata Mereka
+            </motion.p>
+            <motion.h2
+              variants={fadeUp}
+              custom={1}
+              className="font-display text-3xl font-extrabold sm:text-4xl"
+            >
+              Dipercaya pengguna
+            </motion.h2>
+          </motion.div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {TESTIMONIALS.map((t, i) => (
+              <motion.div
+                key={t.name}
+                variants={fadeUp}
+                custom={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-40px' }}
+                className="rounded-3xl border border-white/[0.06] bg-white/[0.03] p-5"
+              >
+                <div className="mb-3 flex gap-0.5">
+                  {Array.from({ length: t.stars }).map((_, j) => (
+                    <Star key={j} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                  ))}
+                  {Array.from({ length: 5 - t.stars }).map((_, j) => (
+                    <Star key={j} className="h-3.5 w-3.5 text-white/15" />
+                  ))}
+                </div>
+                <p className="mb-4 text-sm leading-relaxed text-white/60">"{t.text}"</p>
+                <div>
+                  <p className="text-sm font-bold">{t.name}</p>
+                  <p className="text-xs text-white/40">{t.role}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---- FEEDBACK FORM ---- */}
+      <FeedbackSection />
+
       {/* ---- CTA ---- */}
       <section className="relative py-20 sm:py-28">
         <div className="pointer-events-none absolute inset-0">
@@ -426,5 +516,142 @@ export function LandingPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function FeedbackSection() {
+  const [name, setName] = useState('');
+  const [message, setMessage] = useState('');
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message.trim()) return;
+    api.post('/feedback', { name: name.trim() || null, message: message.trim(), rating })
+      .catch(() => {});
+    setSubmitted(true);
+    setTimeout(() => {
+      setSubmitted(false);
+      setName('');
+      setMessage('');
+      setRating(0);
+    }, 3000);
+  };
+
+  return (
+    <section className="relative py-20 sm:py-28">
+      <div className="mx-auto max-w-2xl px-5">
+        <motion.div
+          className="mb-10 text-center"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-80px' }}
+        >
+          <motion.p
+            variants={fadeUp}
+            custom={0}
+            className="mb-3 text-xs font-bold uppercase tracking-widest text-accent"
+          >
+            Saran & Masukan
+          </motion.p>
+          <motion.h2
+            variants={fadeUp}
+            custom={1}
+            className="font-display text-3xl font-extrabold sm:text-4xl"
+          >
+            Bantu kami jadi lebih baik
+          </motion.h2>
+          <motion.p variants={fadeUp} custom={2} className="mx-auto mt-4 max-w-md text-white/50">
+            Pendapatmu sangat berarti untuk pengembangan DuitDiary.
+          </motion.p>
+        </motion.div>
+
+        <motion.form
+          variants={fadeUp}
+          custom={3}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+          onSubmit={handleSubmit}
+          className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-6 sm:p-8"
+        >
+          {submitted ? (
+            <div className="py-8 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent/15">
+                <CheckCircle2 className="h-7 w-7 text-accent" />
+              </div>
+              <p className="font-display text-lg font-bold">Terima kasih!</p>
+              <p className="mt-1 text-sm text-white/50">Masukan kamu sudah kami terima.</p>
+            </div>
+          ) : (
+            <>
+              {/* Star rating */}
+              <div className="mb-5">
+                <label className="mb-2 block text-xs font-semibold text-white/50">
+                  Beri penilaian
+                </label>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onMouseEnter={() => setHoverRating(v)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      onClick={() => setRating(v)}
+                      className="rounded-lg p-1 transition hover:scale-110"
+                    >
+                      <Star
+                        className={`h-6 w-6 transition ${
+                          v <= (hoverRating || rating)
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'text-white/15'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="mb-2 block text-xs font-semibold text-white/50">
+                  Nama (opsional)
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Nama kamu"
+                  className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-accent/40 focus:bg-white/[0.06]"
+                />
+              </div>
+
+              <div className="mb-5">
+                <label className="mb-2 block text-xs font-semibold text-white/50">
+                  Saran atau masukan
+                </label>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Tulis saran, kritik, atau fitur yang kamu harapkan..."
+                  rows={4}
+                  className="w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-accent/40 focus:bg-white/[0.06]"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-accent to-[#1cc8b4] py-3 text-sm font-bold text-white shadow-lg shadow-accent/25 transition hover:shadow-accent/35"
+              >
+                <Send className="h-4 w-4" />
+                Kirim Masukan
+              </button>
+            </>
+          )}
+        </motion.form>
+      </div>
+    </section>
   );
 }

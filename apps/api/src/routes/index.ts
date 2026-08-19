@@ -8,6 +8,7 @@ import marketRoutes from './market.routes.js';
 import budgetRoutes from './budget.routes.js';
 import recurringRoutes from './recurring.routes.js';
 import savingsRoutes from './savings.routes.js';
+import feedbackRoutes from './feedback.routes.js';
 
 const router = Router();
 
@@ -30,5 +31,6 @@ router.use('/market', marketRoutes);
 router.use('/budgets', budgetRoutes);
 router.use('/recurring', recurringRoutes);
 router.use('/savings', savingsRoutes);
+router.use('/feedback', feedbackRoutes);
 
 export default router;
