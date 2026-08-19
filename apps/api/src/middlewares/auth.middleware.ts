@@ -39,7 +39,21 @@ export const authMiddleware = (
   (req as AuthenticatedRequest).user = {
     userId: payload.userId,
     email: payload.email,
+    role: payload.role,
   };
 
+  next();
+};
+
+export const adminMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const user = (req as AuthenticatedRequest).user;
+  if (!user || user.role !== 'ADMIN') {
+    res.status(403).json({ success: false, message: 'Admin access required' });
+    return;
+  }
   next();
 };

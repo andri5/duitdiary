@@ -21,6 +21,11 @@ enum RecurringFrequency {
   MONTHLY
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 // ==================== USERS ====================
 model User {
   id           String   @id @default(uuid())
@@ -29,6 +34,7 @@ model User {
   password     String   @db.VarChar(255)
   avatar       String?  @db.VarChar(500)
   currency     String   @default("IDR") @db.VarChar(3)
+  role         UserRole @default(USER)
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 

@@ -8,6 +8,7 @@ export interface AuthenticatedRequest extends Request {
   user?: {
     userId: string;
     email: string;
+    role?: string;
   };
 }
 
@@ -24,6 +25,7 @@ export interface UserResponse {
   email: string;
   avatar: string | null;
   currency: string;
+  role: string;
   createdAt: Date;
 }
 

@@ -37,7 +37,7 @@ export class AuthService {
       },
     });
 
-    const tokenPayload = { userId: user.id, email: user.email };
+    const tokenPayload = { userId: user.id, email: user.email, role: user.role };
     const accessToken = generateAccessToken(tokenPayload);
     const refreshToken = generateRefreshToken(tokenPayload);
 
@@ -65,7 +65,7 @@ export class AuthService {
       throw new Error('Email atau password salah');
     }
 
-    const tokenPayload = { userId: user.id, email: user.email };
+    const tokenPayload = { userId: user.id, email: user.email, role: user.role };
     const accessToken = generateAccessToken(tokenPayload);
     const refreshToken = generateRefreshToken(tokenPayload);
 
@@ -123,7 +123,7 @@ export class AuthService {
 
     await prisma.refreshToken.delete({ where: { id: storedToken.id } });
 
-    const tokenPayload = { userId: user.id, email: user.email };
+    const tokenPayload = { userId: user.id, email: user.email, role: user.role };
     const newAccessToken = generateAccessToken(tokenPayload);
     const newRefreshToken = generateRefreshToken(tokenPayload);
 
@@ -329,6 +329,7 @@ export class AuthService {
     email: string;
     avatar: string | null;
     currency: string;
+    role?: string;
     createdAt: Date;
   }): UserResponse {
     return {
@@ -337,6 +338,7 @@ export class AuthService {
       email: user.email,
       avatar: user.avatar,
       currency: user.currency,
+      role: user.role || 'USER',
       createdAt: user.createdAt,
     };
   }
