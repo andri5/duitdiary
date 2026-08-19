@@ -50,6 +50,79 @@ export class RecurringService {
       data: { isActive },
     });
   }
+
+  private advanceRunDate(from: Date, frequency: RecurringFrequency): Date {
+    const next = new Date(from);
+    if (frequency === 'DAILY') {
+      next.setDate(next.getDate() + 1);
+      return next;
+    }
+    if (frequency === 'WEEKLY') {
+      next.setDate(next.getDate() + 7);
+      return next;
+    }
+    // MONTHLY
+    next.setMonth(next.getMonth() + 1);
+    return next;
+  }
+
+  /**
+   * Create due transactions for all active recurring entries of a user.
+   * This is intentionally idempotent-ish: we advance `nextRunDate` right after creating,
+   * so subsequent calls won't create duplicates for the same run.
+   */
+  async runDue(userId: string): Promise<{ created: number; checked: number }> {
+    const now = new Date();
+    const due = await prisma.recurringTransaction.findMany({
+      where: {
+        userId,
+        isActive: true,
+        nextRunDate: { lte: now },
+        OR: [{ endDate: null }, { endDate: { gte: now } }],
+      },
+      orderBy: [{ nextRunDate: 'asc' }],
+    });
+
+    let created = 0;
+
+    for (const row of due) {
+      // Catch up missed runs up to `now`
+      let next = row.nextRunDate;
+      let active = row.isActive;
+
+      while (
+        active &&
+        next.getTime() <= now.getTime() &&
+        (!row.endDate || next.getTime() <= row.endDate.getTime())
+      ) {
+        await prisma.expense.create({
+          data: {
+            userId: row.userId,
+            categoryId: row.categoryId,
+            type: row.type,
+            amount: row.amount,
+            note: row.note,
+            date: next,
+          },
+        });
+
+        created++;
+        next = this.advanceRunDate(next, row.frequency);
+      }
+
+      active = row.isActive && (!row.endDate || next.getTime() <= row.endDate.getTime());
+
+      await prisma.recurringTransaction.update({
+        where: { id: row.id },
+        data: {
+          nextRunDate: next,
+          isActive: active,
+        },
+      });
+    }
+
+    return { created, checked: due.length };
+  }
 }
 
 export const recurringService = new RecurringService();

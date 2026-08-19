@@ -47,3 +47,8 @@ export async function createRecurringTransaction(
 export async function setRecurringActive(id: string, isActive: boolean): Promise<void> {
   await api.patch(`/recurring/${id}/active`, { isActive });
 }
+
+export async function runRecurringDue(): Promise<{ created: number; checked: number }> {
+  const response = await api.post('/recurring/run');
+  return response.data.data as { created: number; checked: number };
+}

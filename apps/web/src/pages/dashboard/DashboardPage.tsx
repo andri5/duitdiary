@@ -47,6 +47,7 @@ import { useDashboard, useExpenses } from '@/hooks';
 import { formatCurrency, formatDate, cn } from '@/lib/utils';
 import { ROUTES } from '@/lib/constants';
 import { useAuthStore } from '@/stores';
+import { runRecurringDue } from '@/services/recurring.service';
 import type { CategoryBreakdown } from '@/types';
 import { DashboardInsights } from './components/DashboardInsights';
 import { CollapsibleSection } from './components/CollapsibleSection';
@@ -216,6 +217,17 @@ export function DashboardPage() {
       /* ignore */
     }
   }, [amountsVisible]);
+
+  useEffect(() => {
+    if (!user) return;
+    void (async () => {
+      try {
+        await runRecurringDue();
+      } catch {
+        /* ignore: dashboard should still load */
+      }
+    })();
+  }, [user]);
 
   const showAmount = (n: number) => (amountsVisible ? formatCurrency(n) : HIDDEN_AMOUNT);
 

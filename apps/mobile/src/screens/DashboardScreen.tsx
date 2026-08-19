@@ -20,6 +20,7 @@ import {
   type Transaction,
 } from '../lib/finance';
 import { getBudgetStatus, type BudgetStatus } from '../lib/budget';
+import { runRecurringDue } from '../lib/recurring';
 import { buildDashboardInsights, getInsightToneColor } from '../lib/dashboardInsights';
 import { formatIDR, formatIDRCompact, formatDateShort } from '../lib/format';
 import { BrandMark } from '../components/ui';
@@ -125,6 +126,12 @@ export function DashboardScreen({ user }: { user: User }) {
       if (!silent) setLoading(true);
       setError(null);
       try {
+        // Auto-create recurring transactions (P3)
+        try {
+          await runRecurringDue();
+        } catch {
+          // ignore: dashboard should still load
+        }
         const [data, quotes, budget] = await Promise.all([
           getDashboardSummary(period),
           getMarketQuotes(),

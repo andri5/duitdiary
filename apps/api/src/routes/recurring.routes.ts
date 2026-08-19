@@ -54,4 +54,15 @@ router.patch('/:id/active', async (req, res) => {
   }
 });
 
+router.post('/run', async (req, res) => {
+  try {
+    const { userId } = (req as AuthenticatedRequest).user!;
+    const result = await recurringService.runDue(userId);
+    sendSuccess(res, result, 'Recurring due transactions executed');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to run recurring';
+    sendError(res, message, 400, 'RECURRING_RUN_FAILED');
+  }
+});
+
 export default router;
