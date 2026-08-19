@@ -166,9 +166,11 @@ export function ProfileScreen({
         </FadeInUp>
       )}
 
-      <FadeInUp delay={280}>
-        <FeedbackCard colors={colors} r={r} />
-      </FadeInUp>
+      {user.role !== 'ADMIN' && (
+        <FadeInUp delay={280}>
+          <FeedbackCard colors={colors} r={r} />
+        </FadeInUp>
+      )}
 
       <FadeInUp delay={300}>
         <View style={styles.versionRow}>
