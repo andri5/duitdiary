@@ -21,7 +21,9 @@ import {
   type Transaction,
 } from '../lib/finance';
 import { getBudgetStatus, type BudgetStatus } from '../lib/budget';
+import { checkAndNotifyBudgetAlert } from '../lib/notifications';
 import { runRecurringDue } from '../lib/recurring';
+import { exportTransactionsCsv } from '../lib/exportSummary';
 import { buildDashboardInsights, getInsightToneColor } from '../lib/dashboardInsights';
 import { formatIDR, formatIDRCompact, formatDateShort } from '../lib/format';
 import { BrandMark } from '../components/ui';
@@ -141,6 +143,7 @@ export function DashboardScreen({ user }: { user: User }) {
         setSummary(data);
         setMarket(quotes);
         setBudgetStatus(budget);
+        if (budget) checkAndNotifyBudgetAlert(budget).catch(() => {});
       } catch {
         setError('Gagal memuat ringkasan. Tarik untuk refresh.');
       } finally {
@@ -207,6 +210,21 @@ export function DashboardScreen({ user }: { user: User }) {
             </Text>
           </View>
           <View style={styles.topActions}>
+            {summary && (
+              <Pressable
+                onPress={async () => {
+                  const txs = [
+                    ...(summary.recentIncomes || []),
+                    ...(summary.recentExpenses || []),
+                  ];
+                  await exportTransactionsCsv(txs, summary, period);
+                }}
+                style={styles.topIconBtn}
+                hitSlop={8}
+              >
+                <Ionicons name="download-outline" size={20} color={colors.muted} />
+              </Pressable>
+            )}
             <PrivacyEyeToggle
               visible={amountsVisible}
               onToggle={() => setAmountsVisible((v) => !v)}
@@ -496,6 +514,14 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
       letterSpacing: -0.4,
     },
     topActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    topIconBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: colors.mist,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     marketCard: {
       backgroundColor: colors.surface,
       borderRadius: radii.xl,

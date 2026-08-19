@@ -1,9 +1,10 @@
 /**
- * Offline mutation queue — scaffold for P3 sync when connectivity returns.
- * Persists pending writes in SecureStore until flushed to API.
+ * Offline mutation queue — persists pending writes in SecureStore,
+ * flushes to API when connectivity returns.
  */
 
 import * as SecureStore from 'expo-secure-store';
+import { createTransaction, updateTransaction } from './finance';
 
 const QUEUE_KEY = 'dd_offline_queue';
 
@@ -11,13 +12,28 @@ export type OfflineAction =
   | {
       id: string;
       type: 'CREATE_TRANSACTION';
-      payload: Record<string, unknown>;
+      payload: {
+        amount: number;
+        categoryId: string;
+        type: 'EXPENSE' | 'INCOME';
+        date: string;
+        description?: string;
+        receiptUrl?: string | null;
+      };
       createdAt: string;
     }
   | {
       id: string;
       type: 'UPDATE_TRANSACTION';
-      payload: Record<string, unknown>;
+      payload: {
+        transactionId: string;
+        amount: number;
+        categoryId: string;
+        type: 'EXPENSE' | 'INCOME';
+        date: string;
+        description?: string;
+        receiptUrl?: string | null;
+      };
       createdAt: string;
     };
 
@@ -33,7 +49,11 @@ async function readQueue(): Promise<OfflineAction[]> {
 }
 
 async function writeQueue(items: OfflineAction[]): Promise<void> {
-  await SecureStore.setItemAsync(QUEUE_KEY, JSON.stringify(items));
+  if (items.length === 0) {
+    await SecureStore.deleteItemAsync(QUEUE_KEY);
+  } else {
+    await SecureStore.setItemAsync(QUEUE_KEY, JSON.stringify(items));
+  }
 }
 
 export async function enqueueOfflineAction(
@@ -58,9 +78,28 @@ export async function clearOfflineQueue(): Promise<void> {
   await SecureStore.deleteItemAsync(QUEUE_KEY);
 }
 
-/** Flush queue — wire to API services in a later P3 iteration. */
 export async function flushOfflineQueue(): Promise<{ flushed: number; remaining: number }> {
   const queue = await readQueue();
-  // Placeholder: real sync will POST queued mutations when online.
-  return { flushed: 0, remaining: queue.length };
+  if (queue.length === 0) return { flushed: 0, remaining: 0 };
+
+  const failed: OfflineAction[] = [];
+  let flushed = 0;
+
+  for (const action of queue) {
+    try {
+      if (action.type === 'CREATE_TRANSACTION') {
+        await createTransaction(action.payload);
+        flushed++;
+      } else if (action.type === 'UPDATE_TRANSACTION') {
+        const { transactionId, ...rest } = action.payload;
+        await updateTransaction(transactionId, rest);
+        flushed++;
+      }
+    } catch {
+      failed.push(action);
+    }
+  }
+
+  await writeQueue(failed);
+  return { flushed, remaining: failed.length };
 }
