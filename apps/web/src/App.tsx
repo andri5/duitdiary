@@ -5,12 +5,14 @@
 import { useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { HelmetProvider } from 'react-helmet-async';
 import { AnimatePresence } from 'framer-motion';
 import { router } from './router';
 import { useAuthStore } from '@/stores';
 import { initThemeFromStorage } from '@/stores/ui.store';
 import { Notifications } from '@/components/ui';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { VisitTracker } from '@/components/VisitTracker';
 import './index.css';
 
 initThemeFromStorage();
@@ -42,12 +44,15 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <AnimatePresence mode="wait">
-          <RouterProvider router={router} />
-        </AnimatePresence>
-        <Notifications />
-      </QueryClientProvider>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <AnimatePresence mode="wait">
+            <RouterProvider router={router} />
+          </AnimatePresence>
+          <VisitTracker />
+          <Notifications />
+        </QueryClientProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }

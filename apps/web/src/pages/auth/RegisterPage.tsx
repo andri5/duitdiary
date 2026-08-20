@@ -14,6 +14,7 @@ import type { RegisterFormData } from '@/lib/validations';
 import { useAuthStore } from '@/stores';
 import { useToast } from '@/hooks/useToast';
 import { ROUTES } from '@/lib/constants';
+import { SEO } from '@/components/SEO';
 import { AxiosError } from 'axios';
 
 export function RegisterPage() {
@@ -87,6 +88,7 @@ export function RegisterPage() {
 
   return (
     <PageTransition>
+      <SEO title="Daftar" description="Buat akun DuitDiary gratis. Mulai catat keuangan pribadimu sekarang." canonical="/register" />
       <AuthLayout title="Buat akun" subtitle="Mulai catat pengeluaran dalam hitungan detik">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {error && (

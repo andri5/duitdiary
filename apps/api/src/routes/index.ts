@@ -10,6 +10,8 @@ import recurringRoutes from './recurring.routes.js';
 import savingsRoutes from './savings.routes.js';
 import feedbackRoutes from './feedback.routes.js';
 import adminRoutes from './admin.routes.js';
+import featureFlagsRoutes from './featureFlags.routes.js';
+import analyticsRoutes from './analytics.routes.js';
 
 const router = Router();
 
@@ -34,5 +36,7 @@ router.use('/recurring', recurringRoutes);
 router.use('/savings', savingsRoutes);
 router.use('/feedback', feedbackRoutes);
 router.use('/admin', adminRoutes);
+router.use('/', featureFlagsRoutes);
+router.use('/', analyticsRoutes);
 
 export default router;

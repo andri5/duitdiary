@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { authService } from '../services/auth.service.js';
+import { auditService } from '../services/audit.service.js';
 import { sendSuccess, sendCreated, sendError, sendUnauthorized } from '../utils/response.js';
 import { setAuthCookies, clearAuthCookies } from '../utils/cookies.js';
 import { config } from '../config/index.js';
@@ -137,6 +138,17 @@ export class AuthController {
       const { userId } = (req as AuthenticatedRequest).user!;
       const data = req.body as { name?: string; currency?: string };
       const user = await authService.updateProfile(userId, data);
+
+      void auditService.log({
+        userId,
+        actorRole: (req as AuthenticatedRequest).user?.role,
+        action: 'UPDATE_PROFILE',
+        entityType: 'user',
+        entityId: userId,
+        summary: 'User update profile',
+        metadata: { changed: Object.keys(data ?? {}) },
+      });
+
       sendSuccess(res, user, 'Profil diperbarui');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update profile';

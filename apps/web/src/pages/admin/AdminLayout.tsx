@@ -1,5 +1,14 @@
 import { NavLink, Outlet, Navigate } from 'react-router-dom';
-import { LayoutDashboard, Users, MessageSquare, ArrowLeft, Shield } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Users,
+  MessageSquare,
+  ArrowLeft,
+  Shield,
+  Eye,
+  Flag,
+  ScrollText,
+} from 'lucide-react';
 import { useAuthStore } from '@/stores';
 import { ROUTES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
@@ -8,6 +17,9 @@ const NAV = [
   { icon: LayoutDashboard, label: 'Overview', path: ROUTES.ADMIN },
   { icon: Users, label: 'Users', path: ROUTES.ADMIN_USERS },
   { icon: MessageSquare, label: 'Feedback', path: ROUTES.ADMIN_FEEDBACK },
+  { icon: Eye, label: 'Traffic', path: ROUTES.ADMIN_TRAFFIC },
+  { icon: Flag, label: 'Flags', path: ROUTES.ADMIN_FLAGS },
+  { icon: ScrollText, label: 'Activity', path: ROUTES.ADMIN_ACTIVITY },
 ];
 
 export function AdminLayout() {

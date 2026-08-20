@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { expenseService } from '../services/expense.service.js';
+import { auditService } from '../services/audit.service.js';
 import { sendSuccess, sendCreated, sendError, sendNotFound } from '../utils/response.js';
 import { expenseQuerySchema } from '../utils/validation.js';
 import type { CreateExpenseInput, UpdateExpenseInput } from '../utils/validation.js';
@@ -42,6 +43,17 @@ export class ExpenseController {
       const { userId } = (req as AuthenticatedRequest).user!;
       const data: CreateExpenseInput = req.body;
       const expense = await expenseService.create(userId, data);
+
+      void auditService.log({
+        userId,
+        actorRole: (req as AuthenticatedRequest).user?.role,
+        action: 'CREATE_EXPENSE',
+        entityType: 'expense',
+        entityId: expense.id,
+        summary: `Create expense ${expense.id}`,
+        metadata: { type: expense.type, amount: expense.amount, categoryId: expense.categoryId },
+      });
+
       sendCreated(res, expense, 'Expense created successfully');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create expense';
@@ -66,6 +78,16 @@ export class ExpenseController {
       }
       
       sendSuccess(res, expense, 'Expense updated successfully');
+
+      void auditService.log({
+        userId,
+        actorRole: (req as AuthenticatedRequest).user?.role,
+        action: 'UPDATE_EXPENSE',
+        entityType: 'expense',
+        entityId: expense.id,
+        summary: `Update expense ${expense.id}`,
+        metadata: { type: expense.type, amount: expense.amount, categoryId: expense.categoryId },
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update expense';
       if (message === 'Category not found') {
@@ -88,6 +110,15 @@ export class ExpenseController {
       }
       
       sendSuccess(res, null, 'Expense deleted successfully');
+
+      void auditService.log({
+        userId,
+        actorRole: (req as AuthenticatedRequest).user?.role,
+        action: 'DELETE_EXPENSE',
+        entityType: 'expense',
+        entityId: id,
+        summary: `Delete expense ${id}`,
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to delete expense';
       sendError(res, message, 400, 'DELETE_EXPENSE_FAILED');

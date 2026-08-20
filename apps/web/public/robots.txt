@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /expenses
+Disallow: /incomes
+Disallow: /categories
+Disallow: /budget
+Disallow: /recurring
+Disallow: /savings
+Disallow: /settings
+Disallow: /admin
+
+Sitemap: https://duitdiary.app/sitemap.xml

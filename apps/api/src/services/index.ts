@@ -3,3 +3,5 @@ export { categoryService } from './category.service.js';
 export { expenseService } from './expense.service.js';
 export { dashboardService } from './dashboard.service.js';
 export { budgetService } from './budget.service.js';
+export { auditService } from './audit.service.js';
+export { ensureDefaultFeatureFlags, getFeatureFlags, setFeatureFlag } from './featureFlags.service.js';

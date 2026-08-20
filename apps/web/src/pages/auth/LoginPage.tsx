@@ -14,6 +14,7 @@ import type { LoginFormData } from '@/lib/validations';
 import { useAuthStore } from '@/stores';
 import { useToast } from '@/hooks/useToast';
 import { ROUTES } from '@/lib/constants';
+import { SEO } from '@/components/SEO';
 import { AxiosError } from 'axios';
 
 export function LoginPage() {
@@ -55,6 +56,7 @@ export function LoginPage() {
 
   return (
     <PageTransition>
+      <SEO title="Masuk" description="Login ke akun DuitDiary untuk mengelola keuangan pribadimu." canonical="/login" noIndex />
       <AuthLayout title="Masuk" subtitle="Lanjutkan pencatatan keuanganmu">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {error && (

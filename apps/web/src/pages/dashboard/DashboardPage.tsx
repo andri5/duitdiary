@@ -43,10 +43,11 @@ import {
   CardTitle,
   CategoryIcon,
 } from '@/components/ui';
-import { useDashboard, useExpenses } from '@/hooks';
+import { useDashboard, useExpenses, useFeatureEnabled } from '@/hooks';
 import { formatCurrency, formatDate, cn } from '@/lib/utils';
 import { ROUTES } from '@/lib/constants';
 import { useAuthStore } from '@/stores';
+import { SEO } from '@/components/SEO';
 import { runRecurringDue } from '@/services/recurring.service';
 import type { CategoryBreakdown } from '@/types';
 import { DashboardInsights } from './components/DashboardInsights';
@@ -198,6 +199,8 @@ function CategorySummaryPanel({
 
 export function DashboardPage() {
   const { user } = useAuthStore();
+  const showMarket = useFeatureEnabled('market_widget');
+  const showRecurring = useFeatureEnabled('recurring_transactions');
   const [period, setPeriod] = useState<Period>('month');
   const [isExporting, setIsExporting] = useState<ExportFormat | null>(null);
   const [amountsVisible, setAmountsVisible] = useState(() => {
@@ -219,7 +222,7 @@ export function DashboardPage() {
   }, [amountsVisible]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !showRecurring) return;
     void (async () => {
       try {
         await runRecurringDue();
@@ -227,7 +230,7 @@ export function DashboardPage() {
         /* ignore: dashboard should still load */
       }
     })();
-  }, [user]);
+  }, [user, showRecurring]);
 
   const showAmount = (n: number) => (amountsVisible ? formatCurrency(n) : HIDDEN_AMOUNT);
 
@@ -339,6 +342,7 @@ export function DashboardPage() {
 
   return (
     <PageTransition>
+      <SEO title="Dashboard" description="Ringkasan keuangan pribadimu — pemasukan, pengeluaran, dan analisis." noIndex />
       <MainLayout>
         <PageHeader
           eyebrow={new Date().toLocaleDateString('id-ID', {
@@ -460,7 +464,7 @@ export function DashboardPage() {
 
             <BudgetSummaryCard />
 
-            <MarketRates />
+            {showMarket && <MarketRates />}
 
             <CollapsibleSection
               title="Ringkasan Pemasukan & Pengeluaran"

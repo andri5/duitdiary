@@ -46,6 +46,9 @@ model User {
   passwordResets PasswordResetToken[]
   recurringTransactions RecurringTransaction[]
   savingsGoals          SavingsGoal[]
+  auditLogs             AuditLog[]
+  visitEvents           VisitEvent[]
+  featureFlags         FeatureFlag[]
 
   @@map("users")
 }
@@ -209,4 +212,53 @@ model Feedback {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("feedback")
+}
+
+// ==================== ADMIN INSIGHTS ====================
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?  @map("user_id")
+  actorRole  String?  @map("actor_role") // USER/ADMIN (optional)
+  action     String   @map("action") // e.g. UPDATE_PROFILE, DELETE_BUDGET
+  entityType String   @map("entity_type") // e.g. user/expense/budget
+  entityId   String?  @map("entity_id")
+  summary    String   @db.VarChar(500)
+  metadata   Json?    @map("metadata")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([entityType, action, createdAt])
+  @@map("audit_logs")
+}
+
+model FeatureFlag {
+  key          String   @id @map("key") @db.VarChar(120)
+  label        String   @db.VarChar(160)
+  description  String?  @db.Text
+  isEnabled    Boolean  @default(true) @map("is_enabled")
+  updatedById  String?  @map("updated_by_user_id")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  updatedBy User? @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("feature_flags")
+}
+
+model VisitEvent {
+  id          String   @id @default(uuid())
+  userId      String?  @map("user_id")
+  sessionId   String   @map("session_id") @db.VarChar(120)
+  path        String   @map("path") @db.VarChar(500)
+  source      String?  @map("source") @db.VarChar(80)
+  deviceType  String?  @map("device_type") @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([path, createdAt])
+  @@index([sessionId, createdAt])
+  @@map("visit_events")
 }

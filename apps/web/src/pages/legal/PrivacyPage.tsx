@@ -4,11 +4,13 @@
 
 import { Link } from 'react-router-dom';
 import { AuthLayout, PageTransition } from '@/components/layout';
+import { SEO } from '@/components/SEO';
 import { ROUTES } from '@/lib/constants';
 
 export function PrivacyPage() {
   return (
     <PageTransition>
+      <SEO title="Kebijakan Privasi" description="Kebijakan privasi dan perlindungan data pengguna DuitDiary." canonical="/privacy" />
       <AuthLayout title="Kebijakan Privasi" subtitle="Bagaimana kami menangani data Anda">
         <div className="max-h-[70vh] space-y-4 overflow-y-auto text-sm leading-relaxed text-muted">
           <p>

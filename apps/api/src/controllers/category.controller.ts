@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { categoryService } from '../services/category.service.js';
+import { auditService } from '../services/audit.service.js';
 import { sendSuccess, sendCreated, sendError, sendNotFound } from '../utils/response.js';
 import { categoryQuerySchema } from '../utils/validation.js';
 import type { CreateCategoryInput, UpdateCategoryInput } from '../utils/validation.js';
@@ -42,6 +43,17 @@ export class CategoryController {
       const { userId } = (req as AuthenticatedRequest).user!;
       const data: CreateCategoryInput = req.body;
       const category = await categoryService.create(userId, data);
+
+      void auditService.log({
+        userId,
+        actorRole: (req as AuthenticatedRequest).user?.role,
+        action: 'CREATE_CATEGORY',
+        entityType: 'category',
+        entityId: category.id,
+        summary: `Create category ${category.name}`,
+        metadata: { name: category.name, type: category.type },
+      });
+
       sendCreated(res, category, 'Category created successfully');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create category';
@@ -62,6 +74,16 @@ export class CategoryController {
       }
 
       sendSuccess(res, category, 'Category updated successfully');
+
+      void auditService.log({
+        userId,
+        actorRole: (req as AuthenticatedRequest).user?.role,
+        action: 'UPDATE_CATEGORY',
+        entityType: 'category',
+        entityId: category.id,
+        summary: `Update category ${category.name}`,
+        metadata: { name: category.name, type: category.type },
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update category';
       if (message.includes('default') || message.includes('bawaan')) {
@@ -84,6 +106,15 @@ export class CategoryController {
       }
 
       sendSuccess(res, null, 'Category deleted successfully');
+
+      void auditService.log({
+        userId,
+        actorRole: (req as AuthenticatedRequest).user?.role,
+        action: 'DELETE_CATEGORY',
+        entityType: 'category',
+        entityId: id,
+        summary: `Delete category ${id}`,
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to delete category';
       if (message.includes('default') || message.includes('bawaan')) {

@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { ROUTES } from '@/lib/constants';
 import { useAuthStore } from '@/stores';
+import { SEO } from '@/components/SEO';
 import api from '@/lib/api';
 
 const fadeUp = {
@@ -112,8 +113,25 @@ const STEPS = [
 export function LandingPage() {
   const isLoggedIn = useAuthStore((s) => !!s.user);
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'DuitDiary',
+    description: 'Aplikasi pencatatan keuangan pribadi untuk mengelola pemasukan, pengeluaran, budget, dan target tabungan.',
+    applicationCategory: 'FinanceApplication',
+    operatingSystem: 'Web, Android',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'IDR' },
+  };
+
   return (
     <div className="min-h-dvh bg-[#0a1628] text-white selection:bg-accent/30">
+      <SEO
+        title="Catat Keuangan Pribadi"
+        description="DuitDiary — Aplikasi pencatatan keuangan pribadi. Catat pemasukan, pengeluaran, budget, dan target tabungan dengan mudah dan cepat."
+        keywords="catat keuangan, aplikasi keuangan pribadi, pencatatan pengeluaran, budget planner, target tabungan, DuitDiary"
+        canonical="/"
+        jsonLd={jsonLd}
+      />
       {/* ---- NAV ---- */}
       <nav className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#0a1628]/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">

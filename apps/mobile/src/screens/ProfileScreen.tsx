@@ -414,6 +414,7 @@ interface FeedbackItem {
 function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof useResponsive> }) {
   const [tab, setTab] = useState<'stats' | 'users' | 'feedback'>('stats');
   const [stats, setStats] = useState<AdminStats | null>(null);
+  const [traffic, setTraffic] = useState<{ activeUsersToday: number; totalVisits: number } | null>(null);
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -424,8 +425,12 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
       setLoading(true);
       try {
         if (tab === 'stats') {
-          const res = await apiClient.get('/admin/stats');
-          setStats(res.data?.data);
+          const [statsRes, trafficRes] = await Promise.all([
+            apiClient.get('/admin/stats'),
+            apiClient.get('/admin/traffic', { params: { days: 7 } }).catch(() => null),
+          ]);
+          setStats(statsRes.data?.data);
+          setTraffic(trafficRes?.data?.data ?? null);
         } else if (tab === 'users') {
           const res = await apiClient.get('/admin/users');
           setUsers(res.data?.data || []);
@@ -492,6 +497,8 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
             { label: 'Hari Ini', value: stats.todayUsers, icon: 'person-add' as const },
             { label: 'Transaksi', value: stats.transactions, icon: 'receipt' as const },
             { label: 'Feedback', value: stats.feedback, icon: 'chatbubbles' as const },
+            { label: 'Visitor', value: traffic?.activeUsersToday ?? 0, icon: 'eye' as const },
+            { label: '7 Hari', value: traffic?.totalVisits ?? 0, icon: 'analytics' as const },
           ].map((s) => (
             <View key={s.label} style={as.statItem}>
               <Ionicons name={s.icon} size={16} color={colors.brand} />

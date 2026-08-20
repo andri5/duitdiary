@@ -13,6 +13,7 @@ import { forgotPasswordSchema } from '@/lib/validations';
 import type { ForgotPasswordFormData } from '@/lib/validations';
 import { forgotPassword } from '@/services/auth.service';
 import { ROUTES } from '@/lib/constants';
+import { SEO } from '@/components/SEO';
 import { AxiosError } from 'axios';
 
 export function ForgotPasswordPage() {
@@ -49,6 +50,7 @@ export function ForgotPasswordPage() {
 
   return (
     <PageTransition>
+      <SEO title="Lupa Password" description="Reset password akun DuitDiary kamu." canonical="/forgot-password" noIndex />
       <AuthLayout
         title="Lupa Password"
         subtitle="Masukkan email akunmu untuk mengatur ulang password"

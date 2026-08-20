@@ -32,6 +32,8 @@ import { cn } from '@/lib/utils';
 import { useAuthStore, useUIStore } from '@/stores';
 import { ROUTES } from '@/lib/constants';
 import { UserAvatar } from '@/components/ui';
+import { useFeatureEnabled } from '@/hooks';
+import type { FeatureFlagKey } from '@/hooks';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -52,7 +54,13 @@ const transactionChildren = [
   },
 ];
 
-const primaryNav = [
+const primaryNav: Array<{
+  icon: typeof LayoutDashboard;
+  label: string;
+  shortLabel: string;
+  path: string;
+  flag?: FeatureFlagKey;
+}> = [
   {
     icon: LayoutDashboard,
     label: 'Dashboard',
@@ -70,12 +78,14 @@ const primaryNav = [
     label: 'Target Tabungan',
     shortLabel: 'Tabungan',
     path: ROUTES.SAVINGS,
+    flag: 'savings_goals',
   },
   {
     icon: Repeat,
     label: 'Transaksi Otomatis',
     shortLabel: 'Otomatis',
     path: ROUTES.RECURRING,
+    flag: 'recurring_transactions',
   },
   {
     icon: FolderOpen,
@@ -97,9 +107,14 @@ const primaryNav = [
   },
 ];
 
-const moreMenuItems = [
-  { icon: Target, label: 'Target Tabungan', path: ROUTES.SAVINGS },
-  { icon: Repeat, label: 'Transaksi Otomatis', path: ROUTES.RECURRING },
+const moreMenuItems: Array<{
+  icon: typeof Target;
+  label: string;
+  path: string;
+  flag?: FeatureFlagKey;
+}> = [
+  { icon: Target, label: 'Target Tabungan', path: ROUTES.SAVINGS, flag: 'savings_goals' },
+  { icon: Repeat, label: 'Transaksi Otomatis', path: ROUTES.RECURRING, flag: 'recurring_transactions' },
   { icon: FolderOpen, label: 'Kategori', path: ROUTES.CATEGORIES },
   { icon: CircleHelp, label: 'Bantuan', path: ROUTES.HELP },
   { icon: Settings, label: 'Akun', path: ROUTES.SETTINGS },
@@ -122,12 +137,25 @@ export function MainLayout({ children }: MainLayoutProps) {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const { isSidebarOpen, toggleSidebar, setMobileMenuOpen } = useUIStore();
+  const showSavings = useFeatureEnabled('savings_goals');
+  const showRecurring = useFeatureEnabled('recurring_transactions');
+  const showAdminPanel = useFeatureEnabled('admin_panel');
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [transactionOpen, setTransactionOpen] = useState(() =>
     isTransactionActive(location.pathname)
   );
   const [mobileTransactionOpen, setMobileTransactionOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+
+  const flagOn = (flag?: FeatureFlagKey) => {
+    if (!flag) return true;
+    if (flag === 'savings_goals') return showSavings;
+    if (flag === 'recurring_transactions') return showRecurring;
+    return true;
+  };
+
+  const sidebarNav = primaryNav.slice(1).filter((item) => flagOn(item.flag));
+  const filteredMoreMenu = moreMenuItems.filter((item) => flagOn(item.flag));
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -291,7 +319,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           </div>
 
           {/* Kategori + Akun */}
-          {primaryNav.slice(1).map((item) => {
+          {sidebarNav.map((item) => {
             const isActive = isPathActive(location.pathname, item.path);
             return (
               <Link
@@ -321,7 +349,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           })}
 
           {/* Admin link */}
-          {user?.role === 'ADMIN' && (
+          {user?.role === 'ADMIN' && showAdminPanel && (
             <Link
               to={ROUTES.ADMIN}
               className={cn(
@@ -527,7 +555,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted">
                 Lainnya
               </p>
-              {moreMenuItems.map((item) => {
+              {filteredMoreMenu.map((item) => {
                 const active = isPathActive(location.pathname, item.path);
                 return (
                   <Link
@@ -629,7 +657,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             }}
             className={cn(
               'flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-0.5 py-1.5 text-[10px] font-semibold transition sm:text-[11px]',
-              moreMenuOpen || moreMenuItems.some((m) => isPathActive(location.pathname, m.path))
+              moreMenuOpen || filteredMoreMenu.some((m) => isPathActive(location.pathname, m.path))
                 ? 'text-accent'
                 : 'text-muted'
             )}
@@ -637,7 +665,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             <span
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-xl transition sm:h-9 sm:w-9',
-                moreMenuOpen || moreMenuItems.some((m) => isPathActive(location.pathname, m.path))
+                moreMenuOpen || filteredMoreMenu.some((m) => isPathActive(location.pathname, m.path))
                   ? 'bg-accent-soft text-accent'
                   : 'bg-transparent'
               )}

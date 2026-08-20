@@ -9,3 +9,5 @@ export { useBudget } from './useBudget';
 export { useToast, type ToastType, type ToastOptions } from './useToast';
 export { useMarketRates } from './useMarketRates';
 export { useAuthenticatedFileUrl } from './useAuthenticatedFileUrl';
+export { useFeatureFlags, useFeatureEnabled } from './useFeatureFlags';
+export type { FeatureFlag, FeatureFlagKey } from './useFeatureFlags';
