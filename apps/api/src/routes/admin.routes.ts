@@ -6,6 +6,10 @@ import type { Request, Response } from 'express';
 import type { AuthenticatedRequest } from '../types/index.js';
 import { auditService } from '../services/audit.service.js';
 import { ensureDefaultFeatureFlags, setFeatureFlag } from '../services/featureFlags.service.js';
+import {
+  listLegalDocuments,
+  updateLegalDocument,
+} from '../services/legal.service.js';
 
 const router = Router();
 
@@ -279,6 +283,59 @@ router.get('/traffic', async (req: Request, res: Response) => {
       topPaths,
     },
   });
+});
+
+router.get('/legal', async (_req: Request, res: Response) => {
+  const docs = await listLegalDocuments();
+  res.json({ success: true, data: docs });
+});
+
+router.put('/legal/:key', async (req: Request, res: Response) => {
+  const key = paramString(req.params.key);
+  if (!['terms', 'privacy'].includes(key)) {
+    res.status(404).json({ success: false, message: 'Dokumen tidak ditemukan' });
+    return;
+  }
+
+  const { title, body } = req.body as { title?: string; body?: string };
+  if (title === undefined && body === undefined) {
+    res.status(400).json({ success: false, message: 'title atau body wajib diisi' });
+    return;
+  }
+
+  const currentAdmin = (req as AuthenticatedRequest).user!;
+
+  try {
+    const updated = await updateLegalDocument(key, { title, body }, currentAdmin.userId);
+    void auditService.log({
+      userId: currentAdmin.userId,
+      actorRole: currentAdmin.role,
+      action: 'UPDATE_LEGAL_DOCUMENT',
+      entityType: 'legal_document',
+      entityId: key,
+      summary: `Update legal document ${key}`,
+      metadata: {
+        titleLength: updated.title.length,
+        bodyLength: updated.body.length,
+      },
+    });
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : '';
+    if (message === 'NOT_FOUND') {
+      res.status(404).json({ success: false, message: 'Dokumen tidak ditemukan' });
+      return;
+    }
+    if (message === 'TITLE_INVALID') {
+      res.status(400).json({ success: false, message: 'Judul minimal 3 karakter' });
+      return;
+    }
+    if (message === 'BODY_INVALID') {
+      res.status(400).json({ success: false, message: 'Isi dokumen minimal 20 karakter' });
+      return;
+    }
+    res.status(500).json({ success: false, message: 'Gagal menyimpan dokumen' });
+  }
 });
 
 export default router;

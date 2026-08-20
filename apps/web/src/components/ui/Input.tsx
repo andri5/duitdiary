@@ -73,6 +73,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               'w-full rounded-2xl px-4 py-3 text-sm transition-all duration-200 focus:outline-none disabled:cursor-not-allowed sm:text-base',
               leftIcon ? 'pl-11' : '',
               rightIcon ? 'pr-11' : '',
+              props.type === 'date' &&
+                'min-h-[48px] appearance-none leading-normal sm:min-h-[52px] [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-70',
               isGlass
                 ? cn(
                     'border border-white/20 bg-white/10 text-white placeholder:text-white/40',

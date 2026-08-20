@@ -57,6 +57,7 @@ model User {
   auditLogs             AuditLog[]
   visitEvents           VisitEvent[]
   featureFlags         FeatureFlag[]
+  legalDocuments       LegalDocument[]
   feedback              Feedback?
 
   @@map("users")
@@ -276,4 +277,16 @@ model VisitEvent {
   @@index([path, createdAt])
   @@index([sessionId, createdAt])
   @@map("visit_events")
+}
+
+model LegalDocument {
+  key         String   @id @map("key") @db.VarChar(40)
+  title       String   @db.VarChar(160)
+  body        String   @db.Text
+  updatedById String?  @map("updated_by_user_id")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  updatedBy User? @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("legal_documents")
 }

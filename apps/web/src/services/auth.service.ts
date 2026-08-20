@@ -83,7 +83,7 @@ export async function resetPassword(
 export async function updateProfile(data: {
   name?: string;
   currency?: string;
-  gender?: 'MALE' | 'FEMALE' | 'OTHER' | null;
+  gender?: 'MALE' | 'FEMALE' | null;
   birthDate?: string | null;
 }): Promise<User> {
   const response = await api.put<ApiResponse<User>>('/auth/profile', data);

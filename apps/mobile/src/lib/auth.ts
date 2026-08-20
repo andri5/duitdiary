@@ -4,7 +4,7 @@
 
 import { api, clearTokens, saveTokens } from './api';
 
-export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
+export type Gender = 'MALE' | 'FEMALE';
 
 export type User = {
   id: string;

@@ -19,6 +19,7 @@ export {
   AdminTraffic,
   AdminFlags,
   AdminActivity,
+  AdminLegal,
 } from './admin';
 export { SettingsPage } from './settings';
 export { HelpPage } from './help';

@@ -87,7 +87,7 @@ export function SettingsScreen({ navigation }: Props) {
     if (user) {
       setName(user.name);
       setCurrency(user.currency === 'USD' ? 'USD' : 'IDR');
-      setGender(user.gender || '');
+      setGender(user.gender === 'MALE' || user.gender === 'FEMALE' ? user.gender : '');
       setBirthDate(user.birthDate || '');
       setAvatar(user.avatar || null);
     }
@@ -309,6 +309,7 @@ export function SettingsScreen({ navigation }: Props) {
                     onPress={() => setGender(opt.value)}
                     style={[
                       styles.genderChip,
+                      { flex: 1 },
                       active && {
                         borderColor: colors.brand,
                         backgroundColor: colors.brandSoft,
@@ -329,39 +330,59 @@ export function SettingsScreen({ navigation }: Props) {
             </View>
 
             <Text style={styles.label}>Tanggal lahir</Text>
-            <Pressable style={styles.dateBtn} onPress={() => setShowBirthPicker(true)}>
-              <Ionicons name="calendar-outline" size={16} color={colors.faint} />
+            <Pressable
+              style={[styles.dateBtn, showBirthPicker && styles.dateBtnActive]}
+              onPress={() => setShowBirthPicker(true)}
+            >
+              <Ionicons
+                name="calendar-outline"
+                size={18}
+                color={showBirthPicker ? colors.brand : colors.faint}
+              />
               <Text style={[styles.dateBtnText, !birthDate && { color: colors.faint }]}>
                 {birthDate
-                  ? new Date(`${birthDate}T00:00:00`).toLocaleDateString('id-ID', {
+                  ? new Date(`${birthDate}T12:00:00`).toLocaleDateString('id-ID', {
                       day: 'numeric',
                       month: 'long',
                       year: 'numeric',
                     })
                   : 'Pilih tanggal lahir'}
               </Text>
+              <Ionicons name="chevron-down" size={16} color={colors.faint} />
             </Pressable>
             {showBirthPicker ? (
-              <DateTimePicker
-                value={birthDate ? new Date(`${birthDate}T00:00:00`) : new Date(2000, 0, 1)}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                maximumDate={new Date()}
-                onChange={(_e, date) => {
-                  if (Platform.OS !== 'ios') setShowBirthPicker(false);
-                  if (date) {
-                    const y = date.getFullYear();
-                    const m = String(date.getMonth() + 1).padStart(2, '0');
-                    const d = String(date.getDate()).padStart(2, '0');
-                    setBirthDate(`${y}-${m}-${d}`);
+              <View style={styles.pickerWrap}>
+                <DateTimePicker
+                  value={
+                    birthDate
+                      ? new Date(`${birthDate}T12:00:00`)
+                      : new Date(new Date().getFullYear() - 20, 0, 1)
                   }
-                }}
-              />
-            ) : null}
-            {Platform.OS === 'ios' && showBirthPicker ? (
-              <Pressable style={styles.dateDone} onPress={() => setShowBirthPicker(false)}>
-                <Text style={styles.dateDoneText}>Selesai</Text>
-              </Pressable>
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                  minimumDate={
+                    new Date(new Date().getFullYear() - 120, new Date().getMonth(), new Date().getDate())
+                  }
+                  maximumDate={
+                    new Date(new Date().getFullYear() - 10, new Date().getMonth(), new Date().getDate())
+                  }
+                  onChange={(_e, date) => {
+                    if (Platform.OS === 'android') setShowBirthPicker(false);
+                    if (date) {
+                      const y = date.getFullYear();
+                      const m = String(date.getMonth() + 1).padStart(2, '0');
+                      const d = String(date.getDate()).padStart(2, '0');
+                      setBirthDate(`${y}-${m}-${d}`);
+                    }
+                  }}
+                  locale="id-ID"
+                />
+                {Platform.OS === 'ios' ? (
+                  <Pressable style={styles.dateDone} onPress={() => setShowBirthPicker(false)}>
+                    <Text style={styles.dateDoneText}>Selesai</Text>
+                  </Pressable>
+                ) : null}
+              </View>
             ) : null}
           </View>
         </FadeInUp>
@@ -904,16 +925,30 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
       flexDirection: 'row',
       alignItems: 'center',
       gap: 10,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      backgroundColor: colors.bg,
+      borderRadius: 16,
+      paddingHorizontal: 12,
+      minHeight: 52,
+      marginBottom: 8,
+      width: '100%',
+    },
+    dateBtnActive: {
+      borderColor: colors.brand,
+      backgroundColor: colors.brandSoft,
+    },
+    dateBtnText: { flex: 1, color: colors.text, fontWeight: '600', fontSize: 15 },
+    pickerWrap: {
+      marginBottom: 8,
+      borderRadius: 16,
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.bg,
-      borderRadius: 14,
-      paddingHorizontal: 12,
-      paddingVertical: 12,
-      marginBottom: 4,
+      overflow: 'hidden',
+      paddingVertical: 4,
     },
-    dateBtnText: { flex: 1, color: colors.text, fontWeight: '700', fontSize: 14 },
-    dateDone: { alignSelf: 'flex-end', paddingVertical: 6, paddingHorizontal: 4 },
+    dateDone: { alignSelf: 'flex-end', paddingVertical: 6, paddingHorizontal: 12, marginBottom: 8 },
     dateDoneText: { color: colors.brand, fontWeight: '800', fontSize: 13 },
     currencyRow: {
       flexDirection: r.isCompact ? 'column' : 'row',

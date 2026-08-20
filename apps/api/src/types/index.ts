@@ -25,7 +25,7 @@ export interface UserResponse {
   email: string;
   avatar: string | null;
   currency: string;
-  gender: 'MALE' | 'FEMALE' | 'OTHER' | null;
+  gender: 'MALE' | 'FEMALE' | null;
   birthDate: string | null;
   role: string;
   createdAt: Date;

@@ -1,53 +1,79 @@
-import { useMemo } from 'react';
-import { ScrollView, Text, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, Text, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../authContext';
+import { apiClient } from '../lib/api';
 import { BrandMark } from '../components/ui';
 import { FadeInUp, ScalePress } from '../components/motion';
-import { spacing, type ThemeColors } from '../theme';
+import { type ThemeColors } from '../theme';
 import { useColors } from '../themeContext';
 import { useResponsive } from '../hooks/useResponsive';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Privacy'>;
 
-const SECTIONS = [
-  {
-    title: 'Data yang kami simpan',
-    body: 'Dompet Tenang menyimpan data akun (nama, email, preferensi) dan data keuangan yang Anda catat (transaksi, kategori, unggahan struk/avatar) untuk menyediakan fitur aplikasi.',
-    icon: 'server-outline' as const,
-    tint: '#0f9b8e',
-    soft: '#d9f5f1',
-  },
-  {
-    title: 'Cara data dipakai',
-    body: 'Data digunakan untuk autentikasi, sinkronisasi antar perangkat, dan menampilkan ringkasan dashboard. Kami tidak menjual data pribadi Anda kepada pihak ketiga untuk iklan.',
-    icon: 'analytics-outline' as const,
-    tint: '#2563eb',
-    soft: '#dbeafe',
-  },
-  {
-    title: 'Unggahan & akses',
-    body: 'Unggahan (struk, avatar) dilindungi di server dan hanya dapat diakses oleh akun yang berwenang. Anda dapat meminta penghapusan akun dengan menghubungi pengelola layanan.',
-    icon: 'cloud-upload-outline' as const,
-    tint: '#d97706',
-    soft: '#fef3c7',
-  },
-  {
-    title: 'Keamanan',
-    body: 'Password di-hash; sesi memakai token yang dapat dibatalkan. Tetap gunakan password yang kuat dan jangan bagikan tautan reset password.',
-    icon: 'shield-checkmark-outline' as const,
-    tint: '#16a34a',
-    soft: '#dcfce7',
-  },
+const FALLBACK = [
+  'Dompet Tenang menyimpan data akun (nama, email, preferensi) dan data keuangan yang Anda catat (transaksi, kategori, unggahan struk/avatar) untuk menyediakan fitur aplikasi.',
+  'Data digunakan untuk autentikasi, sinkronisasi antar perangkat, dan menampilkan ringkasan dashboard. Kami tidak menjual data pribadi Anda kepada pihak ketiga untuk iklan.',
+  'Unggahan (struk, avatar) dilindungi di server dan hanya dapat diakses oleh akun yang berwenang. Anda dapat meminta penghapusan akun dengan menghubungi pengelola layanan.',
+  'Keamanan: password di-hash; sesi memakai token yang dapat dibatalkan. Tetap gunakan password yang kuat dan jangan bagikan tautan reset password.',
 ];
+
+const TINTS = [
+  { tint: '#0f9b8e', soft: '#d9f5f1', icon: 'server-outline' as const },
+  { tint: '#2563eb', soft: '#dbeafe', icon: 'analytics-outline' as const },
+  { tint: '#d97706', soft: '#fef3c7', icon: 'cloud-upload-outline' as const },
+  { tint: '#7c3aed', soft: '#ede9fe', icon: 'shield-checkmark-outline' as const },
+];
+
+function splitParas(body: string) {
+  return body
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
 
 export function PrivacyScreen({ navigation }: Props) {
   const colors = useColors();
   const r = useResponsive();
   const styles = useMemo(() => createStyles(colors, r), [colors, r]);
   const insets = useSafeAreaInsets();
+  const [title, setTitle] = useState('Kebijakan Privasi');
+  const [paras, setParas] = useState(FALLBACK);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await apiClient.get('/legal/privacy');
+        const doc = res.data?.data as { title?: string; body?: string; updatedAt?: string } | undefined;
+        if (!cancelled && doc?.body) {
+          setTitle(doc.title || 'Kebijakan Privasi');
+          setParas(splitParas(doc.body));
+          setUpdatedAt(doc.updatedAt || null);
+        }
+      } catch {
+        /* keep fallback */
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const updatedLabel = updatedAt
+    ? new Date(updatedAt).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : 'Agustus 2026';
+
   return (
     <ScrollView
       style={styles.wrap}
@@ -67,38 +93,45 @@ export function PrivacyScreen({ navigation }: Props) {
 
         <View style={styles.hero}>
           <BrandMark size="sm" />
-          <Text style={styles.badge}>Privasi</Text>
-          <Text style={styles.title}>Kebijakan Privasi</Text>
+          <Text style={styles.badge}>Legal</Text>
+          <Text style={styles.title}>{title}</Text>
           <Text style={styles.lead}>
-            Bagaimana Dompet Tenang menjaga data akun dan catatan keuanganmu.
+            Bagaimana Dompet Tenang menyimpan dan melindungi data akun serta transaksi kamu.
           </Text>
         </View>
       </FadeInUp>
 
-      {SECTIONS.map((section, index) => (
-        <FadeInUp key={section.title} delay={50 + index * 45}>
-          <View style={[styles.card, { borderColor: `${section.tint}33` }]}>
-            <View style={styles.cardTop}>
-              <View style={[styles.iconBox, { backgroundColor: section.soft }]}>
-                <Ionicons name={section.icon} size={r.ms(18)} color={section.tint} />
+      {loading ? (
+        <ActivityIndicator color={colors.brand} style={{ marginVertical: 20 }} />
+      ) : (
+        paras.map((body, index) => {
+          const tone = TINTS[index % TINTS.length];
+          return (
+            <FadeInUp key={`${index}-${body.slice(0, 24)}`} delay={50 + index * 45}>
+              <View style={[styles.card, { borderColor: `${tone.tint}33` }]}>
+                <View style={styles.cardTop}>
+                  <View style={[styles.iconBox, { backgroundColor: tone.soft }]}>
+                    <Ionicons name={tone.icon} size={r.ms(18)} color={tone.tint} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardTitle}>Bagagraf {index + 1}</Text>
+                    <View style={[styles.accent, { backgroundColor: tone.tint }]} />
+                  </View>
+                  <Text style={[styles.step, { color: tone.tint }]}>
+                    {String(index + 1).padStart(2, '0')}
+                  </Text>
+                </View>
+                <Text style={styles.body}>{body}</Text>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.cardTitle}>{section.title}</Text>
-                <View style={[styles.accent, { backgroundColor: section.tint }]} />
-              </View>
-              <Text style={[styles.step, { color: section.tint }]}>
-                {String(index + 1).padStart(2, '0')}
-              </Text>
-            </View>
-            <Text style={styles.body}>{section.body}</Text>
-          </View>
-        </FadeInUp>
-      ))}
+            </FadeInUp>
+          );
+        })
+      )}
 
       <FadeInUp delay={240}>
         <View style={styles.footer}>
           <Ionicons name="time-outline" size={r.ms(14)} color={colors.muted} />
-          <Text style={styles.meta}>Terakhir diperbarui: Agustus 2026</Text>
+          <Text style={styles.meta}>Terakhir diperbarui: {updatedLabel}</Text>
         </View>
       </FadeInUp>
     </ScrollView>
@@ -111,11 +144,11 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
     glow: {
       position: 'absolute',
       top: 20,
-      left: -50,
+      right: -50,
       width: 180,
       height: 180,
       borderRadius: 90,
-      backgroundColor: 'rgba(37,99,235,0.1)',
+      backgroundColor: 'rgba(15,155,142,0.12)',
     },
     back: {
       alignSelf: 'flex-start',
@@ -158,7 +191,7 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
     lead: {
       marginTop: 8,
       color: colors.muted,
-      lineHeight: 21,
+      lineHeight: r.ms(21),
       fontSize: r.ms(14),
       fontWeight: '600',
     },
@@ -180,7 +213,7 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
     cardTitle: { fontWeight: '800', color: colors.text, fontSize: r.ms(15) },
     accent: { marginTop: 6, width: 24, height: 3, borderRadius: 999 },
     step: { fontWeight: '900', fontSize: r.ms(15) },
-    body: { color: colors.muted, lineHeight: 21, fontSize: r.ms(13), fontWeight: '600' },
+    body: { color: colors.muted, lineHeight: r.ms(21), fontSize: r.ms(13), fontWeight: '600' },
     footer: {
       marginTop: 8,
       flexDirection: 'row',

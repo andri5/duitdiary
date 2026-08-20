@@ -152,6 +152,7 @@ export const ROUTES = {
   ADMIN_TRAFFIC: '/admin/traffic',
   ADMIN_FLAGS: '/admin/flags',
   ADMIN_ACTIVITY: '/admin/activity',
+  ADMIN_LEGAL: '/admin/legal',
   SETTINGS: '/settings',
   HELP: '/help',
   TERMS: '/terms',

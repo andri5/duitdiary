@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -298,11 +298,15 @@ interface FeedbackItem {
 
 function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof useResponsive> }) {
   const { showDialog } = useDialog();
-  const [tab, setTab] = useState<'stats' | 'users' | 'feedback'>('stats');
+  const [tab, setTab] = useState<'stats' | 'users' | 'feedback' | 'legal'>('stats');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [traffic, setTraffic] = useState<{ activeUsersToday: number; totalVisits: number } | null>(null);
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
+  const [legalTitle, setLegalTitle] = useState('');
+  const [legalBody, setLegalBody] = useState('');
+  const [legalUpdatedAt, setLegalUpdatedAt] = useState<string | null>(null);
+  const [savingLegal, setSavingLegal] = useState(false);
   const [loading, setLoading] = useState(true);
   const as = useMemo(() => adminStyles(colors, r), [colors, r]);
 
@@ -320,9 +324,23 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
         } else if (tab === 'users') {
           const res = await apiClient.get('/admin/users');
           setUsers(res.data?.data || []);
-        } else {
+        } else if (tab === 'feedback') {
           const res = await apiClient.get('/admin/feedback');
           setFeedbacks(res.data?.data || []);
+        } else {
+          const res = await apiClient.get('/admin/legal');
+          const docs = (res.data?.data || []) as Array<{
+            key: string;
+            title: string;
+            body: string;
+            updatedAt: string;
+          }>;
+          const terms = docs.find((d) => d.key === 'terms');
+          if (terms) {
+            setLegalTitle(terms.title);
+            setLegalBody(terms.body);
+            setLegalUpdatedAt(terms.updatedAt);
+          }
         }
       } catch { /* ignore */ }
       setLoading(false);
@@ -367,10 +385,43 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
     }
   };
 
+  const saveLegal = async () => {
+    if (legalTitle.trim().length < 3 || legalBody.trim().length < 20) {
+      showDialog({
+        variant: 'warning',
+        title: 'Isi belum lengkap',
+        message: 'Judul minimal 3 karakter dan isi minimal 20 karakter.',
+      });
+      return;
+    }
+    setSavingLegal(true);
+    try {
+      const res = await apiClient.put('/admin/legal/terms', {
+        title: legalTitle.trim(),
+        body: legalBody.trim(),
+      });
+      const updated = res.data?.data as { updatedAt?: string } | undefined;
+      setLegalUpdatedAt(updated?.updatedAt || new Date().toISOString());
+      showDialog({
+        variant: 'success',
+        title: 'Tersimpan',
+        message: 'Syarat & Ketentuan berhasil diperbarui.',
+      });
+    } catch (e: unknown) {
+      const message =
+        (e as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Gagal menyimpan dokumen.';
+      showDialog({ variant: 'error', title: 'Gagal simpan', message });
+    } finally {
+      setSavingLegal(false);
+    }
+  };
+
   const tabs: { key: typeof tab; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
     { key: 'stats', label: 'Stats', icon: 'stats-chart' },
     { key: 'users', label: 'Users', icon: 'people' },
     { key: 'feedback', label: 'Feedback', icon: 'chatbubbles' },
+    { key: 'legal', label: 'S&K', icon: 'document-text' },
   ];
 
   return (
@@ -476,6 +527,49 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
             ))
           )}
         </View>
+      ) : tab === 'legal' ? (
+        <View>
+          <Text style={as.legalHint}>
+            Edit Syarat & Ketentuan yang tampil di halaman publik. Pisahkan paragraf dengan baris kosong.
+          </Text>
+          {legalUpdatedAt ? (
+            <Text style={as.fbName}>
+              Update:{' '}
+              {new Date(legalUpdatedAt).toLocaleString('id-ID', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </Text>
+          ) : null}
+          <Text style={as.legalLabel}>Judul</Text>
+          <TextInput
+            value={legalTitle}
+            onChangeText={setLegalTitle}
+            style={as.legalInput}
+            placeholder="Syarat & Ketentuan"
+            placeholderTextColor={colors.faint}
+          />
+          <Text style={as.legalLabel}>Isi</Text>
+          <TextInput
+            value={legalBody}
+            onChangeText={setLegalBody}
+            style={[as.legalInput, as.legalTextArea]}
+            multiline
+            textAlignVertical="top"
+            placeholder="Isi dokumen…"
+            placeholderTextColor={colors.faint}
+          />
+          <PrimaryButton
+            label={savingLegal ? 'Menyimpan…' : 'Simpan S&K'}
+            icon="save-outline"
+            onPress={saveLegal}
+            loading={savingLegal}
+            disabled={savingLegal}
+          />
+        </View>
       ) : null}
     </View>
   );
@@ -499,7 +593,7 @@ function adminStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
     },
     headerText: { fontSize: r.ms(15), fontWeight: '800', color: colors.text },
     tabs: {
-      flexDirection: 'row', gap: 6, marginBottom: 12,
+      flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12,
     },
     tab: {
       flexDirection: 'row', alignItems: 'center', gap: 4,
@@ -560,5 +654,36 @@ function adminStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
     },
     publishText: { fontSize: 10, fontWeight: '800', color: colors.brand },
     publishTextOn: { color: colors.onBrand },
+    legalHint: {
+      fontSize: 11,
+      color: colors.muted,
+      fontWeight: '600',
+      lineHeight: 16,
+      marginBottom: 8,
+    },
+    legalLabel: {
+      marginTop: 8,
+      marginBottom: 4,
+      fontSize: 11,
+      fontWeight: '800',
+      color: colors.muted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
+    },
+    legalInput: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.bg,
+      borderRadius: 12,
+      paddingHorizontal: 10,
+      paddingVertical: 10,
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    legalTextArea: {
+      minHeight: 160,
+      marginBottom: 10,
+    },
   });
 }

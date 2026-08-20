@@ -42,7 +42,7 @@ export const registerSchema = z
         message: 'Password harus mengandung huruf dan angka',
       }),
     confirmPassword: z.string().min(1, 'Konfirmasi password wajib diisi'),
-    gender: z.enum(['MALE', 'FEMALE', 'OTHER'], {
+    gender: z.enum(['MALE', 'FEMALE'], {
       message: 'Pilih jenis kelamin',
     }),
     birthDate: z

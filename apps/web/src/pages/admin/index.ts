@@ -5,3 +5,4 @@ export { AdminFeedback } from './AdminFeedback';
 export { AdminTraffic } from './AdminTraffic';
 export { AdminFlags } from './AdminFlags';
 export { AdminActivity } from './AdminActivity';
+export { AdminLegal } from './AdminLegal';

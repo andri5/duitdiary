@@ -5,3 +5,9 @@ export { dashboardService } from './dashboard.service.js';
 export { budgetService } from './budget.service.js';
 export { auditService } from './audit.service.js';
 export { ensureDefaultFeatureFlags, getFeatureFlags, setFeatureFlag, isFeatureEnabled } from './featureFlags.service.js';
+export {
+  ensureDefaultLegalDocuments,
+  listLegalDocuments,
+  getLegalDocument,
+  updateLegalDocument,
+} from './legal.service.js';

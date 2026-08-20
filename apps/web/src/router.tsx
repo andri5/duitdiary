@@ -25,6 +25,7 @@ import {
   AdminTraffic,
   AdminFlags,
   AdminActivity,
+  AdminLegal,
   SettingsPage,
   HelpPage,
   TermsPage,
@@ -202,6 +203,7 @@ const appRoutes = [
       { path: 'traffic', element: <AdminTraffic /> },
       { path: 'flags', element: <AdminFlags /> },
       { path: 'activity', element: <AdminActivity /> },
+      { path: 'legal', element: <AdminLegal /> },
     ],
   },
   {

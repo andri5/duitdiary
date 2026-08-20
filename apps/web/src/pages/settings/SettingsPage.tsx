@@ -77,7 +77,7 @@ export function SettingsPage() {
       setName(user.name);
       const next = (user.currency || 'IDR').toUpperCase().slice(0, 3);
       setCurrency(next === 'USD' ? 'USD' : 'IDR');
-      setGender(user.gender || '');
+      setGender(user.gender === 'MALE' || user.gender === 'FEMALE' ? user.gender : '');
       setBirthDate(user.birthDate || '');
     }
   }, [user]);
@@ -472,7 +472,7 @@ export function SettingsPage() {
                 />
                 <div>
                   <p className="mb-2 text-sm font-medium text-ink">Jenis kelamin</p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {GENDER_OPTIONS.map((opt) => {
                       const active = gender === opt.value;
                       return (
@@ -496,9 +496,18 @@ export function SettingsPage() {
                 <Input
                   label="Tanggal lahir"
                   type="date"
+                  min={(() => {
+                    const d = new Date();
+                    d.setFullYear(d.getFullYear() - 120);
+                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                  })()}
+                  max={(() => {
+                    const d = new Date();
+                    d.setFullYear(d.getFullYear() - 10);
+                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                  })()}
                   value={birthDate}
                   onChange={(e) => setBirthDate(e.target.value)}
-                  leftIcon={<Calendar className="h-4 w-4" />}
                 />
                 <div className="flex items-center gap-3 rounded-2xl bg-mist/70 p-3.5">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent">

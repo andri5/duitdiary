@@ -7,6 +7,7 @@ import {
   Platform,
   View,
   ScrollView,
+  TextInput,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
@@ -40,14 +41,28 @@ function toYmd(date: Date) {
   return `${y}-${m}-${d}`;
 }
 
+function birthBounds() {
+  const now = new Date();
+  const max = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
+  const min = new Date(now.getFullYear() - 120, now.getMonth(), now.getDate());
+  const defaultValue = new Date(now.getFullYear() - 20, 0, 1);
+  return { min, max, defaultValue };
+}
+
 function formatIdDate(ymd: string) {
-  const d = new Date(`${ymd}T00:00:00`);
+  const d = new Date(`${ymd}T12:00:00`);
   if (Number.isNaN(d.getTime())) return ymd;
   return d.toLocaleDateString('id-ID', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
+}
+
+function parseYmd(ymd: string, fallback: Date) {
+  if (!ymd) return fallback;
+  const d = new Date(`${ymd}T12:00:00`);
+  return Number.isNaN(d.getTime()) ? fallback : d;
 }
 
 export function RegisterScreen({ navigation }: Props) {
@@ -69,6 +84,8 @@ export function RegisterScreen({ navigation }: Props) {
   const [captchaReset, setCaptchaReset] = useState(0);
   const { config: captcha, required: captchaRequired, error: captchaConfigError, loading: captchaLoading } =
     useCaptchaConfig();
+
+  const bounds = useMemo(() => birthBounds(), []);
 
   const isStrongPassword = (pwd: string) => {
     return pwd.length >= 8 && /[A-Za-z]/.test(pwd) && /\d/.test(pwd);
@@ -113,6 +130,12 @@ export function RegisterScreen({ navigation }: Props) {
     }
   };
 
+  const onBirthChange = (_e: unknown, date?: Date) => {
+    if (Platform.OS === 'android') setShowBirthPicker(false);
+    if (!date) return;
+    setBirthDate(toYmd(date));
+  };
+
   return (
     <KeyboardAvoidingView
       style={[styles.wrap, { paddingTop: Math.max(insets.top, 12) }]}
@@ -124,7 +147,7 @@ export function RegisterScreen({ navigation }: Props) {
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: r.pagePadding,
-          paddingBottom: Math.max(insets.bottom, 16) + 24,
+          paddingBottom: Math.max(insets.bottom, 16) + 20,
           paddingTop: 8,
         }}
         keyboardShouldPersistTaps="handled"
@@ -140,10 +163,10 @@ export function RegisterScreen({ navigation }: Props) {
           <Text style={styles.sub}>Mulai catat pemasukan & pengeluaran dari HP</Text>
         </FadeInUp>
 
-        <Card>
+        <Card style={styles.card}>
           {error ? (
             <View style={styles.errorBox}>
-              <Ionicons name="alert-circle" size={16} color={colors.expense} />
+              <Ionicons name="alert-circle" size={14} color={colors.expense} />
               <Text style={styles.error}>{error}</Text>
             </View>
           ) : null}
@@ -186,28 +209,62 @@ export function RegisterScreen({ navigation }: Props) {
           </View>
 
           <FormLabel>Tanggal lahir</FormLabel>
-          <Pressable style={styles.dateBtn} onPress={() => setShowBirthPicker(true)}>
-            <Ionicons name="calendar-outline" size={18} color={colors.muted} />
-            <Text style={[styles.dateBtnText, !birthDate && { color: colors.faint }]}>
-              {birthDate ? formatIdDate(birthDate) : 'Pilih tanggal lahir'}
-            </Text>
-          </Pressable>
-          {showBirthPicker ? (
-            <DateTimePicker
-              value={birthDate ? new Date(`${birthDate}T00:00:00`) : new Date(2000, 0, 1)}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              maximumDate={new Date()}
-              onChange={(_e, date) => {
-                if (Platform.OS !== 'ios') setShowBirthPicker(false);
-                if (date) setBirthDate(toYmd(date));
-              }}
-            />
-          ) : null}
-          {Platform.OS === 'ios' && showBirthPicker ? (
-            <Pressable style={styles.dateDone} onPress={() => setShowBirthPicker(false)}>
-              <Text style={styles.dateDoneText}>Selesai</Text>
-            </Pressable>
+          {Platform.OS === 'web' ? (
+            <View style={styles.dateField}>
+              <Ionicons name="calendar-outline" size={18} color={colors.muted} style={styles.dateIcon} />
+              <TextInput
+                value={birthDate}
+                onChangeText={setBirthDate}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.faint}
+                style={styles.dateNativeInput}
+                // @ts-expect-error web-only input type
+                type="date"
+                // @ts-expect-error web-only
+                min={toYmd(bounds.min)}
+                // @ts-expect-error web-only
+                max={toYmd(bounds.max)}
+              />
+            </View>
+          ) : (
+            <>
+              <Pressable
+                style={[styles.dateField, showBirthPicker && styles.dateFieldActive]}
+                onPress={() => setShowBirthPicker(true)}
+              >
+                <Ionicons
+                  name="calendar-outline"
+                  size={18}
+                  color={showBirthPicker ? colors.brand : colors.muted}
+                  style={styles.dateIcon}
+                />
+                <Text style={[styles.dateFieldText, !birthDate && { color: colors.faint }]}>
+                  {birthDate ? formatIdDate(birthDate) : 'Pilih tanggal lahir'}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color={colors.faint} />
+              </Pressable>
+              {showBirthPicker ? (
+                <View style={styles.pickerWrap}>
+                  <DateTimePicker
+                    value={parseYmd(birthDate, bounds.defaultValue)}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                    minimumDate={bounds.min}
+                    maximumDate={bounds.max}
+                    onChange={onBirthChange}
+                    locale="id-ID"
+                  />
+                  {Platform.OS === 'ios' ? (
+                    <Pressable style={styles.dateDone} onPress={() => setShowBirthPicker(false)}>
+                      <Text style={styles.dateDoneText}>Selesai</Text>
+                    </Pressable>
+                  ) : null}
+                </View>
+              ) : null}
+            </>
+          )}
+          {Platform.OS === 'web' && birthDate ? (
+            <Text style={styles.dateHint}>{formatIdDate(birthDate)}</Text>
           ) : null}
 
           <FormLabel>Password</FormLabel>
@@ -218,52 +275,16 @@ export function RegisterScreen({ navigation }: Props) {
             autoComplete="new-password"
             textContentType="newPassword"
           />
+          <Text style={styles.hint}>Contoh: RapatKamis7!</Text>
 
-          <Text
-            style={{
-              marginTop: 8,
-              marginBottom: 14,
-              color: colors.muted,
-              fontSize: r.ms(12),
-              fontWeight: '600',
-            }}
-          >
-            Contoh: RapatKamis7!
-          </Text>
-
-          {captchaLoading ? (
-            <Text
-              style={{
-                color: colors.muted,
-                fontSize: r.ms(12),
-                fontWeight: '600',
-                marginBottom: 10,
-              }}
-            >
-              Memuat captcha…
-            </Text>
-          ) : null}
+          {captchaLoading ? <Text style={styles.hint}>Memuat captcha…</Text> : null}
           {captcha?.misconfigured ? (
-            <Text
-              style={{
-                color: colors.amber,
-                fontSize: r.ms(12),
-                fontWeight: '700',
-                marginBottom: 10,
-              }}
-            >
-              Captcha aktif di admin, tetapi kunci Turnstile belum diset di server.
+            <Text style={[styles.hint, { color: colors.amber, fontWeight: '700' }]}>
+              Captcha aktif, kunci Turnstile belum diset di server.
             </Text>
           ) : null}
           {captchaConfigError ? (
-            <Text
-              style={{
-                color: colors.expense,
-                fontSize: r.ms(12),
-                fontWeight: '700',
-                marginBottom: 10,
-              }}
-            >
+            <Text style={[styles.hint, { color: colors.expense, fontWeight: '700' }]}>
               {captchaConfigError}. Pastikan HP satu Wi‑Fi dengan PC dan API jalan.
             </Text>
           ) : null}
@@ -278,17 +299,17 @@ export function RegisterScreen({ navigation }: Props) {
           <Pressable style={styles.termsRow} onPress={() => setTermsAccepted((v) => !v)}>
             <View style={[styles.checkbox, termsAccepted && styles.checkboxOn]}>
               {termsAccepted ? (
-                <Ionicons name="checkmark" size={r.ms(14)} color={colors.onBrand} />
+                <Ionicons name="checkmark" size={r.ms(12)} color={colors.onBrand} />
               ) : null}
             </View>
             <Text style={styles.termsText}>
-              Saya setuju dengan{' '}
+              Setuju{' '}
               <Text style={styles.termsLink} onPress={() => navigation.navigate('Terms')}>
-                Syarat & Ketentuan
-              </Text>{' '}
-              dan{' '}
+                Syarat
+              </Text>
+              {' & '}
               <Text style={styles.termsLink} onPress={() => navigation.navigate('Privacy')}>
-                Kebijakan Privasi
+                Privasi
               </Text>
             </Text>
           </Pressable>
@@ -302,7 +323,7 @@ export function RegisterScreen({ navigation }: Props) {
           />
         </Card>
 
-        <FadeInUp delay={130}>
+        <FadeInUp delay={100}>
           <Pressable onPress={() => navigation.navigate('Login')} style={styles.footer}>
             <Text style={styles.footerMuted}>Sudah punya akun? </Text>
             <Text style={styles.link}>Masuk</Text>
@@ -362,43 +383,103 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
       fontSize: r.ms(15),
       lineHeight: r.ms(22),
     },
-    genderRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+    card: {
+      padding: 16,
+      borderRadius: 20,
+      marginBottom: 10,
+    },
+    genderRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
     genderChip: {
+      flex: 1,
       borderWidth: 1.5,
       borderColor: colors.border,
       backgroundColor: colors.bg,
-      borderRadius: 12,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
+      borderRadius: 16,
+      paddingVertical: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    genderChipOn: { borderColor: colors.brand, backgroundColor: colors.brandSoft },
-    genderChipText: { color: colors.muted, fontWeight: '700', fontSize: r.ms(13) },
-    genderChipTextOn: { color: colors.brand },
-    dateBtn: {
+    genderChipOn: {
+      borderColor: colors.brand,
+      backgroundColor: colors.brand,
+    },
+    genderChipText: {
+      color: colors.muted,
+      fontWeight: '800',
+      fontSize: r.ms(13),
+      textAlign: 'center',
+    },
+    genderChipTextOn: { color: colors.onBrand },
+    dateField: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
+      backgroundColor: colors.bg,
       borderWidth: 1.5,
       borderColor: colors.border,
-      backgroundColor: colors.bg,
-      borderRadius: 14,
-      paddingHorizontal: 14,
-      paddingVertical: 14,
-      marginBottom: 12,
+      borderRadius: 16,
+      paddingHorizontal: 12,
+      minHeight: 52,
+      marginBottom: 8,
+      width: '100%',
     },
-    dateBtnText: { flex: 1, color: colors.text, fontWeight: '700', fontSize: r.ms(14) },
+    dateFieldActive: {
+      borderColor: colors.brand,
+      backgroundColor: colors.brandSoft,
+    },
+    dateIcon: { marginRight: 8 },
+    dateFieldText: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    dateNativeInput: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: '600',
+      paddingVertical: Platform.OS === 'ios' ? 12 : 8,
+      borderWidth: 0,
+      outlineStyle: 'none' as never,
+      backgroundColor: 'transparent',
+      minHeight: 44,
+    },
+    pickerWrap: {
+      marginBottom: 8,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.bg,
+      overflow: 'hidden',
+      paddingVertical: 4,
+    },
     dateDone: {
       alignSelf: 'flex-end',
-      marginBottom: 12,
+      marginHorizontal: 12,
+      marginBottom: 8,
       paddingVertical: 6,
       paddingHorizontal: 10,
     },
     dateDoneText: { color: colors.brand, fontWeight: '800', fontSize: r.ms(13) },
-    termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 14 },
+    dateHint: {
+      marginTop: -2,
+      marginBottom: 10,
+      color: colors.brand,
+      fontSize: r.ms(12),
+      fontWeight: '700',
+    },
+    hint: {
+      marginTop: -4,
+      marginBottom: 10,
+      color: colors.muted,
+      fontSize: r.ms(12),
+      fontWeight: '600',
+    },
+    termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 12 },
     checkbox: {
-      width: 24,
-      height: 24,
-      borderRadius: 8,
+      width: 22,
+      height: 22,
+      borderRadius: 7,
       borderWidth: 1.5,
       borderColor: colors.border,
       backgroundColor: colors.bg,
@@ -410,28 +491,28 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
     termsText: {
       flex: 1,
       color: colors.muted,
-      lineHeight: r.ms(20),
-      fontSize: r.ms(13),
+      lineHeight: r.ms(18),
+      fontSize: r.ms(12),
       fontWeight: '600',
     },
     termsLink: { color: colors.brand, fontWeight: '800' },
     footer: {
-      marginTop: 4,
+      marginTop: 2,
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
     },
-    footerMuted: { color: colors.muted, fontWeight: '600' },
-    link: { color: colors.brand, fontWeight: '800' },
+    footerMuted: { color: colors.muted, fontWeight: '600', fontSize: r.ms(14) },
+    link: { color: colors.brand, fontWeight: '800', fontSize: r.ms(14) },
     errorBox: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 6,
       backgroundColor: colors.expenseSoft,
-      padding: 10,
-      borderRadius: 12,
-      marginBottom: 12,
+      padding: 8,
+      borderRadius: 10,
+      marginBottom: 8,
     },
-    error: { flex: 1, color: colors.expense, fontWeight: '700', fontSize: r.ms(13) },
+    error: { flex: 1, color: colors.expense, fontWeight: '700', fontSize: r.ms(12) },
   });
 }

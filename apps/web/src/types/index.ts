@@ -4,7 +4,7 @@
 
 export type TransactionType = 'EXPENSE' | 'INCOME';
 
-export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
+export type Gender = 'MALE' | 'FEMALE';
 
 export interface User {
   id: string;

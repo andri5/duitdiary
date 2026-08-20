@@ -8,6 +8,7 @@ import {
   Eye,
   Flag,
   ScrollText,
+  FileText,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores';
 import { ROUTES } from '@/lib/constants';
@@ -20,6 +21,7 @@ const NAV = [
   { icon: Eye, label: 'Traffic', path: ROUTES.ADMIN_TRAFFIC },
   { icon: Flag, label: 'Flags', path: ROUTES.ADMIN_FLAGS },
   { icon: ScrollText, label: 'Activity', path: ROUTES.ADMIN_ACTIVITY },
+  { icon: FileText, label: 'Syarat & Ketentuan', path: ROUTES.ADMIN_LEGAL },
 ];
 
 export function AdminLayout() {

@@ -30,7 +30,6 @@ router.get('/testimonials', async (_req: Request, res: Response) => {
   const genderLabel = (g: 'MALE' | 'FEMALE' | 'OTHER' | null | undefined) => {
     if (g === 'MALE') return 'Laki-laki';
     if (g === 'FEMALE') return 'Perempuan';
-    if (g === 'OTHER') return 'Lainnya';
     return null;
   };
 

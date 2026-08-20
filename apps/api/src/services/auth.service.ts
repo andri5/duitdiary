@@ -266,7 +266,7 @@ export class AuthService {
     data: {
       name?: string;
       currency?: string;
-      gender?: 'MALE' | 'FEMALE' | 'OTHER' | null;
+      gender?: 'MALE' | 'FEMALE' | null;
       birthDate?: string | null;
     }
   ): Promise<UserResponse> {
@@ -350,7 +350,7 @@ export class AuthService {
     email: string;
     avatar: string | null;
     currency: string;
-    gender?: 'MALE' | 'FEMALE' | 'OTHER' | null;
+    gender?: 'MALE' | 'FEMALE' | null;
     birthDate?: Date | null;
     role?: string;
     createdAt: Date;

@@ -12,6 +12,7 @@ import feedbackRoutes from './feedback.routes.js';
 import adminRoutes from './admin.routes.js';
 import featureFlagsRoutes from './featureFlags.routes.js';
 import analyticsRoutes from './analytics.routes.js';
+import legalRoutes from './legal.routes.js';
 
 const router = Router();
 
@@ -38,5 +39,6 @@ router.use('/feedback', feedbackRoutes);
 router.use('/admin', adminRoutes);
 router.use('/', featureFlagsRoutes);
 router.use('/', analyticsRoutes);
+router.use('/', legalRoutes);
 
 export default router;

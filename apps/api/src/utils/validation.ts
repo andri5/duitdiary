@@ -20,7 +20,7 @@ const strongPassword = z
     message: 'Password harus mengandung huruf dan angka',
   });
 
-const genderSchema = z.enum(['MALE', 'FEMALE', 'OTHER'], {
+const genderSchema = z.enum(['MALE', 'FEMALE'], {
   message: 'Jenis kelamin tidak valid',
 });
 
