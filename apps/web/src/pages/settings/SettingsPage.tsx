@@ -21,9 +21,9 @@ import {
   Star,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
 import { MainLayout, PageHeader, PageTransition } from '@/components/layout';
 import { Button, Card, CardHeader, CardTitle, Badge, UserAvatar, Input } from '@/components/ui';
+import { useToast } from '@/hooks/useToast';
 import { useAuthStore, useUIStore } from '@/stores';
 import { ROUTES, THEME_OPTIONS, type AppTheme } from '@/lib/constants';
 import { formatDate, cn } from '@/lib/utils';
@@ -44,6 +44,7 @@ const themePreview: Record<AppTheme, { from: string; to: string; accent: string 
 
 export function SettingsPage() {
   const navigate = useNavigate();
+  const toast = useToast();
   const { user, logout, setUser } = useAuthStore();
   const { theme, setTheme } = useUIStore();
   const fileRef = useRef<HTMLInputElement>(null);

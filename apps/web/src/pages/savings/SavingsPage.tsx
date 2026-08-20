@@ -74,6 +74,9 @@ export function SavingsPage() {
       toast.success('Target dihapus');
       setDeleteModal(null);
     },
+    onError: () => {
+      toast.error('Gagal menghapus target');
+    },
   });
 
   const handleCreate = () => {

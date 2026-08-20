@@ -36,7 +36,7 @@ export function LoginPage() {
     setError(null);
     try {
       await login(data);
-      toast.success('Login berhasil!', 'Selamat datang kembali');
+      toast.success('Selamat datang kembali', 'Login berhasil!');
       navigate(ROUTES.DASHBOARD);
     } catch (err) {
       const apiMessage =

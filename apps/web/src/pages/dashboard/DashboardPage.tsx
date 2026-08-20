@@ -19,7 +19,6 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
 import {
   PieChart,
   Pie,
@@ -44,6 +43,7 @@ import {
   CategoryIcon,
 } from '@/components/ui';
 import { useDashboard, useExpenses, useFeatureEnabled } from '@/hooks';
+import { useToast } from '@/hooks/useToast';
 import { formatCurrency, formatDate, cn } from '@/lib/utils';
 import { ROUTES } from '@/lib/constants';
 import { useAuthStore } from '@/stores';
@@ -199,6 +199,7 @@ function CategorySummaryPanel({
 
 export function DashboardPage() {
   const { user } = useAuthStore();
+  const toast = useToast();
   const showMarket = useFeatureEnabled('market_widget');
   const showRecurring = useFeatureEnabled('recurring_transactions');
   const [period, setPeriod] = useState<Period>('month');

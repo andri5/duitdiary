@@ -4,12 +4,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, PiggyBank, Plus, Trash2 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { MainLayout, PageHeader, PageTransition } from '@/components/layout';
-import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '@/components/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Modal, ModalFooter } from '@/components/ui';
 import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { useBudget } from '@/hooks/useBudget';
 import { useCategories } from '@/hooks/useCategories';
+import { useToast } from '@/hooks/useToast';
 import { formatCurrency, cn } from '@/lib/utils';
 import { BudgetProgress } from './components/BudgetProgress';
 
@@ -33,12 +33,14 @@ function formatNominal(n: number) {
 }
 
 export function BudgetPage() {
+  const toast = useToast();
   const [month, setMonth] = useState(currentMonthValue());
   const { budget, isLoading, saveBudget, isSaving, deleteBudget, isDeleting } = useBudget(month);
   const { data: categories = [] } = useCategories('EXPENSE');
 
   const [totalBudget, setTotalBudget] = useState('');
   const [categoryAmounts, setCategoryAmounts] = useState<Record<string, string>>({});
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     if (!budget) return;
@@ -90,6 +92,7 @@ export function BudgetPage() {
       await deleteBudget(month);
       setTotalBudget('');
       setCategoryAmounts({});
+      setShowDeleteModal(false);
       toast.success('Budget dihapus');
     } catch {
       toast.error('Gagal menghapus budget');
@@ -196,7 +199,7 @@ export function BudgetPage() {
                 {budget?.hasBudget ? (
                   <Button
                     variant="outline"
-                    onClick={handleDelete}
+                    onClick={() => setShowDeleteModal(true)}
                     isLoading={isDeleting}
                     className="text-danger"
                   >
@@ -282,6 +285,30 @@ export function BudgetPage() {
             </CardContent>
           </Card>
         </div>
+
+        <Modal
+          isOpen={showDeleteModal}
+          onClose={() => !isDeleting && setShowDeleteModal(false)}
+          title="Hapus Budget"
+          size="sm"
+        >
+          <p className="text-sm text-muted">
+            Hapus budget untuk <strong className="text-ink">{formatMonthLabel(month)}</strong>? Batas
+            total dan budget per kategori untuk bulan ini akan ikut terhapus.
+          </p>
+          <ModalFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setShowDeleteModal(false)}
+              disabled={isDeleting}
+            >
+              Batal
+            </Button>
+            <Button variant="danger" onClick={handleDelete} isLoading={isDeleting}>
+              Hapus
+            </Button>
+          </ModalFooter>
+        </Modal>
       </PageTransition>
     </MainLayout>
   );

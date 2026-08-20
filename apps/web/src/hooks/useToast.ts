@@ -1,10 +1,10 @@
 /**
  * DuitDiary - useToast Hook
- * Custom hook for toast notifications
+ * Wrapper around UI store notifications for consistent app toasts.
  */
 
+import { useCallback } from 'react';
 import { useUIStore } from '@/stores';
-import { useState, useCallback } from 'react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -14,56 +14,39 @@ export interface ToastOptions {
 }
 
 export const useToast = () => {
-  const { addNotification, removeNotification } = useUIStore();
-  const [toastIds, setToastIds] = useState<string[]>([]);
+  const addNotification = useUIStore((s) => s.addNotification);
+  const removeNotification = useUIStore((s) => s.removeNotification);
+  const clearNotifications = useUIStore((s) => s.clearNotifications);
 
   const toast = useCallback(
-    (message: string, title?: string, options?: ToastOptions) => {
-      const id = Date.now().toString();
-      const type = options?.type || 'info';
-      const duration = options?.duration || 5000;
-
+    (title: string, message?: string, options?: ToastOptions) => {
       addNotification({
-        title: title || (type.charAt(0).toUpperCase() + type.slice(1)),
+        title,
         message,
-        type: type as any,
+        type: options?.type || 'info',
+        duration: options?.duration,
       });
-
-      setToastIds((prev) => [...prev, id]);
-
-      if (duration > 0) {
-        setTimeout(() => {
-          removeNotification(id);
-          setToastIds((prev) => prev.filter((tid) => tid !== id));
-        }, duration);
-      }
-
-      return id;
     },
-    [addNotification, removeNotification]
+    [addNotification]
   );
 
   const success = useCallback(
-    (message: string, title = 'Success') =>
-      toast(message, title, { type: 'success' }),
+    (title: string, message?: string) => toast(title, message, { type: 'success' }),
     [toast]
   );
 
   const error = useCallback(
-    (message: string, title = 'Error') =>
-      toast(message, title, { type: 'error' }),
+    (title: string, message?: string) => toast(title, message, { type: 'error' }),
     [toast]
   );
 
   const warning = useCallback(
-    (message: string, title = 'Warning') =>
-      toast(message, title, { type: 'warning' }),
+    (title: string, message?: string) => toast(title, message, { type: 'warning' }),
     [toast]
   );
 
   const info = useCallback(
-    (message: string, title = 'Info') =>
-      toast(message, title, { type: 'info' }),
+    (title: string, message?: string) => toast(title, message, { type: 'info' }),
     [toast]
   );
 
@@ -74,9 +57,6 @@ export const useToast = () => {
     warning,
     info,
     removeToast: removeNotification,
-    clearAll: () => {
-      toastIds.forEach(removeNotification);
-      setToastIds([]);
-    },
+    clearAll: clearNotifications,
   };
 };

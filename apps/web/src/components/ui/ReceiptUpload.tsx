@@ -4,9 +4,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { FileText, ImagePlus, Loader2, Trash2, ExternalLink } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { uploadReceipt } from '@/services/upload.service';
 import { useAuthenticatedFileUrl } from '@/hooks/useAuthenticatedFileUrl';
+import { useToast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
 import { Button } from './Button';
 import { ReceiptPreviewModal } from './ReceiptPreviewModal';
@@ -27,6 +27,7 @@ function isPdf(url: string) {
 }
 
 export function ReceiptUpload({ value, onChange, error, disabled }: ReceiptUploadProps) {
+  const toast = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [localPreview, setLocalPreview] = useState<string | null>(null);

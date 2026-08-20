@@ -48,7 +48,7 @@ export function RegisterPage() {
         email: data.email,
         password: data.password,
       });
-      toast.success('Pendaftaran berhasil!', 'Selamat datang di DuitDiary');
+      toast.success('Selamat datang di DuitDiary', 'Pendaftaran berhasil!');
       navigate(ROUTES.DASHBOARD);
     } catch (err) {
       const apiMessage =

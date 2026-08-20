@@ -4,11 +4,11 @@
 
 import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { MainLayout, PageHeader, PageTransition } from '@/components/layout';
 import { Button, Card, CardContent, Input, Select, Badge } from '@/components/ui';
 import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { useCategories } from '@/hooks/useCategories';
+import { useToast } from '@/hooks/useToast';
 import { formatCurrency } from '@/lib/utils';
 import {
   createRecurringTransaction,
@@ -24,6 +24,7 @@ const FREQUENCY_OPTIONS = [
 ];
 
 export function RecurringPage() {
+  const toast = useToast();
   const { data: categories = [] } = useCategories('EXPENSE');
   const [rows, setRows] = useState<RecurringTransaction[]>([]);
   const [loading, setLoading] = useState(true);
