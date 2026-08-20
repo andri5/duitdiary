@@ -81,6 +81,7 @@ export function CategoriesScreen() {
             variant: 'success',
             title: 'Kategori dihapus',
             message: 'Kategori berhasil dihapus.',
+            confirmLabel: 'Saya mengerti',
           });
         } catch (e: unknown) {
           const message =

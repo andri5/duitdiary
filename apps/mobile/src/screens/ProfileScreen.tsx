@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Alert, ActivityIndicator } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -72,7 +72,7 @@ export function ProfileScreen({
     {
       key: 'settings',
       title: 'Pengaturan',
-      sub: 'Nama, mata uang, foto struk',
+      sub: 'Profil, tema, feedback, password',
       icon: 'settings-outline' as const,
       soft: true,
       onPress: () => navigation.navigate('Settings'),
@@ -166,21 +166,7 @@ export function ProfileScreen({
         </FadeInUp>
       )}
 
-      {user.role !== 'ADMIN' && (
-        <FadeInUp delay={280}>
-          <FeedbackCard colors={colors} r={r} />
-        </FadeInUp>
-      )}
-
       <FadeInUp delay={300}>
-        <View style={styles.versionRow}>
-          <Text style={styles.versionText}>DuitDiary 1.0.0</Text>
-          <Text style={styles.versionDot}>·</Text>
-          <Text style={styles.versionText}>release</Text>
-        </View>
-      </FadeInUp>
-
-      <FadeInUp delay={340}>
         <PrimaryButton label="Keluar" onPress={handleLogout} variant="danger" />
       </FadeInUp>
     </ScrollView>
@@ -258,132 +244,6 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
     menuIconSoft: { backgroundColor: colors.surface },
     menuTitle: { fontWeight: '800', color: colors.text, fontSize: r.ms(14) },
     menuSub: { marginTop: 1, color: colors.muted, fontSize: r.ms(11) },
-    versionRow: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 6,
-      marginVertical: 12,
-    },
-    versionText: { color: colors.faint, fontSize: r.ms(12), fontWeight: '600' },
-    versionDot: { color: colors.faint },
-  });
-}
-
-function FeedbackCard({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof useResponsive> }) {
-  const [rating, setRating] = useState(0);
-  const [message, setMessage] = useState('');
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-
-  const handleSend = async () => {
-    if (!message.trim()) return Alert.alert('Info', 'Tulis saran atau masukan dulu ya');
-    setSending(true);
-    try {
-      await apiClient.post('/feedback', { message: message.trim(), rating });
-      setSent(true);
-      setMessage('');
-      setRating(0);
-      setTimeout(() => setSent(false), 3000);
-    } catch {
-      Alert.alert('Error', 'Gagal mengirim masukan');
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const fs = useMemo(() => fbStyles(colors, r), [colors, r]);
-
-  if (sent) {
-    return (
-      <View style={fs.card}>
-        <Ionicons name="checkmark-circle" size={36} color={colors.brand} />
-        <Text style={fs.sentTitle}>Terima kasih!</Text>
-        <Text style={fs.sentHint}>Masukan kamu sudah kami terima.</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={fs.card}>
-      <View style={fs.header}>
-        <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.brand} />
-        <Text style={fs.headerText}>Saran & Masukan</Text>
-      </View>
-      <Text style={fs.hint}>Bantu kami jadi lebih baik</Text>
-
-      <View style={fs.stars}>
-        {[1, 2, 3, 4, 5].map((v) => (
-          <Pressable key={v} onPress={() => setRating(v)} hitSlop={6}>
-            <Ionicons
-              name={v <= rating ? 'star' : 'star-outline'}
-              size={24}
-              color={v <= rating ? '#f59e0b' : colors.faint}
-            />
-          </Pressable>
-        ))}
-      </View>
-
-      <TextInput
-        style={fs.input}
-        placeholder="Tulis saran, kritik, atau fitur harapan..."
-        placeholderTextColor={colors.faint}
-        value={message}
-        onChangeText={setMessage}
-        multiline
-        numberOfLines={3}
-        textAlignVertical="top"
-      />
-
-      <Pressable style={[fs.sendBtn, sending && { opacity: 0.6 }]} onPress={handleSend} disabled={sending}>
-        <Ionicons name="send" size={14} color="#fff" />
-        <Text style={fs.sendText}>{sending ? 'Mengirim...' : 'Kirim Masukan'}</Text>
-      </Pressable>
-    </View>
-  );
-}
-
-function fbStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
-  return StyleSheet.create({
-    card: {
-      backgroundColor: colors.surface,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: 14,
-      marginBottom: 8,
-      alignItems: 'center',
-    },
-    header: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2, alignSelf: 'flex-start' },
-    headerText: { fontSize: r.ms(14), fontWeight: '800', color: colors.text },
-    hint: { fontSize: r.ms(11), color: colors.muted, alignSelf: 'flex-start', marginBottom: 10 },
-    stars: { flexDirection: 'row', gap: 6, marginBottom: 10, alignSelf: 'flex-start' },
-    input: {
-      width: '100%',
-      backgroundColor: colors.bg,
-      borderRadius: radii.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      fontSize: r.ms(13),
-      color: colors.text,
-      minHeight: 72,
-      marginBottom: 10,
-    },
-    sendBtn: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 6,
-      width: '100%',
-      backgroundColor: colors.brand,
-      borderRadius: radii.md,
-      paddingVertical: 11,
-    },
-    sendText: { fontSize: r.ms(13), fontWeight: '700', color: '#fff' },
-    sentTitle: { fontSize: r.ms(16), fontWeight: '800', color: colors.text, marginTop: 8 },
-    sentHint: { fontSize: r.ms(12), color: colors.muted, marginTop: 2 },
   });
 }
 
@@ -412,6 +272,7 @@ interface FeedbackItem {
 }
 
 function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof useResponsive> }) {
+  const { showDialog } = useDialog();
   const [tab, setTab] = useState<'stats' | 'users' | 'feedback'>('stats');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [traffic, setTraffic] = useState<{ activeUsersToday: number; totalVisits: number } | null>(null);
@@ -449,7 +310,12 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
       await apiClient.patch(`/admin/users/${id}/role`, { role: newRole });
       setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, role: newRole } : u)));
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Gagal ubah role');
+      showDialog({
+        variant: 'error',
+        title: 'Gagal ubah role',
+        message: e?.response?.data?.message || 'Coba lagi beberapa saat.',
+        confirmLabel: 'Saya mengerti',
+      });
     }
   };
 
@@ -550,7 +416,7 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
                   <Text style={as.fbName}>{f.name || 'Anonim'}</Text>
                 </View>
                 <Pressable onPress={() => deleteFeedback(f.id)} hitSlop={8}>
-                  <Ionicons name="trash-outline" size={14} color={colors.danger || '#ef4444'} />
+                  <Ionicons name="trash-outline" size={14} color={colors.dangerText} />
                 </Pressable>
               </View>
             ))

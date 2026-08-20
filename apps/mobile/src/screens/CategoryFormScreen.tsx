@@ -105,6 +105,7 @@ export function CategoryFormScreen({ navigation, route }: Props) {
           variant: 'success',
           title: 'Kategori diperbarui',
           message: 'Perubahan sudah disimpan.',
+          confirmLabel: 'Saya mengerti',
           onConfirm: () => navigation.goBack(),
         });
       } else {
@@ -113,6 +114,7 @@ export function CategoryFormScreen({ navigation, route }: Props) {
           variant: 'success',
           title: 'Kategori ditambahkan',
           message: 'Kategori baru siap dipakai.',
+          confirmLabel: 'Saya mengerti',
           onConfirm: () => navigation.goBack(),
         });
       }
@@ -125,6 +127,22 @@ export function CategoryFormScreen({ navigation, route }: Props) {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    if (!name.trim()) {
+      navigation.goBack();
+      return;
+    }
+    showDialog({
+      variant: 'confirm',
+      title: 'Batalkan?',
+      message: 'Perubahan belum disimpan.',
+      showCancel: true,
+      cancelLabel: 'Tetap',
+      confirmLabel: 'Keluar',
+      onConfirm: () => navigation.goBack(),
+    });
   };
 
   if (loading) {
@@ -286,7 +304,7 @@ export function CategoryFormScreen({ navigation, route }: Props) {
               </>
             )}
           </ScalePress>
-          <Pressable onPress={() => navigation.goBack()} style={{ marginTop: 14 }}>
+          <Pressable onPress={handleCancel} style={{ marginTop: 14 }}>
             <Text style={styles.cancel}>Batal</Text>
           </Pressable>
         </FadeInUp>

@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
+  TextInput,
   Pressable,
   ScrollView,
   ActivityIndicator,
@@ -14,13 +15,15 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { updateProfile, changePassword } from '../lib/auth';
+import { updateProfile, changePassword, getMe } from '../lib/auth';
+import { apiClient } from '../lib/api';
+import { getFeedbackStatus, submitFeedback } from '../lib/feedback';
 import { useAuth } from '../authContext';
 import { authImageSource, uploadAvatar } from '../lib/upload';
 import { PasswordInput, AppTextInput } from '../components/ui';
 import { FadeInUp, ScalePress, PopIn } from '../components/motion';
 import { useDialog } from '../components/AppDialog';
-import { THEME_OPTIONS, type ThemeColors } from '../theme';
+import { THEME_OPTIONS, radii, type ThemeColors } from '../theme';
 import { useColors, useTheme } from '../themeContext';
 import { useResponsive } from '../hooks/useResponsive';
 import type { MainStackParamList } from '../navigation/types';
@@ -56,6 +59,8 @@ export function SettingsScreen({ navigation }: Props) {
   const { theme, setTheme } = useTheme();
   const r = useResponsive();
   const styles = useMemo(() => createStyles(colors, r), [colors, r]);
+  const savingPasswordRef = useRef(false);
+  const savingRoleRef = useRef(false);
   const [name, setName] = useState(user?.name || '');
   const [currency, setCurrency] = useState(
     user?.currency === 'USD' ? 'USD' : 'IDR'
@@ -73,6 +78,7 @@ export function SettingsScreen({ navigation }: Props) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [savingPassword, setSavingPassword] = useState(false);
+  const [savingRole, setSavingRole] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -110,7 +116,7 @@ export function SettingsScreen({ navigation }: Props) {
         variant: 'success',
         title: 'Profil diperbarui',
         message: 'Perubahan nama dan mata uang sudah disimpan.',
-        confirmLabel: 'Selesai',
+        confirmLabel: 'Saya mengerti',
         onConfirm: () => navigation.goBack(),
       });
     } catch (e: unknown) {
@@ -156,6 +162,7 @@ export function SettingsScreen({ navigation }: Props) {
         variant: 'success',
         title: 'Foto diperbarui',
         message: 'Foto profil berhasil diunggah.',
+        confirmLabel: 'Saya mengerti',
       });
     } catch (e: unknown) {
       const message =
@@ -169,6 +176,7 @@ export function SettingsScreen({ navigation }: Props) {
 
   const onChangePassword = async () => {
     setError(null);
+    if (savingPasswordRef.current) return;
     if (!currentPassword || newPassword.length < 6) {
       setError('Isi password lama & baru (min. 6).');
       return;
@@ -177,6 +185,7 @@ export function SettingsScreen({ navigation }: Props) {
       setError('Konfirmasi password tidak cocok.');
       return;
     }
+    savingPasswordRef.current = true;
     setSavingPassword(true);
     try {
       const message = await changePassword({ currentPassword, newPassword });
@@ -184,7 +193,7 @@ export function SettingsScreen({ navigation }: Props) {
       setNewPassword('');
       setConfirmPassword('');
       setPwOpen(false);
-      showDialog({ variant: 'success', title: 'Password diubah', message });
+      showDialog({ variant: 'success', title: 'Password diubah', message, confirmLabel: 'Saya mengerti' });
     } catch (e: unknown) {
       const message =
         (e as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -193,6 +202,37 @@ export function SettingsScreen({ navigation }: Props) {
       showDialog({ variant: 'error', title: 'Gagal', message });
     } finally {
       setSavingPassword(false);
+      savingPasswordRef.current = false;
+    }
+  };
+
+  const handleToggleRole = async () => {
+    if (!user?.id) return;
+    if (savingRoleRef.current) return;
+
+    const currentRole = user.role || 'USER';
+    const nextRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
+
+    savingRoleRef.current = true;
+    setSavingRole(true);
+    try {
+      await apiClient.patch(`/admin/users/${user.id}/role`, { role: nextRole });
+      const refreshed = await getMe();
+      setUser(refreshed);
+      showDialog({
+        variant: 'success',
+        title: 'Role diperbarui',
+        message: `Sekarang kamu: ${nextRole === 'ADMIN' ? 'Admin' : 'User'}.`,
+        confirmLabel: 'Saya mengerti',
+      });
+    } catch (e: unknown) {
+      const message =
+        (e as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Gagal mengubah role.';
+      showDialog({ variant: 'error', title: 'Gagal mengubah role', message, confirmLabel: 'Saya mengerti' });
+    } finally {
+      setSavingRole(false);
+      savingRoleRef.current = false;
     }
   };
 
@@ -255,7 +295,7 @@ export function SettingsScreen({ navigation }: Props) {
               <View style={styles.sectionIcon}>
                 <Ionicons name="person-outline" size={16} color={colors.brand} />
               </View>
-              <Text style={styles.sectionTitle}>Identitas</Text>
+              <Text style={styles.sectionTitle}>Edit Profil</Text>
             </View>
 
             <Text style={styles.label}>Email</Text>
@@ -271,8 +311,52 @@ export function SettingsScreen({ navigation }: Props) {
               onChangeText={setName}
               placeholder="Nama lengkap"
             />
+            <Text style={styles.label}>Role User</Text>
+            <Pressable
+              style={styles.roleToggle}
+              onPress={() => {
+                const currentRole = user?.role || 'USER';
+                const nextRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
+                showDialog({
+                  variant: 'confirm',
+                  title: 'Ubah Role User?',
+                  message: `Konfirmasi ubah role kamu menjadi ${nextRole === 'ADMIN' ? 'Admin' : 'User'}.`,
+                  showCancel: true,
+                  cancelLabel: 'Batal',
+                  confirmLabel: 'Ubah',
+                  onConfirm: handleToggleRole,
+                });
+              }}
+              disabled={savingRole}
+            >
+              {savingRole ? (
+                <ActivityIndicator color={colors.onBrand} />
+              ) : (
+                <View style={styles.roleToggleLeft}>
+                  <View style={styles.roleIconBox}>
+                    <Ionicons name="shield-checkmark-outline" size={18} color={colors.brand} />
+                  </View>
+                  <View>
+                    <Text style={styles.roleToggleTitle}>Role User</Text>
+                    <Text style={styles.roleToggleSub}>Sekarang: {user?.role || 'USER'}</Text>
+                  </View>
+                </View>
+              )}
+              {!savingRole ? (
+                <Ionicons name="arrow-forward" size={18} color={colors.muted} />
+              ) : null}
+            </Pressable>
+            <Text style={styles.roleQaHint}>
+              Untuk uji QA: tombol ini mengganti role tanpa logout.
+            </Text>
           </View>
         </FadeInUp>
+
+        {user?.role !== 'ADMIN' ? (
+          <FadeInUp delay={120}>
+            <FeedbackSection colors={colors} r={r} userName={user?.name} showDialog={showDialog} />
+          </FadeInUp>
+        ) : null}
 
         <PopIn delay={90}>
           <View style={styles.sectionCard}>
@@ -339,7 +423,7 @@ export function SettingsScreen({ navigation }: Props) {
                 <Ionicons name="color-palette-outline" size={16} color={colors.amber} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.sectionTitle}>Tema</Text>
+                <Text style={styles.sectionTitle}>Tema Aplikasi</Text>
                 <Text style={styles.sectionSub}>Tampilan terang atau gelap</Text>
               </View>
             </View>
@@ -400,6 +484,17 @@ export function SettingsScreen({ navigation }: Props) {
                   </ScalePress>
                 );
               })}
+            </View>
+            <View style={styles.aboutBox}>
+              <Text style={styles.aboutTitle}>Tentang Aplikasi</Text>
+              <View style={styles.aboutRow}>
+                <Text style={styles.aboutKey}>Nama</Text>
+                <Text style={styles.aboutVal}>DuitDiary</Text>
+              </View>
+              <View style={styles.aboutRow}>
+                <Text style={styles.aboutKey}>Versi</Text>
+                <Text style={styles.aboutVal}>1.0.0</Text>
+              </View>
             </View>
           </View>
         </PopIn>
@@ -470,6 +565,208 @@ export function SettingsScreen({ navigation }: Props) {
       </ScrollView>
     </KeyboardAvoidingView>
   );
+}
+
+function FeedbackSection({
+  colors,
+  r,
+  userName,
+  showDialog,
+}: {
+  colors: ThemeColors;
+  r: ReturnType<typeof useResponsive>;
+  userName?: string;
+  showDialog: ReturnType<typeof useDialog>['showDialog'];
+}) {
+  const [visible, setVisible] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const submitted = await getFeedbackStatus();
+        if (!cancelled) setVisible(!submitted);
+      } catch {
+        if (!cancelled) setVisible(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (visible !== true) return null;
+
+  return (
+    <FadeInUp delay={280}>
+      <FeedbackCard
+        colors={colors}
+        r={r}
+        userName={userName}
+        onSubmitted={() => setVisible(false)}
+        showDialog={showDialog}
+      />
+    </FadeInUp>
+  );
+}
+
+function FeedbackCard({
+  colors,
+  r,
+  userName,
+  onSubmitted,
+  showDialog,
+}: {
+  colors: ThemeColors;
+  r: ReturnType<typeof useResponsive>;
+  userName?: string;
+  onSubmitted: () => void;
+  showDialog: ReturnType<typeof useDialog>['showDialog'];
+}) {
+  const [rating, setRating] = useState(0);
+  const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const sendingRef = useRef(false);
+
+  const handleSend = async () => {
+    if (sendingRef.current) return;
+    if (!message.trim()) {
+      showDialog({
+        variant: 'warning',
+        title: 'Belum diisi',
+        message: 'Tulis saran atau masukan dulu ya.',
+        confirmLabel: 'Saya mengerti',
+      });
+      return;
+    }
+
+    sendingRef.current = true;
+    setSending(true);
+
+    try {
+      await submitFeedback({
+        name: userName?.trim() || null,
+        message: message.trim(),
+        rating,
+      });
+      showDialog({
+        variant: 'success',
+        title: 'Terima kasih!',
+        message: 'Suaramu sudah sampai ke tim kami. DuitDiary makin baik berkat masukanmu.',
+        confirmLabel: 'Saya mengerti',
+        onConfirm: () => onSubmitted(),
+      });
+    } catch (e: unknown) {
+      const err = e as { response?: { status?: number; data?: { message?: string } }; message?: string };
+      if (err?.response?.status === 409) {
+        showDialog({
+          variant: 'info',
+          title: 'Sudah terkirim',
+          message: 'Kamu sudah pernah kirim saran. Terima kasih ya!',
+          confirmLabel: 'Oke',
+          onConfirm: () => onSubmitted(),
+        });
+        return;
+      }
+
+      const detail =
+        err?.response?.data?.message ||
+        (err?.message?.includes('Network') ? 'Tidak terhubung ke server. Coba lagi.' : null);
+      showDialog({
+        variant: 'error',
+        title: 'Gagal mengirim masukan',
+        message: detail || 'Coba lagi beberapa saat.',
+        confirmLabel: 'Saya mengerti',
+      });
+    } finally {
+      setSending(false);
+      sendingRef.current = false;
+    }
+  };
+
+  const fs = useMemo(() => fbStyles(colors, r), [colors, r]);
+
+  return (
+    <View style={fs.card}>
+      <View style={fs.header}>
+        <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.brand} />
+        <Text style={fs.headerText}>Saran & Masukan</Text>
+      </View>
+      <Text style={fs.hint}>
+        Bantu kami jadi lebih baik. Form ini hanya bisa dikirim satu kali per akun.
+      </Text>
+
+      <View style={fs.stars}>
+        {[1, 2, 3, 4, 5].map((v) => (
+          <Pressable key={v} onPress={() => setRating(v)} hitSlop={6}>
+            <Ionicons
+              name={v <= rating ? 'star' : 'star-outline'}
+              size={24}
+              color={v <= rating ? '#f59e0b' : colors.faint}
+            />
+          </Pressable>
+        ))}
+      </View>
+
+      <TextInput
+        style={fs.input}
+        placeholder="Tulis saran, kritik, atau fitur harapan..."
+        placeholderTextColor={colors.faint}
+        value={message}
+        onChangeText={setMessage}
+        multiline
+        numberOfLines={3}
+        textAlignVertical="top"
+      />
+
+      <Pressable style={[fs.sendBtn, sending && { opacity: 0.6 }]} onPress={handleSend} disabled={sending}>
+        <Ionicons name="send" size={14} color="#fff" />
+        <Text style={fs.sendText}>{sending ? 'Mengirim...' : 'Kirim Masukan'}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function fbStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 14,
+      marginBottom: 8,
+      alignItems: 'center',
+    },
+    header: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2, alignSelf: 'flex-start' },
+    headerText: { fontSize: r.ms(14), fontWeight: '800', color: colors.text },
+    hint: { fontSize: r.ms(11), color: colors.muted, alignSelf: 'flex-start', marginBottom: 10 },
+    stars: { flexDirection: 'row', gap: 6, marginBottom: 10, alignSelf: 'flex-start' },
+    input: {
+      width: '100%',
+      backgroundColor: colors.bg,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: r.ms(13),
+      color: colors.text,
+      minHeight: 72,
+      marginBottom: 10,
+    },
+    sendBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      width: '100%',
+      backgroundColor: colors.brand,
+      borderRadius: radii.md,
+      paddingVertical: 11,
+    },
+    sendText: { fontSize: r.ms(13), fontWeight: '700', color: '#fff' },
+  });
 }
 
 function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
@@ -634,6 +931,17 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
       fontSize: 10,
       fontWeight: '600',
     },
+    aboutBox: {
+      marginTop: 10,
+      paddingTop: 10,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      width: '100%',
+    },
+    aboutTitle: { fontWeight: '900', color: colors.text, fontSize: 12, marginBottom: 6 },
+    aboutRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+    aboutKey: { color: colors.muted, fontSize: 11, fontWeight: '700' },
+    aboutVal: { color: colors.text, fontSize: 11, fontWeight: '800' },
     checkBadge: {
       position: 'absolute',
       top: 10,
@@ -733,6 +1041,37 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
       alignItems: 'center',
     },
     pwSaveText: { color: colors.onBrand, fontWeight: '800', fontSize: 14 },
+    roleToggle: {
+      marginTop: 8,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 18,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 10,
+    },
+    roleToggleLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+    roleIconBox: {
+      width: 36,
+      height: 36,
+      borderRadius: 14,
+      backgroundColor: colors.brandSoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    roleToggleTitle: { fontWeight: '800', color: colors.text, fontSize: 14 },
+    roleToggleSub: { color: colors.muted, fontSize: 11, fontWeight: '600', marginTop: 1 },
+    roleQaHint: {
+      marginTop: 8,
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.muted,
+      lineHeight: 16,
+    },
     error: {
       backgroundColor: colors.dangerBg,
       color: colors.dangerText,

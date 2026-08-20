@@ -9,10 +9,16 @@ import {
   Calendar,
   LogOut,
   Shield,
+  ShieldOff,
   Camera,
   Loader2,
   Check,
   Lock,
+  Eye,
+  EyeOff,
+  MessageSquare,
+  Send,
+  Star,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -22,7 +28,8 @@ import { useAuthStore, useUIStore } from '@/stores';
 import { ROUTES, THEME_OPTIONS, type AppTheme } from '@/lib/constants';
 import { formatDate, cn } from '@/lib/utils';
 import { uploadAvatar } from '@/services/upload.service';
-import { updateProfile, changePassword } from '@/services/auth.service';
+import api from '@/lib/api';
+import { getCurrentUser, updateProfile, changePassword } from '@/services/auth.service';
 
 const CURRENCIES = [
   { code: 'IDR' as const, label: 'Rupiah', hint: 'Indonesia', symbol: 'Rp' },
@@ -40,6 +47,9 @@ export function SettingsPage() {
   const { user, logout, setUser } = useAuthStore();
   const { theme, setTheme } = useUIStore();
   const fileRef = useRef<HTMLInputElement>(null);
+  const savingPasswordRef = useRef(false);
+  const savingRoleRef = useRef(false);
+  const sendingFeedbackRef = useRef(false);
   const [isUploading, setIsUploading] = useState(false);
 
   const [name, setName] = useState(user?.name || '');
@@ -47,9 +57,18 @@ export function SettingsPage() {
   const [savingProfile, setSavingProfile] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [savingRole, setSavingRole] = useState(false);
+  const [feedbackVisible, setFeedbackVisible] = useState<boolean | null>(null);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [sendingFeedback, setSendingFeedback] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -57,6 +76,33 @@ export function SettingsPage() {
       const next = (user.currency || 'IDR').toUpperCase().slice(0, 3);
       setCurrency(next === 'USD' ? 'USD' : 'IDR');
     }
+  }, [user]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!user || user.role === 'ADMIN') {
+      setFeedbackVisible(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setFeedbackVisible(null);
+    api
+      .get('/feedback/status')
+      .then((res) => {
+        if (!cancelled) {
+          setFeedbackVisible(!Boolean(res.data?.data?.submitted));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setFeedbackVisible(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   const handleLogout = async () => {
@@ -123,6 +169,7 @@ export function SettingsPage() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (savingPasswordRef.current) return;
     if (newPassword.length < 6) {
       toast.error('Password baru minimal 6 karakter');
       return;
@@ -131,6 +178,7 @@ export function SettingsPage() {
       toast.error('Konfirmasi password tidak cocok');
       return;
     }
+    savingPasswordRef.current = true;
     setSavingPassword(true);
     try {
       const result = await changePassword({
@@ -145,8 +193,207 @@ export function SettingsPage() {
       toast.error(err?.response?.data?.message || 'Gagal mengubah password');
     } finally {
       setSavingPassword(false);
+      savingPasswordRef.current = false;
     }
   };
+
+  const handleToggleRole = async () => {
+    if (!user?.id) return;
+    if (savingRoleRef.current) return;
+    const nextRole = (user.role === 'ADMIN' ? 'USER' : 'ADMIN') as 'USER' | 'ADMIN';
+
+    savingRoleRef.current = true;
+    setSavingRole(true);
+    try {
+      await api.patch(`/admin/users/${user.id}/role`, { role: nextRole });
+      const refreshed = await getCurrentUser();
+      setUser(refreshed);
+      toast.success('Role diperbarui');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Gagal mengubah role');
+    } finally {
+      setSavingRole(false);
+      savingRoleRef.current = false;
+    }
+  };
+
+  const handleSubmitFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (sendingFeedbackRef.current) return;
+    if (!feedbackMessage.trim()) {
+      toast.error('Tulis saran atau masukan dulu ya.');
+      return;
+    }
+
+    sendingFeedbackRef.current = true;
+    setSendingFeedback(true);
+    try {
+      await api.post('/feedback', {
+        name: user?.name?.trim() || null,
+        message: feedbackMessage.trim(),
+        rating: feedbackRating,
+      });
+      toast.success('Suaramu sudah sampai ke tim kami. DuitDiary makin baik berkat masukanmu.');
+      setFeedbackVisible(false);
+      setFeedbackMessage('');
+      setFeedbackRating(0);
+      setHoverRating(0);
+    } catch (err: any) {
+      if (err?.response?.status === 409) {
+        toast.success('Kamu sudah pernah kirim saran. Terima kasih ya!');
+        setFeedbackVisible(false);
+      } else {
+        toast.error(err?.response?.data?.message || 'Gagal mengirim masukan');
+      }
+    } finally {
+      setSendingFeedback(false);
+      sendingFeedbackRef.current = false;
+    }
+  };
+
+  const moveThemePasswordToRight = feedbackVisible === false;
+
+  const themeCard = (
+    <Card padding="md">
+      <CardHeader>
+        <CardTitle>Tema Aplikasi</CardTitle>
+      </CardHeader>
+      <p className="mb-3 text-sm text-muted">Pilih salah satu dari 3 tema tampilan.</p>
+      <div className="grid gap-2.5 sm:grid-cols-3">
+        {THEME_OPTIONS.map((option) => {
+          const preview = themePreview[option.id];
+          const selected = theme === option.id;
+          return (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => {
+                setTheme(option.id);
+                toast.success(`Tema ${option.name} aktif`);
+              }}
+              className={cn(
+                'rounded-2xl border p-3 text-left transition',
+                selected
+                  ? 'border-accent ring-2 ring-accent/25'
+                  : 'border-line hover:border-accent/40'
+              )}
+            >
+              <div
+                className="mb-2.5 flex h-14 items-end justify-between overflow-hidden rounded-xl px-2.5 pb-2"
+                style={{
+                  background: `linear-gradient(145deg, ${preview.from}, ${preview.to})`,
+                }}
+              >
+                <span
+                  className="h-6 w-6 rounded-lg shadow-sm"
+                  style={{ backgroundColor: preview.accent }}
+                />
+                {selected && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-white">
+                    <Check className="h-3 w-3" />
+                  </span>
+                )}
+              </div>
+              <p className="text-sm font-semibold text-ink">{option.name}</p>
+              <p className="mt-0.5 text-[11px] leading-snug text-muted">{option.description}</p>
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-4 border-t border-line pt-4">
+        <p className="mb-2 text-sm font-semibold text-ink">Tentang Aplikasi</p>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between py-1">
+            <span className="text-muted">Nama</span>
+            <span className="font-semibold text-ink">DuitDiary</span>
+          </div>
+          <div className="flex justify-between py-1">
+            <span className="text-muted">Versi</span>
+            <span className="font-semibold text-ink">1.0.0</span>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+
+  const passwordCard = (
+    <Card padding="md">
+      <CardHeader>
+        <CardTitle>Ganti Password</CardTitle>
+      </CardHeader>
+      <form onSubmit={handleChangePassword} className="space-y-3">
+        <Input
+          label="Password saat ini"
+          type={showCurrentPassword ? 'text' : 'password'}
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+          leftIcon={<Lock className="h-4 w-4" />}
+          rightIcon={
+            <button
+              type="button"
+              className="text-muted transition hover:text-ink"
+              aria-label={showCurrentPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+              onClick={() => setShowCurrentPassword((v) => !v)}
+            >
+              {showCurrentPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          }
+          autoComplete="current-password"
+        />
+        <Input
+          label="Password baru"
+          type={showNewPassword ? 'text' : 'password'}
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          leftIcon={<Lock className="h-4 w-4" />}
+          rightIcon={
+            <button
+              type="button"
+              className="text-muted transition hover:text-ink"
+              aria-label={showNewPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+              onClick={() => setShowNewPassword((v) => !v)}
+            >
+              {showNewPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          }
+          autoComplete="new-password"
+        />
+        <Input
+          label="Konfirmasi password baru"
+          type={showConfirmPassword ? 'text' : 'password'}
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          leftIcon={<Lock className="h-4 w-4" />}
+          rightIcon={
+            <button
+              type="button"
+              className="text-muted transition hover:text-ink"
+              aria-label={showConfirmPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+              onClick={() => setShowConfirmPassword((v) => !v)}
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          }
+          autoComplete="new-password"
+        />
+        <Button type="submit" variant="outline" className="w-full" isLoading={savingPassword}>
+          Ubah Password
+        </Button>
+      </form>
+    </Card>
+  );
 
   return (
     <PageTransition>
@@ -280,121 +527,116 @@ export function SettingsPage() {
                     </Badge>
                   </div>
                 </div>
+                <div className="rounded-2xl border border-line bg-surface p-3.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm text-muted">Role User</p>
+                      <div className="mt-1">
+                        <Badge
+                          variant={user?.role === 'ADMIN' ? 'accent' : 'default'}
+                          size="sm"
+                        >
+                          {user?.role || 'USER'}
+                        </Badge>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0"
+                      leftIcon={
+                        user?.role === 'ADMIN' ? (
+                          <ShieldOff className="h-4 w-4" />
+                        ) : (
+                          <Shield className="h-4 w-4" />
+                        )
+                      }
+                      isLoading={savingRole}
+                      onClick={handleToggleRole}
+                    >
+                      {user?.role === 'ADMIN' ? 'Jadikan User' : 'Jadikan Admin'}
+                    </Button>
+                  </div>
+                  <p className="mt-3 text-xs text-muted">
+                    Untuk uji QA: tombol ini mengganti role tanpa logout.
+                  </p>
+                </div>
                 <Button type="submit" variant="gradient" className="w-full" isLoading={savingProfile}>
                   Simpan Profil
                 </Button>
               </form>
             </Card>
 
-            <Card padding="md">
-              <CardHeader>
-                <CardTitle>Ganti Password</CardTitle>
-              </CardHeader>
-              <form onSubmit={handleChangePassword} className="space-y-3">
-                <Input
-                  label="Password saat ini"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  leftIcon={<Lock className="h-4 w-4" />}
-                  autoComplete="current-password"
-                />
-                <Input
-                  label="Password baru"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  leftIcon={<Lock className="h-4 w-4" />}
-                  autoComplete="new-password"
-                />
-                <Input
-                  label="Konfirmasi password baru"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  leftIcon={<Lock className="h-4 w-4" />}
-                  autoComplete="new-password"
-                />
-                <Button
-                  type="submit"
-                  variant="outline"
-                  className="w-full"
-                  isLoading={savingPassword}
-                >
-                  Ubah Password
-                </Button>
-              </form>
-            </Card>
+            {!moveThemePasswordToRight ? themeCard : null}
+            {!moveThemePasswordToRight ? passwordCard : null}
           </div>
 
           <div className="space-y-4">
-            <Card padding="md">
-              <CardHeader>
-                <CardTitle>Tema Aplikasi</CardTitle>
-              </CardHeader>
-              <p className="mb-3 text-sm text-muted">
-                Pilih salah satu dari 3 tema tampilan.
-              </p>
-              <div className="grid gap-2.5 sm:grid-cols-3">
-                {THEME_OPTIONS.map((option) => {
-                  const preview = themePreview[option.id];
-                  const selected = theme === option.id;
-                  return (
-                    <button
-                      key={option.id}
-                      type="button"
-                      onClick={() => {
-                        setTheme(option.id);
-                        toast.success(`Tema ${option.name} aktif`);
-                      }}
-                      className={cn(
-                        'rounded-2xl border p-3 text-left transition',
-                        selected
-                          ? 'border-accent ring-2 ring-accent/25'
-                          : 'border-line hover:border-accent/40'
-                      )}
-                    >
-                      <div
-                        className="mb-2.5 flex h-14 items-end justify-between overflow-hidden rounded-xl px-2.5 pb-2"
-                        style={{
-                          background: `linear-gradient(145deg, ${preview.from}, ${preview.to})`,
-                        }}
-                      >
-                        <span
-                          className="h-6 w-6 rounded-lg shadow-sm"
-                          style={{ backgroundColor: preview.accent }}
-                        />
-                        {selected && (
-                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-white">
-                            <Check className="h-3 w-3" />
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm font-semibold text-ink">{option.name}</p>
-                      <p className="mt-0.5 text-[11px] leading-snug text-muted">
-                        {option.description}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-            </Card>
+            {feedbackVisible ? (
+              <Card padding="md">
+                <CardHeader>
+                  <CardTitle>Saran & Masukan</CardTitle>
+                </CardHeader>
+                <p className="mb-3 text-sm text-muted">
+                  Bantu kami jadi lebih baik. Form ini hanya bisa dikirim satu kali per akun.
+                </p>
+                <form onSubmit={handleSubmitFeedback} className="space-y-3">
+                  <div>
+                    <p className="mb-2 text-sm font-medium text-ink">Beri penilaian</p>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onMouseEnter={() => setHoverRating(value)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          onClick={() => setFeedbackRating(value)}
+                          className="rounded-xl p-1 transition hover:scale-110"
+                        >
+                          <Star
+                            className={cn(
+                              'h-5 w-5 transition',
+                              value <= (hoverRating || feedbackRating)
+                                ? 'fill-amber-400 text-amber-400'
+                                : 'text-line'
+                            )}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-            <Card padding="md">
-              <CardHeader>
-                <CardTitle>Tentang Aplikasi</CardTitle>
-              </CardHeader>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between py-1">
-                  <span className="text-muted">Nama</span>
-                  <span className="font-semibold text-ink">DuitDiary</span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span className="text-muted">Versi</span>
-                  <span className="font-semibold text-ink">1.0.0</span>
-                </div>
-              </div>
-            </Card>
+                  <div className="rounded-2xl border border-line bg-mist/60 p-3">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-ink">
+                      <MessageSquare className="h-4 w-4 text-accent" />
+                      Saran atau masukan
+                    </div>
+                    <textarea
+                      value={feedbackMessage}
+                      onChange={(e) => setFeedbackMessage(e.target.value)}
+                      placeholder="Tulis saran, kritik, atau fitur yang kamu harapkan..."
+                      rows={4}
+                      className="w-full resize-none rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink outline-none transition placeholder:text-muted focus:border-accent/40"
+                      disabled={sendingFeedback}
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    variant="gradient"
+                    className="w-full"
+                    isLoading={sendingFeedback}
+                    rightIcon={<Send className="h-4 w-4" />}
+                  >
+                    Kirim Masukan
+                  </Button>
+                </form>
+              </Card>
+            ) : null}
+
+            {moveThemePasswordToRight ? themeCard : null}
+            {moveThemePasswordToRight ? passwordCard : null}
 
             <Button
               variant="danger"

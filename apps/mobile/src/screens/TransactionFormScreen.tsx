@@ -269,6 +269,7 @@ export function TransactionFormScreen({ navigation, route }: Props) {
           variant: 'success',
           title: 'Transaksi diperbarui',
           message: 'Perubahan sudah disimpan.',
+          confirmLabel: 'Saya mengerti',
           onConfirm: () => navigation.goBack(),
         });
       } else {
@@ -277,6 +278,7 @@ export function TransactionFormScreen({ navigation, route }: Props) {
           variant: 'success',
           title: 'Transaksi ditambahkan',
           message: 'Catatan baru sudah masuk ke riwayatmu.',
+          confirmLabel: 'Saya mengerti',
           onConfirm: () => navigation.goBack(),
         });
       }
@@ -289,6 +291,23 @@ export function TransactionFormScreen({ navigation, route }: Props) {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    const hasDraft = Boolean(amount.trim() || note.trim() || receiptUrl);
+    if (!hasDraft) {
+      navigation.goBack();
+      return;
+    }
+    showDialog({
+      variant: 'confirm',
+      title: 'Batalkan?',
+      message: 'Perubahan belum disimpan.',
+      showCancel: true,
+      cancelLabel: 'Tetap',
+      confirmLabel: 'Keluar',
+      onConfirm: () => navigation.goBack(),
+    });
   };
 
   if (loading) {
@@ -554,7 +573,7 @@ export function TransactionFormScreen({ navigation, route }: Props) {
             )}
           </ScalePress>
 
-          <Pressable onPress={() => navigation.goBack()} style={{ marginTop: 14 }}>
+          <Pressable onPress={handleCancel} style={{ marginTop: 14 }}>
             <Text style={styles.cancel}>Batal</Text>
           </Pressable>
         </FadeInUp>

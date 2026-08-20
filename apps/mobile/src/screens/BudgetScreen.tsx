@@ -124,7 +124,12 @@ export function BudgetScreen({ navigation }: Props) {
     try {
       const next = await saveBudget({ month, totalBudget: parsedTotal, categoryBudgets });
       setStatus(next);
-      showDialog({ variant: 'success', title: 'Tersimpan', message: 'Budget bulan ini sudah diperbarui.' });
+      showDialog({
+        variant: 'success',
+        title: 'Tersimpan',
+        message: 'Budget bulan ini sudah diperbarui.',
+        confirmLabel: 'Saya mengerti',
+      });
     } catch {
       showDialog({ variant: 'danger', title: 'Gagal', message: 'Budget tidak bisa disimpan.' });
     } finally {
@@ -138,6 +143,7 @@ export function BudgetScreen({ navigation }: Props) {
       title: 'Hapus budget?',
       message: 'Progress tracking bulan ini akan di-reset.',
       showCancel: true,
+      cancelLabel: 'Batal',
       confirmLabel: 'Hapus',
       onConfirm: async () => {
         await deleteBudget(month);

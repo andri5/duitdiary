@@ -184,6 +184,7 @@ export function TransactionsScreen() {
             variant: 'success',
             title: 'Berhasil dihapus',
             message: 'Transaksi sudah dihapus dari catatanmu.',
+            confirmLabel: 'Saya mengerti',
           });
         } catch {
           showDialog({
