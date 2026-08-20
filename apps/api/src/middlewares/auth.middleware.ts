@@ -45,6 +45,25 @@ export const authMiddleware = (
   next();
 };
 
+export const optionalAuthMiddleware = (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+): void => {
+  const token = extractAccessToken(req);
+  if (token) {
+    const payload = verifyAccessToken(token);
+    if (payload) {
+      (req as AuthenticatedRequest).user = {
+        userId: payload.userId,
+        email: payload.email,
+        role: payload.role,
+      };
+    }
+  }
+  next();
+};
+
 export const adminMiddleware = (
   req: Request,
   res: Response,

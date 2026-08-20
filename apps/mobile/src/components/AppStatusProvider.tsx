@@ -6,8 +6,10 @@ import { FancyDialog } from './AppDialog';
 
 export function AppStatusProvider({ children }: { children: ReactNode }) {
   const [offlineOpen, setOfflineOpen] = useState(false);
+  const [serverOpen, setServerOpen] = useState(false);
   const [maintOpen, setMaintOpen] = useState(false);
   const [offlineMsg, setOfflineMsg] = useState<string | undefined>();
+  const [serverMsg, setServerMsg] = useState<string | undefined>();
   const [maintMsg, setMaintMsg] = useState<string | undefined>();
 
   useEffect(() => {
@@ -15,6 +17,10 @@ export function AppStatusProvider({ children }: { children: ReactNode }) {
       if (event.type === 'offline') {
         setOfflineMsg(event.message);
         setOfflineOpen(true);
+      }
+      if (event.type === 'server') {
+        setServerMsg(event.message);
+        setServerOpen(true);
       }
       if (event.type === 'maintenance') {
         setMaintMsg(event.message);
@@ -62,12 +68,23 @@ export function AppStatusProvider({ children }: { children: ReactNode }) {
         onRequestClose={() => setOfflineOpen(false)}
       />
       <FancyDialog
+        visible={serverOpen}
+        variant="error"
+        title="Server tidak terjangkau"
+        message={
+          serverMsg ||
+          'Pastikan API Dompet Tenang berjalan dan HP satu Wi‑Fi dengan PC (bukan data seluler).'
+        }
+        confirmLabel="Mengerti"
+        onRequestClose={() => setServerOpen(false)}
+      />
+      <FancyDialog
         visible={maintOpen}
         variant="maintenance"
         title="Sedang maintenance"
         message={
           maintMsg ||
-          'DuitDiary sementara dalam perawatan. Data kamu aman — silakan coba beberapa saat lagi.'
+          'Dompet Tenang sementara dalam perawatan. Data kamu aman — silakan coba beberapa saat lagi.'
         }
         confirmLabel="Coba lagi"
         cancelLabel="Mengerti"

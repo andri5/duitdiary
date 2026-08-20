@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Login Page
+ * Dompet Tenang - Login Page
  */
 
 import { useState } from 'react';
@@ -8,21 +8,29 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { AuthLayout, PageTransition } from '@/components/layout';
+import { TurnstileWidget } from '@/components/auth';
 import { Button, Input } from '@/components/ui';
 import { loginSchema } from '@/lib/validations';
 import type { LoginFormData } from '@/lib/validations';
 import { useAuthStore } from '@/stores';
 import { useToast } from '@/hooks/useToast';
+import { useCaptchaConfig } from '@/hooks/useCaptchaConfig';
 import { ROUTES } from '@/lib/constants';
 import { SEO } from '@/components/SEO';
-import { AxiosError } from 'axios';
+import { authErrorMessage, AUTH_SAFE } from '@/lib/authErrors';
 
 export function LoginPage() {
   const navigate = useNavigate();
   const { login, isLoading } = useAuthStore();
   const toast = useToast();
+  const { data: captcha, isLoading: captchaLoading, isError: captchaFetchError } =
+    useCaptchaConfig();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
+
+  const captchaRequired = Boolean(captcha?.enabled && captcha.siteKey);
 
   const {
     register,
@@ -33,30 +41,31 @@ export function LoginPage() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
+    if (captchaRequired && !captchaToken) {
+      toast.warning('Selesaikan verifikasi captcha dulu');
+      return;
+    }
+
     setError(null);
     try {
-      await login(data);
+      await login({
+        ...data,
+        ...(captchaToken ? { captchaToken } : {}),
+      });
       toast.success('Selamat datang kembali', 'Login berhasil!');
       navigate(ROUTES.DASHBOARD);
     } catch (err) {
-      const apiMessage =
-        err instanceof AxiosError
-          ? (err.response?.data as { message?: string } | undefined)?.message
-          : err instanceof Error
-            ? err.message
-            : undefined;
-      const errorMessage =
-        apiMessage && apiMessage !== 'No refresh token'
-          ? apiMessage
-          : 'Email atau password salah. Silakan coba lagi.';
+      const errorMessage = authErrorMessage(err, AUTH_SAFE.loginFailed);
       setError(errorMessage);
       toast.error(errorMessage);
+      setCaptchaToken(null);
+      setCaptchaReset((n) => n + 1);
     }
   };
 
   return (
     <PageTransition>
-      <SEO title="Masuk" description="Login ke akun DuitDiary untuk mengelola keuangan pribadimu." canonical="/login" noIndex />
+      <SEO title="Masuk" description="Login ke akun Dompet Tenang untuk mengelola keuangan pribadimu." canonical="/login" noIndex />
       <AuthLayout title="Masuk" subtitle="Lanjutkan pencatatan keuanganmu">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {error && (
@@ -110,13 +119,35 @@ export function LoginPage() {
             </Link>
           </div>
 
+          {captchaLoading && (
+            <p className="text-center text-xs text-muted">Memuat captcha…</p>
+          )}
+          {captchaFetchError && (
+            <p className="text-xs text-coral">
+              Gagal memuat konfigurasi captcha. Refresh halaman atau periksa API.
+            </p>
+          )}
+          {captcha?.misconfigured && (
+            <p className="text-xs text-amber-700">
+              Captcha diaktifkan admin tetapi kunci Turnstile belum diset di server.
+            </p>
+          )}
+          {captchaRequired && captcha.siteKey && (
+            <TurnstileWidget
+              key={captchaReset}
+              siteKey={captcha.siteKey}
+              onToken={setCaptchaToken}
+              className="flex justify-center overflow-visible"
+            />
+          )}
+
           <Button
             type="submit"
             variant="gradient"
             className="w-full"
             size="lg"
             isLoading={isLoading}
-            disabled={isLoading}
+            disabled={isLoading || (captchaRequired && !captchaToken)}
           >
             Masuk
           </Button>

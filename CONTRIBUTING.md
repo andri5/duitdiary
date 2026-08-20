@@ -1,6 +1,6 @@
-# Contributing to DuitDiary
+# Contributing to Dompet Tenang
 
-Thank you for your interest in contributing to DuitDiary! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Dompet Tenang! This document provides guidelines and instructions for contributing.
 
 ## Code of Conduct
 
@@ -11,8 +11,8 @@ Please be respectful and constructive in all interactions with other contributor
 1. Fork the repository
 2. Clone your fork locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/duitdiary.git
-   cd duitdiary
+   git clone https://github.com/YOUR_USERNAME/Dompet Tenang.git
+   cd Dompet Tenang
    ```
 3. Create a new branch for your feature/fix:
    ```bash

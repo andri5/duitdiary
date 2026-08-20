@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Utility Functions
+ * Dompet Tenang - Utility Functions
  */
 
 import { format, parseISO } from 'date-fns';

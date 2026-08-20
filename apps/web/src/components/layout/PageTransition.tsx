@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Page Transition Component
+ * Dompet Tenang - Page Transition Component
  * Provides animated transitions between pages with fade and slide effects
  */
 

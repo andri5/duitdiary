@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Reset Password Page
+ * Dompet Tenang - Reset Password Page
  */
 
 import { useMemo, useState } from 'react';
@@ -13,7 +13,7 @@ import { resetPasswordSchema } from '@/lib/validations';
 import type { ResetPasswordFormData } from '@/lib/validations';
 import { resetPassword } from '@/services/auth.service';
 import { ROUTES } from '@/lib/constants';
-import { AxiosError } from 'axios';
+import { authErrorMessage, AUTH_SAFE } from '@/lib/authErrors';
 
 export function ResetPasswordPage() {
   const navigate = useNavigate();
@@ -46,7 +46,7 @@ export function ResetPasswordPage() {
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     if (!token) {
-      setError('Token reset tidak ditemukan. Ajukan ulang lupa password.');
+      setError(AUTH_SAFE.resetInvalid);
       return;
     }
 
@@ -57,11 +57,7 @@ export function ResetPasswordPage() {
       setSuccess(true);
       setTimeout(() => navigate(ROUTES.LOGIN), 1800);
     } catch (err) {
-      const errorMessage =
-        err instanceof AxiosError
-          ? err.response?.data?.message || 'Gagal mengatur password baru'
-          : 'Terjadi kesalahan. Silakan coba lagi.';
-      setError(errorMessage);
+      setError(authErrorMessage(err, AUTH_SAFE.resetInvalid));
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +113,7 @@ export function ResetPasswordPage() {
             <Input
               label="Password Baru"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Minimal 6 karakter"
+              placeholder="Min. 8 karakter (huruf + angka)"
               leftIcon={<Lock className="h-4 w-4" />}
               rightIcon={
                 <button

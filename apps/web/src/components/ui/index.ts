@@ -1,5 +1,5 @@
 /**
- * DuitDiary - UI Components Index
+ * Dompet Tenang - UI Components Index
  * Central export for all UI components
  */
 

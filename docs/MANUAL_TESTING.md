@@ -1,4 +1,4 @@
-# 🧪 Manual Testing Guide - DuitDiary
+# 🧪 Manual Testing Guide - Dompet Tenang
 
 **Date**: December 31, 2025  
 **Status**: ✅ Backend & Frontend Running

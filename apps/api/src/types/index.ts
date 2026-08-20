@@ -1,5 +1,5 @@
 /**
- * DuitDiary API - Type Definitions
+ * Dompet Tenang API - Type Definitions
  */
 
 import { Request } from 'express';
@@ -25,6 +25,8 @@ export interface UserResponse {
   email: string;
   avatar: string | null;
   currency: string;
+  gender: 'MALE' | 'FEMALE' | 'OTHER' | null;
+  birthDate: string | null;
   role: string;
   createdAt: Date;
 }

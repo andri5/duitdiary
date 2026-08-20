@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Expense / Income Hooks
+ * Dompet Tenang - Expense / Income Hooks
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';

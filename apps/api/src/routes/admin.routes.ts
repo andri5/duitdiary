@@ -99,8 +99,55 @@ router.get('/feedback', async (_req: Request, res: Response) => {
   const feedback = await prisma.feedback.findMany({
     orderBy: { createdAt: 'desc' },
     take: 200,
+    select: {
+      id: true,
+      name: true,
+      message: true,
+      rating: true,
+      isPublished: true,
+      createdAt: true,
+      userId: true,
+    },
   });
   res.json({ success: true, data: feedback });
+});
+
+router.patch('/feedback/:id', async (req: Request, res: Response) => {
+  const id = paramString(req.params.id);
+  const { isPublished } = req.body as { isPublished?: boolean };
+  if (typeof isPublished !== 'boolean') {
+    res.status(400).json({ success: false, message: 'isPublished (boolean) wajib' });
+    return;
+  }
+
+  try {
+    const updated = await prisma.feedback.update({
+      where: { id },
+      data: { isPublished },
+      select: {
+        id: true,
+        name: true,
+        message: true,
+        rating: true,
+        isPublished: true,
+        createdAt: true,
+      },
+    });
+
+    const authUser = (req as AuthenticatedRequest).user!;
+    await auditService.log({
+      userId: authUser.userId,
+      actorRole: 'ADMIN',
+      action: isPublished ? 'PUBLISH_FEEDBACK' : 'UNPUBLISH_FEEDBACK',
+      entityType: 'feedback',
+      entityId: id,
+      summary: `${isPublished ? 'Publish' : 'Unpublish'} feedback ${id}`,
+    });
+
+    res.json({ success: true, data: updated, message: isPublished ? 'Ditampilkan di landing' : 'Disembunyikan dari landing' });
+  } catch {
+    res.status(404).json({ success: false, message: 'Feedback tidak ditemukan' });
+  }
 });
 
 router.delete('/feedback/:id', async (req: Request, res: Response) => {

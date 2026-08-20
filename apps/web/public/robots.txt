@@ -10,4 +10,4 @@ Disallow: /savings
 Disallow: /settings
 Disallow: /admin
 
-Sitemap: https://duitdiary.app/sitemap.xml
+Sitemap: https://dompettenang.app/sitemap.xml

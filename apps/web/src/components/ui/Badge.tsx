@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Badge Component
+ * Dompet Tenang - Badge Component
  */
 
 import { forwardRef } from 'react';

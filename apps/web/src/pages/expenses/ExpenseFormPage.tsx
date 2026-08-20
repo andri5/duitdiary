@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Expense / Income Form Page
+ * Dompet Tenang - Expense / Income Form Page
  */
 
 import { useEffect, useState } from 'react';

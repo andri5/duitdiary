@@ -88,7 +88,7 @@ export const config = {
     secure: process.env.SMTP_SECURE === 'true',
     user: smtpUser,
     pass: smtpPass,
-    from: process.env.SMTP_FROM || smtpUser || 'noreply@duitdiary.local',
+    from: process.env.SMTP_FROM || smtpUser || 'noreply@dompettenang.local',
   },
 
   /**
@@ -99,6 +99,15 @@ export const config = {
     !isProduction &&
     (process.env.EXPOSE_PASSWORD_RESET_URL === 'true' ||
       (!smtpEnabled && process.env.EXPOSE_PASSWORD_RESET_URL !== 'false')),
+
+  /**
+   * Cloudflare Turnstile (captcha). Site key is public; secret stays server-side.
+   * Local test keys: https://developers.cloudflare.com/turnstile/troubleshooting/testing/
+   */
+  turnstile: {
+    siteKey: process.env.TURNSTILE_SITE_KEY || '',
+    secretKey: process.env.TURNSTILE_SECRET_KEY || '',
+  },
 } as const;
 
 export type Config = typeof config;

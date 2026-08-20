@@ -15,7 +15,7 @@ import {
   makeTypography,
 } from './theme';
 
-const THEME_KEY = 'duitdiary_theme';
+const THEME_KEY = 'dompettenang_theme';
 
 type ThemeContextValue = {
   theme: AppThemeId;

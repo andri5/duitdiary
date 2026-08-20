@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Expenses List Page
+ * Dompet Tenang - Expenses List Page
  */
 
 import { useState } from 'react';

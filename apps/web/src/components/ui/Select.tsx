@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Select Component
+ * Dompet Tenang - Select Component
  */
 
 import { forwardRef, useState } from 'react';

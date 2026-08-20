@@ -15,14 +15,14 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Terms'>;
 const SECTIONS = [
   {
     title: 'Penggunaan wajar',
-    body: 'Dengan mendaftar dan menggunakan DuitDiary, Anda menyetujui untuk memakai aplikasi sebagai catatan keuangan pribadi secara wajar dan sesuai hukum yang berlaku.',
+    body: 'Dengan mendaftar dan menggunakan Dompet Tenang, Anda menyetujui untuk memakai aplikasi sebagai catatan keuangan pribadi secara wajar dan sesuai hukum yang berlaku.',
     icon: 'document-text-outline' as const,
     tint: '#0f9b8e',
     soft: '#d9f5f1',
   },
   {
     title: 'Tanggung jawab akun',
-    body: 'Anda bertanggung jawab menjaga kerahasiaan akun (email dan password). DuitDiary tidak bertanggung jawab atas kerugian akibat kelalaian menjaga kredensial atau penggunaan perangkat yang tidak aman.',
+    body: 'Anda bertanggung jawab menjaga kerahasiaan akun (email dan password). Dompet Tenang tidak bertanggung jawab atas kerugian akibat kelalaian menjaga kredensial atau penggunaan perangkat yang tidak aman.',
     icon: 'key-outline' as const,
     tint: '#d97706',
     soft: '#fef3c7',
@@ -70,7 +70,7 @@ export function TermsScreen({ navigation }: Props) {
           <Text style={styles.badge}>Legal</Text>
           <Text style={styles.title}>Syarat & Ketentuan</Text>
           <Text style={styles.lead}>
-            Ringkasan aturan memakai DuitDiary agar pencatatan keuangan tetap aman dan jelas.
+            Ringkasan aturan memakai Dompet Tenang agar pencatatan keuangan tetap aman dan jelas.
           </Text>
         </View>
       </FadeInUp>

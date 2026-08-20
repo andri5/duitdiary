@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Public Route Component
+ * Dompet Tenang - Public Route Component
  * Redirects to dashboard if already authenticated
  * (except auth recovery pages that must stay reachable while logged in)
  */

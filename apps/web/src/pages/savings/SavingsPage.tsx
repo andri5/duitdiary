@@ -1,19 +1,20 @@
 /**
- * DuitDiary - Savings Goals Page
+ * Dompet Tenang - Savings Goals Page
  */
 
 import { useState } from 'react';
-import { Target, Plus, Trash2, PiggyBank, TrendingUp, Check } from 'lucide-react';
+import { Target, Plus, Trash2, PiggyBank, TrendingUp, Check, Pencil } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { MainLayout, PageHeader, PageTransition } from '@/components/layout';
 import { Button, Input, Card, EmptyState, Modal, ModalFooter } from '@/components/ui';
-import { formatCurrency, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/useToast';
 import {
   getSavingsGoals,
   createSavingsGoal,
   addSavingsAmount,
+  updateSavingsGoal,
   deleteSavingsGoal,
   type SavingsGoal,
 } from '@/services/savings.service';
@@ -31,6 +32,7 @@ export function SavingsPage() {
   });
 
   const [showCreate, setShowCreate] = useState(false);
+  const [editGoal, setEditGoal] = useState<SavingsGoal | null>(null);
   const [addModal, setAddModal] = useState<SavingsGoal | null>(null);
   const [deleteModal, setDeleteModal] = useState<SavingsGoal | null>(null);
   const [name, setName] = useState('');
@@ -38,17 +40,49 @@ export function SavingsPage() {
   const [deadline, setDeadline] = useState('');
   const [addAmount, setAddAmount] = useState('');
 
+  const resetForm = () => {
+    setName('');
+    setTarget('');
+    setDeadline('');
+  };
+
+  const openEdit = (goal: SavingsGoal) => {
+    setEditGoal(goal);
+    setName(goal.name);
+    setTarget(String(Math.round(goal.targetAmount)));
+    setDeadline(goal.deadline || '');
+  };
+
+  const closeEdit = () => {
+    setEditGoal(null);
+    resetForm();
+  };
+
   const createMut = useMutation({
     mutationFn: createSavingsGoal,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['savings'] });
       toast.success('Target tabungan dibuat!');
       setShowCreate(false);
-      setName('');
-      setTarget('');
-      setDeadline('');
+      resetForm();
     },
     onError: () => toast.error('Gagal membuat target'),
+  });
+
+  const updateMut = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { name: string; targetAmount: number; deadline: string | null };
+    }) => updateSavingsGoal(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['savings'] });
+      toast.success('Target diperbarui');
+      closeEdit();
+    },
+    onError: () => toast.error('Gagal memperbarui target'),
   });
 
   const addMut = useMutation({
@@ -57,7 +91,7 @@ export function SavingsPage() {
     onSuccess: (updated) => {
       qc.invalidateQueries({ queryKey: ['savings'] });
       if (updated.isCompleted) {
-        toast.success(`🎉 Target "${updated.name}" tercapai!`);
+        toast.success(`Target "${updated.name}" tercapai!`);
       } else {
         toast.success('Tabungan ditambahkan!');
       }
@@ -92,6 +126,27 @@ export function SavingsPage() {
     });
   };
 
+  const handleUpdate = () => {
+    if (!editGoal) return;
+    const parsed = Number(target.replace(/\./g, '').replace(',', '.'));
+    if (!name.trim() || !parsed || parsed <= 0) {
+      toast.error('Nama dan target harus diisi');
+      return;
+    }
+    if (parsed < editGoal.savedAmount) {
+      toast.error('Target tidak boleh lebih kecil dari jumlah yang sudah terkumpul');
+      return;
+    }
+    updateMut.mutate({
+      id: editGoal.id,
+      data: {
+        name: name.trim(),
+        targetAmount: parsed,
+        deadline: deadline || null,
+      },
+    });
+  };
+
   const handleAdd = () => {
     if (!addModal) return;
     const parsed = Number(addAmount.replace(/\./g, '').replace(',', '.'));
@@ -119,7 +174,10 @@ export function SavingsPage() {
               variant="gradient"
               size="lg"
               leftIcon={<Plus className="h-5 w-5" />}
-              onClick={() => setShowCreate(true)}
+              onClick={() => {
+                resetForm();
+                setShowCreate(true);
+              }}
             >
               Buat Target
             </Button>
@@ -158,7 +216,13 @@ export function SavingsPage() {
               title="Belum ada target tabungan"
               description="Mulai buat target saving untuk mencapai impianmu"
               action={
-                <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setShowCreate(true)}>
+                <Button
+                  leftIcon={<Plus className="h-4 w-4" />}
+                  onClick={() => {
+                    resetForm();
+                    setShowCreate(true);
+                  }}
+                >
                   Buat Target
                 </Button>
               }
@@ -171,7 +235,13 @@ export function SavingsPage() {
                 <p className="text-sm font-semibold text-muted">Aktif</p>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {activeGoals.map((goal) => (
-                    <GoalCard key={goal.id} goal={goal} onAdd={setAddModal} onDelete={setDeleteModal} />
+                    <GoalCard
+                      key={goal.id}
+                      goal={goal}
+                      onAdd={setAddModal}
+                      onEdit={openEdit}
+                      onDelete={setDeleteModal}
+                    />
                   ))}
                 </div>
               </>
@@ -181,7 +251,13 @@ export function SavingsPage() {
                 <p className="mt-6 text-sm font-semibold text-muted">Tercapai</p>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {completedGoals.map((goal) => (
-                    <GoalCard key={goal.id} goal={goal} onAdd={setAddModal} onDelete={setDeleteModal} />
+                    <GoalCard
+                      key={goal.id}
+                      goal={goal}
+                      onAdd={setAddModal}
+                      onEdit={openEdit}
+                      onDelete={setDeleteModal}
+                    />
                   ))}
                 </div>
               </>
@@ -189,8 +265,12 @@ export function SavingsPage() {
           </div>
         )}
 
-        {/* Create modal */}
-        <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Buat Target Tabungan" size="sm">
+        <Modal
+          isOpen={showCreate}
+          onClose={() => setShowCreate(false)}
+          title="Buat Target Tabungan"
+          size="sm"
+        >
           <div className="space-y-4">
             <Input
               label="Nama target"
@@ -220,7 +300,41 @@ export function SavingsPage() {
           </ModalFooter>
         </Modal>
 
-        {/* Add amount modal */}
+        <Modal isOpen={!!editGoal} onClose={closeEdit} title="Edit Target Tabungan" size="sm">
+          <div className="space-y-4">
+            <Input
+              label="Nama target"
+              placeholder="Contoh: Dana darurat, Liburan"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <Input
+              label="Target nominal"
+              placeholder="Contoh: 10000000"
+              inputMode="numeric"
+              value={target}
+              onChange={(e) => setTarget(e.target.value.replace(/[^0-9]/g, ''))}
+            />
+            {editGoal ? (
+              <p className="text-xs text-muted">
+                Sudah terkumpul: {formatNominal(editGoal.savedAmount)}
+              </p>
+            ) : null}
+            <Input
+              label="Deadline (opsional)"
+              type="date"
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+            />
+          </div>
+          <ModalFooter>
+            <Button variant="ghost" onClick={closeEdit}>Batal</Button>
+            <Button variant="gradient" isLoading={updateMut.isPending} onClick={handleUpdate}>
+              Simpan perubahan
+            </Button>
+          </ModalFooter>
+        </Modal>
+
         <Modal isOpen={!!addModal} onClose={() => setAddModal(null)} title="Tambah Tabungan" size="sm">
           <p className="mb-3 text-sm text-muted">
             Tambah tabungan ke "{addModal?.name}". Sisa{' '}
@@ -241,14 +355,17 @@ export function SavingsPage() {
           </ModalFooter>
         </Modal>
 
-        {/* Delete modal */}
         <Modal isOpen={!!deleteModal} onClose={() => setDeleteModal(null)} title="Hapus Target" size="sm">
           <p className="text-muted">
             Hapus target "<strong className="text-ink">{deleteModal?.name}</strong>"?
           </p>
           <ModalFooter>
             <Button variant="ghost" onClick={() => setDeleteModal(null)}>Batal</Button>
-            <Button variant="danger" isLoading={deleteMut.isPending} onClick={() => deleteModal && deleteMut.mutate(deleteModal.id)}>
+            <Button
+              variant="danger"
+              isLoading={deleteMut.isPending}
+              onClick={() => deleteModal && deleteMut.mutate(deleteModal.id)}
+            >
               Hapus
             </Button>
           </ModalFooter>
@@ -261,10 +378,12 @@ export function SavingsPage() {
 function GoalCard({
   goal,
   onAdd,
+  onEdit,
   onDelete,
 }: {
   goal: SavingsGoal;
   onAdd: (g: SavingsGoal) => void;
+  onEdit: (g: SavingsGoal) => void;
   onDelete: (g: SavingsGoal) => void;
 }) {
   const pct = goal.percentSaved;
@@ -303,11 +422,32 @@ function GoalCard({
 
       <div className="flex gap-2">
         {!goal.isCompleted && (
-          <Button size="sm" variant="outline" leftIcon={<TrendingUp className="h-3 w-3" />} onClick={() => onAdd(goal)} className="flex-1">
+          <Button
+            size="sm"
+            variant="outline"
+            leftIcon={<TrendingUp className="h-3 w-3" />}
+            onClick={() => onAdd(goal)}
+            className="flex-1"
+          >
             Tambah
           </Button>
         )}
-        <Button size="sm" variant="ghost" onClick={() => onDelete(goal)} className="text-muted hover:text-coral">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => onEdit(goal)}
+          className="text-muted hover:text-accent"
+          aria-label="Edit target"
+        >
+          <Pencil className="h-3 w-3" />
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => onDelete(goal)}
+          className="text-muted hover:text-coral"
+          aria-label="Hapus target"
+        >
           <Trash2 className="h-3 w-3" />
         </Button>
       </div>

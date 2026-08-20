@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Card / Panel Component
+ * Dompet Tenang - Card / Panel Component
  */
 
 import { forwardRef } from 'react';

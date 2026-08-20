@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import type { User } from '../lib/auth';
 import { logout } from '../lib/auth';
+import { genderLabel } from '../lib/gender';
 import { apiClient } from '../lib/api';
 import { BrandMark, PrimaryButton } from '../components/ui';
 import { FadeInUp, ScalePress, PopIn } from '../components/motion';
@@ -127,11 +128,29 @@ export function ProfileScreen({
             <Text style={styles.email} numberOfLines={1}>
               {user.email}
             </Text>
-            {user.currency ? (
-              <View style={styles.currencyPill}>
-                <Text style={styles.currencyText}>{user.currency}</Text>
-              </View>
-            ) : null}
+            <View style={styles.metaRow}>
+              {user.currency ? (
+                <View style={styles.currencyPill}>
+                  <Text style={styles.currencyText}>{user.currency}</Text>
+                </View>
+              ) : null}
+              {genderLabel(user.gender) ? (
+                <View style={styles.currencyPill}>
+                  <Text style={styles.currencyText}>{genderLabel(user.gender)}</Text>
+                </View>
+              ) : null}
+              {user.birthDate ? (
+                <View style={styles.currencyPill}>
+                  <Text style={styles.currencyText}>
+                    {new Date(`${user.birthDate}T00:00:00`).toLocaleDateString('id-ID', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </View>
         </View>
       </PopIn>
@@ -208,11 +227,16 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
     email: { marginTop: 1, color: colors.muted, fontSize: r.ms(13) },
     currencyPill: {
       alignSelf: 'flex-start',
-      marginTop: 6,
       backgroundColor: colors.brandSoft,
       borderRadius: radii.pill,
       paddingHorizontal: 8,
       paddingVertical: 2,
+    },
+    metaRow: {
+      marginTop: 6,
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
     },
     currencyText: { color: colors.brandDark, fontWeight: '800', fontSize: r.ms(11) },
     menuBtn: {
@@ -268,6 +292,7 @@ interface FeedbackItem {
   name: string | null;
   message: string;
   rating: number;
+  isPublished?: boolean;
   createdAt: string;
 }
 
@@ -324,6 +349,22 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
       await apiClient.delete(`/admin/feedback/${id}`);
       setFeedbacks((prev) => prev.filter((f) => f.id !== id));
     } catch { /* ignore */ }
+  };
+
+  const togglePublishFeedback = async (id: string, current: boolean) => {
+    try {
+      await apiClient.patch(`/admin/feedback/${id}`, { isPublished: !current });
+      setFeedbacks((prev) =>
+        prev.map((f) => (f.id === id ? { ...f, isPublished: !current } : f))
+      );
+    } catch {
+      showDialog({
+        variant: 'error',
+        title: 'Gagal update',
+        message: 'Tidak bisa mengubah status publish testimoni.',
+        confirmLabel: 'Mengerti',
+      });
+    }
   };
 
   const tabs: { key: typeof tab; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
@@ -414,6 +455,19 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
                   )}
                   <Text style={as.fbMessage} numberOfLines={2}>"{f.message}"</Text>
                   <Text style={as.fbName}>{f.name || 'Anonim'}</Text>
+                  <Pressable
+                    onPress={() => togglePublishFeedback(f.id, !!f.isPublished)}
+                    style={[as.publishBtn, f.isPublished && as.publishBtnOn]}
+                  >
+                    <Ionicons
+                      name={f.isPublished ? 'globe' : 'globe-outline'}
+                      size={12}
+                      color={f.isPublished ? colors.onBrand : colors.brand}
+                    />
+                    <Text style={[as.publishText, f.isPublished && as.publishTextOn]}>
+                      {f.isPublished ? 'Di landing' : 'Publish'}
+                    </Text>
+                  </Pressable>
                 </View>
                 <Pressable onPress={() => deleteFeedback(f.id)} hitSlop={8}>
                   <Ionicons name="trash-outline" size={14} color={colors.dangerText} />
@@ -487,5 +541,24 @@ function adminStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
     fbStars: { flexDirection: 'row', gap: 1, marginBottom: 2 },
     fbMessage: { fontSize: 12, color: colors.text, lineHeight: 16 },
     fbName: { fontSize: 10, fontWeight: '600', color: colors.muted, marginTop: 2 },
+    publishBtn: {
+      marginTop: 6,
+      alignSelf: 'flex-start',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.brandSoftBorder,
+      backgroundColor: colors.brandSoft,
+    },
+    publishBtnOn: {
+      backgroundColor: colors.brand,
+      borderColor: colors.brand,
+    },
+    publishText: { fontSize: 10, fontWeight: '800', color: colors.brand },
+    publishTextOn: { color: colors.onBrand },
   });
 }

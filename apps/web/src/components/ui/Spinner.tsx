@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Loading Spinner
+ * Dompet Tenang - Loading Spinner
  */
 
 import { Loader2 } from 'lucide-react';

@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Application Constants
+ * Dompet Tenang - Application Constants
  */
 
 const envOrigin = (import.meta.env.VITE_API_ORIGIN as string | undefined)?.replace(/\/$/, '');
@@ -41,10 +41,10 @@ export function resolveUploadUrl(path?: string | null): string | null {
 
 // Storage Keys
 export const STORAGE_KEYS = {
-  ACCESS_TOKEN: 'duitdiary_access_token',
-  REFRESH_TOKEN: 'duitdiary_refresh_token',
-  USER: 'duitdiary_user',
-  THEME: 'duitdiary_theme',
+  ACCESS_TOKEN: 'dompettenang_access_token',
+  REFRESH_TOKEN: 'dompettenang_refresh_token',
+  USER: 'dompettenang_user',
+  THEME: 'dompettenang_theme',
 } as const;
 
 export type AppTheme = 'neo' | 'midnight' | 'ocean';
@@ -175,7 +175,7 @@ export const QUERY_KEYS = {
 
 // Validation
 export const VALIDATION = {
-  PASSWORD_MIN_LENGTH: 6,
+  PASSWORD_MIN_LENGTH: 8,
   NAME_MIN_LENGTH: 2,
   NAME_MAX_LENGTH: 100,
   DESCRIPTION_MAX_LENGTH: 500,

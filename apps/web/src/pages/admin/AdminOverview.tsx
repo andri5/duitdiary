@@ -81,7 +81,7 @@ export function AdminOverview() {
   return (
     <div>
       <h1 className="mb-1 font-display text-2xl font-extrabold text-ink">Overview</h1>
-      <p className="mb-6 text-sm text-muted">Ringkasan statistik DuitDiary</p>
+      <p className="mb-6 text-sm text-muted">Ringkasan statistik Dompet Tenang</p>
 
       {isLoading ? (
         <p className="text-muted">Memuat...</p>

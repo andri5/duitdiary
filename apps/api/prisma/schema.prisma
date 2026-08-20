@@ -26,17 +26,25 @@ enum UserRole {
   ADMIN
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 // ==================== USERS ====================
 model User {
-  id           String   @id @default(uuid())
-  name         String   @db.VarChar(100)
-  email        String   @unique @db.VarChar(255)
-  password     String   @db.VarChar(255)
-  avatar       String?  @db.VarChar(500)
-  currency     String   @default("IDR") @db.VarChar(3)
-  role         UserRole @default(USER)
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id           String    @id @default(uuid())
+  name         String    @db.VarChar(100)
+  email        String    @unique @db.VarChar(255)
+  password     String    @db.VarChar(255)
+  avatar       String?   @db.VarChar(500)
+  currency     String    @default("IDR") @db.VarChar(3)
+  gender       Gender?
+  birthDate    DateTime? @map("birth_date") @db.Date
+  role         UserRole  @default(USER)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
   // Relations
   expenses      Expense[]
@@ -49,6 +57,7 @@ model User {
   auditLogs             AuditLog[]
   visitEvents           VisitEvent[]
   featureFlags         FeatureFlag[]
+  feedback              Feedback?
 
   @@map("users")
 }
@@ -205,12 +214,18 @@ model SavingsGoal {
 
 // ==================== FEEDBACK ====================
 model Feedback {
-  id        String   @id @default(uuid())
-  name      String?  @db.VarChar(100)
-  message   String   @db.Text
-  rating    Int      @default(0)
-  createdAt DateTime @default(now()) @map("created_at")
+  id          String   @id @default(uuid())
+  userId      String?  @unique @map("user_id")
+  name        String?  @db.VarChar(100)
+  message     String   @db.Text
+  rating      Int      @default(0)
+  /// Admin can publish selected feedback as landing testimonials
+  isPublished Boolean  @default(false) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
 
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([isPublished, createdAt])
   @@map("feedback")
 }
 

@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Protected Route Component
+ * Dompet Tenang - Protected Route Component
  * Redirects to login if not authenticated
  */
 

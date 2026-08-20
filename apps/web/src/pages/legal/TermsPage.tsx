@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Syarat & Ketentuan
+ * Dompet Tenang - Syarat & Ketentuan
  */
 
 import { Link } from 'react-router-dom';
@@ -10,15 +10,15 @@ import { ROUTES } from '@/lib/constants';
 export function TermsPage() {
   return (
     <PageTransition>
-      <SEO title="Syarat & Ketentuan" description="Syarat dan ketentuan penggunaan aplikasi DuitDiary." canonical="/terms" />
-      <AuthLayout title="Syarat & Ketentuan" subtitle="Ketentuan penggunaan DuitDiary">
+      <SEO title="Syarat & Ketentuan" description="Syarat dan ketentuan penggunaan aplikasi Dompet Tenang." canonical="/terms" />
+      <AuthLayout title="Syarat & Ketentuan" subtitle="Ketentuan penggunaan Dompet Tenang">
         <div className="max-h-[70vh] space-y-4 overflow-y-auto text-sm leading-relaxed text-muted">
           <p>
-            Dengan mendaftar dan menggunakan DuitDiary, Anda menyetujui untuk memakai aplikasi
+            Dengan mendaftar dan menggunakan Dompet Tenang, Anda menyetujui untuk memakai aplikasi
             sebagai catatan keuangan pribadi secara wajar dan sesuai hukum yang berlaku.
           </p>
           <p>
-            Anda bertanggung jawab menjaga kerahasiaan akun (email dan password). DuitDiary tidak
+            Anda bertanggung jawab menjaga kerahasiaan akun (email dan password). Dompet Tenang tidak
             bertanggung jawab atas kerugian akibat kelalaian menjaga kredensial atau penggunaan
             perangkat yang tidak aman.
           </p>

@@ -1,5 +1,5 @@
 /**
- * DuitDiary - useToast Hook
+ * Dompet Tenang - useToast Hook
  * Wrapper around UI store notifications for consistent app toasts.
  */
 

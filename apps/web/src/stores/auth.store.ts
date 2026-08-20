@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Auth Store
+ * Dompet Tenang - Auth Store
  */
 
 import { create } from 'zustand';
@@ -129,7 +129,7 @@ export const useAuthStore = create<AuthStore>()(
       },
     }),
     {
-      name: 'duitdiary-auth',
+      name: 'dompettenang-auth',
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,

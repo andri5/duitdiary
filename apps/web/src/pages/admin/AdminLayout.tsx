@@ -39,7 +39,7 @@ export function AdminLayout() {
           </div>
           <div>
             <p className="font-display text-sm font-bold text-ink">Admin Panel</p>
-            <p className="text-[11px] text-muted">DuitDiary</p>
+            <p className="text-[11px] text-muted">Dompet Tenang</p>
           </div>
         </div>
 

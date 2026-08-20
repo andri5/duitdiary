@@ -7,7 +7,8 @@ export type FeatureFlagKey =
   | 'recurring_transactions'
   | 'feedback_form'
   | 'budget_alerts'
-  | 'admin_panel';
+  | 'admin_panel'
+  | 'captcha_auth';
 
 export interface FeatureFlag {
   key: FeatureFlagKey | string;

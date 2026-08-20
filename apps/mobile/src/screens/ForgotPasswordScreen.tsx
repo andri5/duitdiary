@@ -13,6 +13,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { forgotPassword } from '../lib/auth';
 import type { RootStackParamList } from '../authContext';
+import { authErrorMessage, AUTH_SAFE } from '../lib/authErrors';
+import { useCaptchaConfig } from '../lib/captcha';
+import { TurnstileCaptcha } from '../components/TurnstileCaptcha';
 import {
   BrandMark,
   AppTextInput,
@@ -54,6 +57,10 @@ export function ForgotPasswordScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
+  const { config: captcha, required: captchaRequired, error: captchaConfigError, loading: captchaLoading } =
+    useCaptchaConfig();
 
   const onSubmit = async () => {
     setError(null);
@@ -62,19 +69,22 @@ export function ForgotPasswordScreen({ navigation }: Props) {
       setError('Masukkan email.');
       return;
     }
+    if (captchaRequired && !captchaToken) {
+      setError('Selesaikan verifikasi captcha dulu.');
+      return;
+    }
     setLoading(true);
     try {
-      const result = await forgotPassword(email.trim());
-      setSuccess(result.message);
+      const result = await forgotPassword(email.trim(), captchaToken ?? undefined);
+      setSuccess(result.message || AUTH_SAFE.forgotPassword);
       const token = extractTokenFromResetUrl(result.resetUrl);
       if (token) {
         navigation.navigate('ResetPassword', { token });
       }
     } catch (e: unknown) {
-      const message =
-        (e as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Gagal mengirim link reset.';
-      setError(message);
+      setError(authErrorMessage(e, AUTH_SAFE.network));
+      setCaptchaToken(null);
+      setCaptchaReset((n) => n + 1);
     } finally {
       setLoading(false);
     }
@@ -130,12 +140,35 @@ export function ForgotPasswordScreen({ navigation }: Props) {
             onChangeText={setEmail}
           />
 
+          {captchaLoading ? (
+            <Text style={{ color: colors.muted, fontSize: r.ms(12), fontWeight: '600', marginBottom: 10 }}>
+              Memuat captcha…
+            </Text>
+          ) : null}
+          {captcha?.misconfigured ? (
+            <Text style={{ color: colors.amber, fontSize: r.ms(12), fontWeight: '700', marginBottom: 10 }}>
+              Captcha aktif di admin, tetapi kunci Turnstile belum diset di server.
+            </Text>
+          ) : null}
+          {captchaConfigError ? (
+            <Text style={{ color: colors.expense, fontSize: r.ms(12), fontWeight: '700', marginBottom: 10 }}>
+              {captchaConfigError}. Pastikan HP satu Wi‑Fi dengan PC dan API jalan.
+            </Text>
+          ) : null}
+          {captchaRequired && captcha?.siteKey ? (
+            <TurnstileCaptcha
+              siteKey={captcha.siteKey}
+              onToken={setCaptchaToken}
+              resetKey={captchaReset}
+            />
+          ) : null}
+
           <PrimaryButton
             label="Kirim link reset"
             icon="send-outline"
             onPress={onSubmit}
             loading={loading}
-            disabled={loading}
+            disabled={loading || (captchaRequired && !captchaToken)}
           />
         </Card>
 

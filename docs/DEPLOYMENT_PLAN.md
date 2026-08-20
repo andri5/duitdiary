@@ -1,4 +1,4 @@
-# 🚀 DuitDiary - Production Deployment Plan
+# 🚀 Dompet Tenang - Production Deployment Plan
 
 **Version**: 1.0.0  
 **Date**: December 31, 2025  
@@ -86,7 +86,7 @@ Result: ✅ Web LIVE + Mobile ready in 1 week
 ```bash
 # 1. Connect GitHub repo to Vercel
 # 2. Set environment variables:
-VITE_API_URL=https://api.duitdiary.app
+VITE_API_URL=https://api.Dompet Tenang.app
 
 # 3. Deploy
 # Auto-deploys on git push to main

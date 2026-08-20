@@ -1,8 +1,10 @@
 /**
- * DuitDiary - Type Definitions
+ * Dompet Tenang - Type Definitions
  */
 
 export type TransactionType = 'EXPENSE' | 'INCOME';
+
+export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
 
 export interface User {
   id: string;
@@ -10,6 +12,8 @@ export interface User {
   name: string;
   avatar?: string | null;
   currency?: string;
+  gender?: Gender | null;
+  birthDate?: string | null;
   role?: 'USER' | 'ADMIN';
   createdAt: string;
   updatedAt?: string;
@@ -23,12 +27,16 @@ export interface AuthTokens {
 export interface LoginCredentials {
   email: string;
   password: string;
+  captchaToken?: string;
 }
 
 export interface RegisterData {
   email: string;
   password: string;
   name: string;
+  gender: Gender;
+  birthDate: string;
+  captchaToken?: string;
 }
 
 export interface Category {

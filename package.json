@@ -1,7 +1,7 @@
 {
-  "name": "duitdiary",
+  "name": "dompettenang",
   "version": "1.0.0",
-  "description": "Personal Finance Management App",
+  "description": "Personal Finance Management App — Dompet Tenang",
   "private": true,
   "engines": {
     "node": ">=18"
@@ -17,7 +17,7 @@
     "lint": "npm run lint --workspaces",
     "api": "npm --workspace apps/api run dev",
     "web": "npm --workspace apps/web run dev",
-    "mobile": "npm --workspace duitdiary run start"
+    "mobile": "npm --workspace apps/mobile run start"
   },
   "keywords": [
     "finance",

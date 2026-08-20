@@ -13,6 +13,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { resetPassword } from '../lib/auth';
 import type { RootStackParamList } from '../authContext';
+import { authErrorMessage, AUTH_SAFE } from '../lib/authErrors';
 import {
   BrandMark,
   AppTextInput,
@@ -43,15 +44,19 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
 
   const effectiveToken = token || tokenInput.trim();
 
+  const isStrongPassword = (pwd: string) => {
+    return pwd.length >= 8 && /[A-Za-z]/.test(pwd) && /\d/.test(pwd);
+  };
+
   const onSubmit = async () => {
     setError(null);
     setSuccess(null);
     if (!effectiveToken) {
-      setError('Token reset tidak valid. Ajukan ulang lupa password.');
+      setError(AUTH_SAFE.resetInvalid);
       return;
     }
-    if (password.length < 6) {
-      setError('Password baru minimal 6 karakter.');
+    if (!isStrongPassword(password)) {
+      setError('Password minimal 8 karakter dan mengandung huruf serta angka.');
       return;
     }
     if (password !== confirm) {
@@ -64,10 +69,7 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
       setSuccess(message);
       setTimeout(() => navigation.navigate('Login'), 1200);
     } catch (e: unknown) {
-      const message =
-        (e as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Gagal mengatur password baru.';
-      setError(message);
+      setError(authErrorMessage(e, AUTH_SAFE.resetInvalid));
     } finally {
       setLoading(false);
     }
@@ -126,7 +128,7 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
 
           <FormLabel>Password baru</FormLabel>
           <PasswordInput
-            placeholder="Minimal 6 karakter"
+            placeholder="Min. 8 karakter + huruf & angka"
             value={password}
             onChangeText={setPassword}
             autoComplete="new-password"

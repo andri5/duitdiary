@@ -202,7 +202,7 @@ export function TransactionsScreen() {
       <FadeInUp>
         <View style={styles.topBar}>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.kicker}>DuitDiary</Text>
+            <Text style={styles.kicker}>Dompet Tenang</Text>
             <Text style={styles.title}>Transaksi</Text>
             <Text style={styles.sub}>{total > 0 ? `${total} hasil` : 'Pemasukan & pengeluaran'}</Text>
           </View>

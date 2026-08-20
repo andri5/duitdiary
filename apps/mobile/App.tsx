@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -28,7 +28,7 @@ import { AuthContext, type RootStackParamList } from './src/authContext';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const linking: LinkingOptions<RootStackParamList> = {
-  prefixes: [Linking.createURL('/'), 'duitdiary://'],
+  prefixes: [Linking.createURL('/'), 'dompettenang://'],
   config: {
     screens: {
       Welcome: 'welcome',
@@ -79,11 +79,18 @@ function AppInner() {
   if (booting) {
     return (
       <View style={styles.boot}>
-        <View style={styles.splashIcon}>
-          <Ionicons name="wallet" size={36} color="#fff" />
+        <View style={styles.glowA} pointerEvents="none" />
+        <View style={styles.glowB} pointerEvents="none" />
+        <View style={styles.brandRow}>
+          <View style={styles.logoBox}>
+            <Ionicons name="wallet" size={28} color="#07111f" />
+          </View>
+          <View>
+            <Text style={styles.splashName}>Dompet Tenang</Text>
+            <Text style={styles.splashBrandTag}>FINANCE OS</Text>
+          </View>
         </View>
-        <Text style={styles.splashName}>DuitDiary</Text>
-        <Text style={styles.splashTag}>Diary Keuanganmu</Text>
+        <Text style={styles.splashTag}>Catat keuangan dengan tenang</Text>
       </View>
     );
   }
@@ -140,7 +147,7 @@ export default function App() {
   );
 }
 
-function createStyles(colors: ThemeColors) {
+function createStyles(_colors: ThemeColors) {
   return StyleSheet.create({
     boot: {
       flex: 1,
@@ -148,14 +155,36 @@ function createStyles(colors: ThemeColors) {
       justifyContent: 'center',
       backgroundColor: '#07111f',
     },
-    splashIcon: {
-      width: 72,
-      height: 72,
-      borderRadius: 22,
-      backgroundColor: colors.brand,
+    glowA: {
+      position: 'absolute',
+      top: -40,
+      left: -60,
+      width: 260,
+      height: 260,
+      borderRadius: 130,
+      backgroundColor: 'rgba(28, 200, 180, 0.28)',
+    },
+    glowB: {
+      position: 'absolute',
+      bottom: 40,
+      right: -80,
+      width: 280,
+      height: 280,
+      borderRadius: 140,
+      backgroundColor: 'rgba(15, 155, 142, 0.22)',
+    },
+    brandRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+    },
+    logoBox: {
+      width: 56,
+      height: 56,
+      borderRadius: 18,
+      backgroundColor: '#1cc8b4',
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 16,
     },
     splashName: {
       color: '#fff',
@@ -163,11 +192,18 @@ function createStyles(colors: ThemeColors) {
       fontWeight: '800',
       letterSpacing: -0.5,
     },
+    splashBrandTag: {
+      color: 'rgba(255,255,255,0.55)',
+      fontSize: 10,
+      fontWeight: '700',
+      letterSpacing: 1.6,
+      marginTop: 2,
+    },
     splashTag: {
       color: 'rgba(255,255,255,0.5)',
       fontSize: 13,
       fontWeight: '600',
-      marginTop: 4,
+      marginTop: 16,
     },
   });
 }

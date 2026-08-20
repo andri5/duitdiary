@@ -1,6 +1,6 @@
 /**
  * ============================================
- * DuitDiary API - JWT Utilities
+ * Dompet Tenang API - JWT Utilities
  * ============================================
  * Token generation and verification utilities.
  * Handles access tokens and refresh tokens.

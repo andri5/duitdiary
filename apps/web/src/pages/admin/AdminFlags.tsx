@@ -53,6 +53,13 @@ export function AdminFlags() {
                     {flag.description && (
                       <p className="mt-1 text-sm text-muted">{flag.description}</p>
                     )}
+                    {flag.key === 'captcha_auth' && (
+                      <p className="mt-1 text-xs text-muted">
+                        Butuh <span className="font-mono">TURNSTILE_SITE_KEY</span> &{' '}
+                        <span className="font-mono">TURNSTILE_SECRET_KEY</span> di API. Berlaku di
+                        Login, Register & Lupa Password (web + mobile).
+                      </p>
+                    )}
                   </div>
                 </div>
                 <button

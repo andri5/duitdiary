@@ -42,7 +42,7 @@ export function BrandMark({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
             size === 'lg' && { fontSize: 16 },
           ]}
         >
-          DuitDiary
+          Dompet Tenang
         </Text>
         {size === 'lg' ? <Text style={styles.brandTag}>Finance OS</Text> : null}
       </View>

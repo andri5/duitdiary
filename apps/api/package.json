@@ -1,7 +1,7 @@
 {
-  "name": "duitdiary-api",
+  "name": "dompettenang-api",
   "version": "1.0.0",
-  "description": "DuitDiary - Backend API for expense tracking application",
+  "description": "Dompet Tenang - Backend API for expense tracking application",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -18,7 +18,7 @@
   },
   "keywords": [
     "expense-tracker",
-    "duitdiary",
+    "dompettenang",
     "finance"
   ],
   "author": "",

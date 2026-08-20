@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Receipt image / PDF preview modal
+ * Dompet Tenang - Receipt image / PDF preview modal
  */
 
 import { ExternalLink, FileText } from 'lucide-react';

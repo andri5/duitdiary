@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Category Service
+ * Dompet Tenang - Category Service
  * API calls for category management
  */
 

@@ -1,6 +1,6 @@
 /**
  * ============================================
- * DuitDiary API - Utilities Index
+ * Dompet Tenang API - Utilities Index
  * ============================================
  * Central export point for all utility modules.
  * Import utilities from this file for clean imports.

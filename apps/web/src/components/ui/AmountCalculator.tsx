@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Amount Calculator Modal
+ * Dompet Tenang - Amount Calculator Modal
  */
 
 import { useEffect, useState, type ReactNode } from 'react';

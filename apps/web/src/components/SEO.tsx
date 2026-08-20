@@ -11,16 +11,16 @@ interface SEOProps {
   jsonLd?: Record<string, unknown>;
 }
 
-const SITE_NAME = 'DuitDiary';
+const SITE_NAME = 'Dompet Tenang';
 const DEFAULT_DESC =
   'Aplikasi pencatatan keuangan pribadi. Catat pemasukan, pengeluaran, budget, dan target tabungan dengan mudah.';
 const DEFAULT_OG_IMAGE = '/og-image.png';
-const BASE_URL = 'https://duitdiary.app';
+const BASE_URL = 'https://dompettenang.app';
 
 export function SEO({
   title,
   description = DEFAULT_DESC,
-  keywords = 'catat keuangan, aplikasi keuangan, pengeluaran, pemasukan, budget, tabungan, DuitDiary',
+  keywords = 'catat keuangan, aplikasi keuangan, pengeluaran, pemasukan, budget, tabungan, Dompet Tenang',
   ogImage = DEFAULT_OG_IMAGE,
   ogType = 'website',
   canonical,

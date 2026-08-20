@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Main Layout
+ * Dompet Tenang - Main Layout
  * Desktop rail + mobile bottom navigation
  */
 
@@ -199,7 +199,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 className="min-w-0"
               >
                 <p className="font-display text-lg font-bold leading-none tracking-[-0.04em]">
-                  DuitDiary
+                  Dompet Tenang
                 </p>
                 <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-white/55">
                   Finance OS
@@ -435,7 +435,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               <Wallet className="h-4 w-4" />
             </div>
             <span className="truncate font-display text-base font-bold tracking-[-0.04em] text-ink sm:text-lg">
-              DuitDiary
+              Dompet Tenang
             </span>
           </Link>
           <button

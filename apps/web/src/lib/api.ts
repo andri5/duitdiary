@@ -55,10 +55,14 @@ const AUTH_NO_REFRESH_PATHS = [
 
 /** Frontend routes where a failed session must NOT hard-redirect to login */
 const NO_LOGIN_REDIRECT_PATHS = [
+  '/',
   '/login',
   '/register',
   '/forgot-password',
   '/reset-password',
+  '/terms',
+  '/privacy',
+  '/help',
   '/maintenance',
   '/404',
 ];
@@ -69,9 +73,10 @@ function isAuthCredentialRequest(url?: string): boolean {
 }
 
 function shouldRedirectToLogin(): boolean {
-  const path = window.location.pathname;
-  return !NO_LOGIN_REDIRECT_PATHS.some(
-    (p) => path === p || path.startsWith(`${p}/`)
+  const path = window.location.pathname || '/';
+  // Exact match for home; prefix match for nested public routes
+  return !NO_LOGIN_REDIRECT_PATHS.some((p) =>
+    p === '/' ? path === '/' : path === p || path.startsWith(`${p}/`)
   );
 }
 

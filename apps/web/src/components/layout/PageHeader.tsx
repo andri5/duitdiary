@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Page Header
+ * Dompet Tenang - Page Header
  */
 
 import type { ReactNode } from 'react';

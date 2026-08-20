@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Main App Component
+ * Dompet Tenang - Main App Component
  */
 
 import { useEffect } from 'react';

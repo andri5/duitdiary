@@ -1,10 +1,10 @@
 /**
  * ============================================
- * DuitDiary API - Main Entry Point
+ * Dompet Tenang API - Main Entry Point
  * ============================================
  * Express.js server initialization and configuration.
  * 
- * @author DuitDiary Team
+ * @author Dompet Tenang Team
  * @version 1.0.0
  * @see README.md for documentation
  * ============================================
@@ -103,7 +103,7 @@ app.get('/api/v1/docs', (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: '🚀 DuitDiary API - Diary Keuanganmu Setiap Hari',
+    message: '🚀 Dompet Tenang API — Catat keuanganmu dengan tenang',
     version: '1.0.0',
     docs: '/api/v1/health',
   });
@@ -129,13 +129,13 @@ app.use((req, res) => {
 
 const PORT = config.port;
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log('');
   console.log('╔═══════════════════════════════════════════════════════╗');
   console.log('║                                                       ║');
-  console.log('║   🚀 DuitDiary API Server                            ║');
+  console.log('║   🚀 Dompet Tenang API Server                       ║');
   console.log('║   ─────────────────────────────────────────────────   ║');
-  console.log(`║   📡 Running on: http://localhost:${PORT}              ║`);
+  console.log(`║   📡 Running on: http://0.0.0.0:${PORT}                ║`);
   console.log(`║   🌍 Environment: ${config.nodeEnv.padEnd(28)}║`);
   console.log('║   📚 API Docs: /api/v1/health                        ║');
   console.log('║                                                       ║');

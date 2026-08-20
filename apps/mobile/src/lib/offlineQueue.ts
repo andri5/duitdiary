@@ -6,7 +6,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { createTransaction, updateTransaction } from './finance';
 
-const QUEUE_KEY = 'dd_offline_queue';
+const QUEUE_KEY = 'dt_offline_queue';
 
 export type OfflineAction =
   | {

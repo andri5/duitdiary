@@ -1,4 +1,4 @@
-# � DuitDiary - Comprehensive Project Plan
+# � Dompet Tenang - Comprehensive Project Plan
 
 **Version**: 1.1.0  
 **Last Updated**: January 1, 2026 - DEVELOPMENT & TESTING 100% COMPLETE ✅
@@ -1163,7 +1163,7 @@ By end of Friday Jan 8, 2026:
 
 ### 🎯 Project Goals
 
-Build DuitDiary - a comprehensive personal finance management application with:
+Build Dompet Tenang - a comprehensive personal finance management application with:
 - Web application for desktop users
 - Mobile application for iOS/Android
 - Secure backend API
@@ -1204,7 +1204,7 @@ Build DuitDiary - a comprehensive personal finance management application with:
 
 **Monorepo Structure:**
 ```
-duitdiary/
+Dompet Tenang/
 ├── apps/
 │   ├── api/              # Express + Prisma backend
 │   ├── web/              # React + Vite frontend
@@ -1665,7 +1665,7 @@ All pages and components (already built)
 | No | Nama | Arti/Konsep | Kelebihan |
 |----|------|-------------|-----------|
 | 11 | **CatatCuan** | Catat + Cuan | Langsung jelas, catchy |
-| 12 | **DuitDiary** | Diary pengeluaran | Personal, daily journaling vibe |
+| 12 | **Dompet Tenang** | Diary pengeluaran | Personal, daily journaling vibe |
 | 13 | **RupiahTrack** | Tracking rupiah | Profesional, clear purpose |
 | 14 | **BukuKas** | Buku kas digital | Tradisional tapi digital |
 | 15 | **PennyWise** | Bijak dalam pengeluaran | International feel, wise spending |
@@ -1698,7 +1698,7 @@ All pages and components (already built)
 |------|------|--------|
 | 🥇 | **Cuan.id** | Modern, Gen-Z friendly, memorable, bagus untuk branding |
 | 🥈 | **Sakuku** | Cute, personal, mudah diucapkan, cocok untuk semua umur |
-| 🥉 | **Duitdiary** | Personal touch, daily journaling vibe, unique |
+| 🥉 | **Dompet Tenang** | Personal touch, daily journaling vibe, unique |
 | 4 | **Rekapp** | Unik, menggambarkan fungsi, mudah diingat |
 | 5 | **Finora** | Premium, elegant, cocok jika target market profesional |
 
@@ -1734,7 +1734,7 @@ Pertimbangkan hal berikut saat memilih:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                                                             │
-│   NAMA TERPILIH: DuitDiary ✅                              │
+│   NAMA TERPILIH: Dompet Tenang ✅                              │
 │                                                             │
 │   Tagline: "Diary Keuanganmu Setiap Hari"                  │
 │                                                             │
@@ -1743,7 +1743,7 @@ Pertimbangkan hal berikut saat memilih:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Nama Dipilih: DuitDiary** 🎉
+**Nama Dipilih: Dompet Tenang** 🎉
 
 ---
 
@@ -2039,7 +2039,7 @@ Post-Launch: Future (P3)
 ### Base URL
 ```
 Development: http://localhost:3000/api/v1
-Production:  https://api.duitdiary.com/v1
+Production:  https://api.Dompet Tenang.com/v1
 ```
 
 ### Authentication Header
@@ -2853,7 +2853,7 @@ CREATE TABLE category_budgets (
 | 29 Dec 2024 | Implement Expense API (CRUD + Filter + Pagination) | ✅ Done |
 | 29 Dec 2024 | Implement Dashboard API (Summary) | ✅ Done |
 | 29 Dec 2024 | PostgreSQL 18.1 installed | ✅ Done |
-| 29 Dec 2024 | Database duitdiary created & seeded | ✅ Done |
+| 29 Dec 2024 | Database Dompet Tenang created & seeded | ✅ Done |
 | 29 Dec 2024 | **API Testing Complete** | ✅ Done |
 | 29 Dec 2024 | **Code Refactoring & Documentation** | ✅ Done |
 | 29 Dec 2024 | **Web Frontend: Setup Vite + React + TailwindCSS** | ✅ Done |
@@ -3285,7 +3285,7 @@ Caption:     text-sm (14px) font-normal
 | 2 | Glass Card Effect | ✅ Done | Backdrop blur + semi-transparent |
 | 3 | Icon Input Fields | ✅ Done | Mail icon, Lock icon dengan glass variant |
 | 4 | Gradient Button | ✅ Done | Hover animation + loading state |
-| 5 | App Logo/Branding | ✅ Done | DuitDiary logo dengan tagline |
+| 5 | App Logo/Branding | ✅ Done | Dompet Tenang logo dengan tagline |
 | 6 | Ilustrasi/Graphic | ⏳ Pending | Finance-related illustration |
 | 7 | Remember Me Toggle | ✅ Done | Custom styled checkbox |
 | 8 | Link Styling | ✅ Done | Forgot password, Register links |
@@ -3445,7 +3445,7 @@ xl:   1280px  /* Extra large devices (desktops) */
 ┌────────────────────┐
 │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│
 │                    │
-│   🪙 DuitDiary     │
+│   🪙 Dompet Tenang     │
 │                    │
 │ ┌────────────────┐ │
 │ │ 📧 Email       │ │
@@ -3501,7 +3501,7 @@ xl:   1280px  /* Extra large devices (desktops) */
 **Desktop Dashboard Layout:**
 ```
 ┌──────────────────────────────────────────────────────┐
-│  🪙 DuitDiary    🔍 Search...         🔔  👤 John   │
+│  🪙 Dompet Tenang    🔍 Search...         🔔  👤 John   │
 ├─────────┬────────────────────────────────────────────┤
 │         │  Welcome back, John! 👋                    │
 │  🏠 Home│                                            │
@@ -3669,7 +3669,7 @@ xl:   1280px  /* Extra large devices (desktops) */
 │  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │
 │                                                             │
 │              ┌─────────────────────────┐                    │
-│              │   🪙 DuitDiary          │ ← Glass Card      │
+│              │   🪙 Dompet Tenang          │ ← Glass Card      │
 │              │   "Track your money"    │                    │
 │              │                         │                    │
 │              │   ┌───────────────────┐ │                    │

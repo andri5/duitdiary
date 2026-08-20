@@ -40,7 +40,7 @@ export function WelcomeScreen({ navigation }: Props) {
               </View>
             </PulseGlow>
             <View>
-              <Text style={styles.brandName}>DuitDiary</Text>
+              <Text style={styles.brandName}>Dompet Tenang</Text>
               <Text style={styles.brandTag}>Finance OS</Text>
             </View>
           </View>
@@ -85,7 +85,7 @@ export function WelcomeScreen({ navigation }: Props) {
           </Pressable>
 
           <Text style={styles.footer}>
-            DuitDiary © {new Date().getFullYear()} — catat lebih cerdas
+            Dompet Tenang © {new Date().getFullYear()} — catat dengan tenang
           </Text>
         </FadeInUp>
       </View>

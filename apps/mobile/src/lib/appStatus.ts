@@ -1,4 +1,4 @@
-type StatusKind = 'offline' | 'maintenance';
+type StatusKind = 'offline' | 'server' | 'maintenance';
 
 type StatusEvent = { type: StatusKind; message?: string };
 

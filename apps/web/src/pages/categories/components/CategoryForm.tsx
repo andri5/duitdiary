@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Category Form Component
+ * Dompet Tenang - Category Form Component
  */
 
 import { useEffect } from 'react';

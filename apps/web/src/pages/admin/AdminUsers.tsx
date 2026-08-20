@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Shield, ShieldOff, Trash2 } from 'lucide-react';
+import { Loader2, Shield, ShieldOff, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 import { Card, Button, Modal, ModalFooter, Badge } from '@/components/ui';
 import { useToast } from '@/hooks/useToast';
@@ -93,16 +93,19 @@ export function AdminUsers() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
                         <button
+                          disabled={roleMut.isPending}
                           onClick={() =>
                             roleMut.mutate({
                               id: u.id,
                               role: u.role === 'ADMIN' ? 'USER' : 'ADMIN',
                             })
                           }
-                          className="rounded-lg p-1.5 text-muted transition hover:bg-violet-100 hover:text-violet-600"
+                          className="rounded-lg p-1.5 text-muted transition hover:bg-violet-100 hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-60"
                           title={u.role === 'ADMIN' ? 'Jadikan User' : 'Jadikan Admin'}
                         >
-                          {u.role === 'ADMIN' ? (
+                          {roleMut.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : u.role === 'ADMIN' ? (
                             <ShieldOff className="h-4 w-4" />
                           ) : (
                             <Shield className="h-4 w-4" />

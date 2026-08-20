@@ -13,7 +13,7 @@ export function MaintenancePage() {
       <StatusPageShell
         badge="Maintenance"
         title="Sedang dalam perawatan"
-        description="DuitDiary sementara tidak bisa diakses sementara kami menyiapkan peningkatan. Data kamu aman — silakan coba lagi beberapa saat lagi."
+        description="Dompet Tenang sementara tidak bisa diakses sementara kami menyiapkan peningkatan. Data kamu aman — silakan coba lagi beberapa saat lagi."
         icon={<Construction className="h-7 w-7" />}
         actions={
           <Button

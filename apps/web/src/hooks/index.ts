@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Custom Hooks Index
+ * Dompet Tenang - Custom Hooks Index
  */
 
 export { useCategories, useCategoryMutations } from './useCategories';
@@ -11,3 +11,5 @@ export { useMarketRates } from './useMarketRates';
 export { useAuthenticatedFileUrl } from './useAuthenticatedFileUrl';
 export { useFeatureFlags, useFeatureEnabled } from './useFeatureFlags';
 export type { FeatureFlag, FeatureFlagKey } from './useFeatureFlags';
+export { useCaptchaConfig } from './useCaptchaConfig';
+export type { CaptchaPublicConfig } from './useCaptchaConfig';

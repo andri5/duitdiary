@@ -6,6 +6,50 @@ import type { AuthenticatedRequest } from '../types/index.js';
 
 const router = Router();
 
+/** Public: published testimonials for landing page */
+router.get('/testimonials', async (_req: Request, res: Response) => {
+  const items = await prisma.feedback.findMany({
+    where: { isPublished: true },
+    orderBy: { createdAt: 'desc' },
+    take: 12,
+    select: {
+      id: true,
+      name: true,
+      message: true,
+      rating: true,
+      createdAt: true,
+      user: {
+        select: {
+          gender: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  const genderLabel = (g: 'MALE' | 'FEMALE' | 'OTHER' | null | undefined) => {
+    if (g === 'MALE') return 'Laki-laki';
+    if (g === 'FEMALE') return 'Perempuan';
+    if (g === 'OTHER') return 'Lainnya';
+    return null;
+  };
+
+  res.json({
+    success: true,
+    data: items.map((f) => {
+      const gender = genderLabel(f.user?.gender ?? null);
+      return {
+        id: f.id,
+        name: f.name?.trim() || f.user?.name?.trim() || 'Anonim',
+        role: gender ? `Pengguna · ${gender}` : 'Pengguna',
+        gender,
+        text: f.message,
+        stars: Math.min(5, Math.max(0, f.rating || 0)),
+      };
+    }),
+  });
+});
+
 router.get('/status', authMiddleware, async (req: Request, res: Response) => {
   const { userId } = (req as AuthenticatedRequest).user!;
   const existing = await prisma.feedback.findUnique({

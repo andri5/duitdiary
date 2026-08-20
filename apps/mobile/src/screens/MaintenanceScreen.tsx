@@ -33,7 +33,7 @@ export function MaintenanceScreen({ onRetry }: { onRetry?: () => void }) {
         <Text style={styles.badge}>Maintenance</Text>
         <Text style={styles.title}>Sedang dalam perawatan</Text>
         <Text style={styles.body}>
-          DuitDiary sementara tidak bisa diakses sementara kami menyiapkan peningkatan. Data kamu
+          Dompet Tenang sementara tidak bisa diakses sementara kami menyiapkan peningkatan. Data kamu
           aman — silakan coba lagi beberapa saat lagi.
         </Text>
         {onRetry ? (

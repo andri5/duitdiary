@@ -4,6 +4,8 @@
 
 import { api, clearTokens, saveTokens } from './api';
 
+export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
+
 export type User = {
   id: string;
   name: string;
@@ -11,6 +13,8 @@ export type User = {
   avatar?: string | null;
   currency?: string;
   role?: 'USER' | 'ADMIN';
+  gender?: Gender | null;
+  birthDate?: string | null;
 };
 
 export type AuthResult = {
@@ -19,8 +23,12 @@ export type AuthResult = {
   refreshToken: string;
 };
 
-export async function login(email: string, password: string): Promise<AuthResult> {
-  const { data } = await api.post('/auth/login', { email, password });
+export async function login(email: string, password: string, captchaToken?: string): Promise<AuthResult> {
+  const { data } = await api.post('/auth/login', {
+    email,
+    password,
+    ...(captchaToken ? { captchaToken } : {}),
+  });
   const result = data.data as AuthResult;
   await saveTokens(result.accessToken, result.refreshToken);
   return result;
@@ -29,9 +37,21 @@ export async function login(email: string, password: string): Promise<AuthResult
 export async function register(
   name: string,
   email: string,
-  password: string
+  password: string,
+  options?: {
+    gender: Gender;
+    birthDate: string;
+    captchaToken?: string;
+  }
 ): Promise<AuthResult> {
-  const { data } = await api.post('/auth/register', { name, email, password });
+  const { data } = await api.post('/auth/register', {
+    name,
+    email,
+    password,
+    gender: options?.gender,
+    birthDate: options?.birthDate,
+    ...(options?.captchaToken ? { captchaToken: options.captchaToken } : {}),
+  });
   const result = data.data as AuthResult;
   await saveTokens(result.accessToken, result.refreshToken);
   return result;
@@ -51,9 +71,13 @@ export async function logout(): Promise<void> {
 }
 
 export async function forgotPassword(
-  email: string
+  email: string,
+  captchaToken?: string
 ): Promise<{ message: string; resetUrl?: string }> {
-  const { data } = await api.post('/auth/forgot-password', { email });
+  const { data } = await api.post('/auth/forgot-password', {
+    email,
+    ...(captchaToken ? { captchaToken } : {}),
+  });
   return {
     message: (data.message as string) || 'Jika email terdaftar, link reset akan dikirim.',
     resetUrl: (data.data as { resetUrl?: string } | undefined)?.resetUrl,
@@ -68,6 +92,8 @@ export async function resetPassword(token: string, password: string): Promise<st
 export async function updateProfile(input: {
   name?: string;
   currency?: string;
+  gender?: Gender | null;
+  birthDate?: string | null;
 }): Promise<User> {
   const { data } = await api.put('/auth/profile', input);
   return data.data as User;

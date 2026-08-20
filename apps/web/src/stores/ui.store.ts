@@ -1,5 +1,5 @@
 /**
- * DuitDiary - UI Store
+ * Dompet Tenang - UI Store
  * Zustand store for UI state (sidebar, modals, notifications, theme)
  */
 
@@ -112,7 +112,7 @@ export const useUIStore = create<UIStore>()(
       },
     }),
     {
-      name: 'duitdiary-ui',
+      name: 'dompettenang-ui',
       partialize: (state) => ({
         theme: state.theme,
         isSidebarOpen: state.isSidebarOpen,

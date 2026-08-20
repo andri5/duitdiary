@@ -39,7 +39,7 @@ export function exportReportToExcel({ summary, transactions, periodLabel }: Expo
   const rows = buildRows(transactions);
 
   const summarySheet = XLSX.utils.aoa_to_sheet([
-    ['DuitDiary — Laporan Keuangan'],
+    ['Dompet Tenang — Laporan Keuangan'],
     ['Periode', periodLabel],
     ['Rentang', `${summary.periodStart} s/d ${summary.periodEnd}`],
     [],
@@ -81,7 +81,7 @@ export function exportReportToExcel({ summary, transactions, periodLabel }: Expo
   XLSX.utils.book_append_sheet(workbook, summarySheet, 'Ringkasan');
   XLSX.utils.book_append_sheet(workbook, detailSheet, 'Transaksi');
 
-  XLSX.writeFile(workbook, `duitdiary-laporan-${fileStamp()}.xlsx`);
+  XLSX.writeFile(workbook, `dompet-tenang-laporan-${fileStamp()}.xlsx`);
 }
 
 export function exportReportToPdf({ summary, transactions, periodLabel }: ExportReportInput) {
@@ -89,7 +89,7 @@ export function exportReportToPdf({ summary, transactions, periodLabel }: Export
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
   doc.setFontSize(16);
-  doc.text('DuitDiary — Laporan Keuangan', 14, 16);
+  doc.text('Dompet Tenang — Laporan Keuangan', 14, 16);
   doc.setFontSize(10);
   doc.setTextColor(80);
   doc.text(`Periode: ${periodLabel} (${summary.periodStart} s/d ${summary.periodEnd})`, 14, 23);
@@ -144,5 +144,5 @@ export function exportReportToPdf({ summary, transactions, periodLabel }: Export
     },
   });
 
-  doc.save(`duitdiary-laporan-${fileStamp()}.pdf`);
+  doc.save(`dompet-tenang-laporan-${fileStamp()}.pdf`);
 }

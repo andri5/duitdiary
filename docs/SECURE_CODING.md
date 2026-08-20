@@ -415,7 +415,7 @@ import winston from 'winston';
 export const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: winston.format.json(),
-  defaultMeta: { service: 'duitdiary-api' },
+  defaultMeta: { service: 'Dompet Tenang-api' },
   transports: [
     // ✅ DO: Log errors to file
     new winston.transports.File({

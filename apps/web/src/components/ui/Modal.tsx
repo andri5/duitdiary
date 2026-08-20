@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Modal Component
+ * Dompet Tenang - Modal Component
  */
 
 import type { ReactNode } from 'react';

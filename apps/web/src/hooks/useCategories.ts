@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Category Hooks
+ * Dompet Tenang - Category Hooks
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';

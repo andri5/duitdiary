@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Expense / Income Service
+ * Dompet Tenang - Expense / Income Service
  */
 
 import api from '@/lib/api';

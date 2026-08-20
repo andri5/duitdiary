@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Help / Bantuan Page
+ * Dompet Tenang - Help / Bantuan Page
  */
 
 import { useState } from 'react';
@@ -179,7 +179,7 @@ const helpSections: HelpSection[] = [
     title: 'Akun & Keamanan',
     summary: 'Daftar, masuk, dan pulihkan akses jika lupa password.',
     points: [
-      'Daftar dengan nama, email, dan password (minimal 6 karakter).',
+      'Daftar dengan nama, email, dan password (min. 8 karakter, huruf + angka).',
       'Di halaman login, gunakan Lupa password? untuk mengajukan reset.',
       'Ikuti tautan reset, buat password baru, lalu masuk kembali.',
       'Setelah password diganti, sesi lama di perangkat lain ikut diakhiri demi keamanan.',
@@ -281,7 +281,7 @@ export function HelpPage() {
         <PageHeader
           eyebrow="Panduan"
           title="Bantuan"
-          description="Penjelasan singkat tiap fitur penting di DuitDiary agar kamu lebih cepat mahir mencatat keuangan."
+          description="Penjelasan singkat tiap fitur penting di Dompet Tenang agar kamu lebih cepat mahir mencatat keuangan."
         />
 
         <Card padding="md" className="mb-5 border-accent/20 bg-gradient-to-br from-accent-soft/50 to-surface">

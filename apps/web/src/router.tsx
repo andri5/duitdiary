@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Router Configuration
+ * Dompet Tenang - Router Configuration
  */
 
 import { createBrowserRouter, Navigate } from 'react-router-dom';

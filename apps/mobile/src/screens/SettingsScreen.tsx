@@ -15,9 +15,10 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { updateProfile, changePassword, getMe } from '../lib/auth';
-import { apiClient } from '../lib/api';
+import { updateProfile, changePassword } from '../lib/auth';
+import { GENDER_OPTIONS, type Gender } from '../lib/gender';
 import { getFeedbackStatus, submitFeedback } from '../lib/feedback';
+import { authErrorMessage, AUTH_SAFE } from '../lib/authErrors';
 import { useAuth } from '../authContext';
 import { authImageSource, uploadAvatar } from '../lib/upload';
 import { PasswordInput, AppTextInput } from '../components/ui';
@@ -27,6 +28,7 @@ import { THEME_OPTIONS, radii, type ThemeColors } from '../theme';
 import { useColors, useTheme } from '../themeContext';
 import { useResponsive } from '../hooks/useResponsive';
 import type { MainStackParamList } from '../navigation/types';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 type Props = NativeStackScreenProps<MainStackParamList, 'Settings'>;
 
@@ -60,11 +62,13 @@ export function SettingsScreen({ navigation }: Props) {
   const r = useResponsive();
   const styles = useMemo(() => createStyles(colors, r), [colors, r]);
   const savingPasswordRef = useRef(false);
-  const savingRoleRef = useRef(false);
   const [name, setName] = useState(user?.name || '');
   const [currency, setCurrency] = useState(
     user?.currency === 'USD' ? 'USD' : 'IDR'
   );
+  const [gender, setGender] = useState<Gender | ''>(user?.gender || '');
+  const [birthDate, setBirthDate] = useState(user?.birthDate || '');
+  const [showBirthPicker, setShowBirthPicker] = useState(false);
   const [avatar, setAvatar] = useState(user?.avatar || null);
   const [avatarSource, setAvatarSource] = useState<{
     uri: string;
@@ -78,12 +82,13 @@ export function SettingsScreen({ navigation }: Props) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [savingPassword, setSavingPassword] = useState(false);
-  const [savingRole, setSavingRole] = useState(false);
 
   useEffect(() => {
     if (user) {
       setName(user.name);
       setCurrency(user.currency === 'USD' ? 'USD' : 'IDR');
+      setGender(user.gender || '');
+      setBirthDate(user.birthDate || '');
       setAvatar(user.avatar || null);
     }
   }, [user]);
@@ -105,17 +110,27 @@ export function SettingsScreen({ navigation }: Props) {
       setError('Nama minimal 2 karakter.');
       return;
     }
+    if (!gender) {
+      setError('Pilih jenis kelamin.');
+      return;
+    }
+    if (!birthDate) {
+      setError('Isi tanggal lahir.');
+      return;
+    }
     setSaving(true);
     try {
       const updated = await updateProfile({
         name: name.trim(),
         currency,
+        gender,
+        birthDate,
       });
       setUser(updated);
       showDialog({
         variant: 'success',
         title: 'Profil diperbarui',
-        message: 'Perubahan nama dan mata uang sudah disimpan.',
+        message: 'Perubahan profil sudah disimpan.',
         confirmLabel: 'Saya mengerti',
         onConfirm: () => navigation.goBack(),
       });
@@ -177,8 +192,12 @@ export function SettingsScreen({ navigation }: Props) {
   const onChangePassword = async () => {
     setError(null);
     if (savingPasswordRef.current) return;
-    if (!currentPassword || newPassword.length < 6) {
-      setError('Isi password lama & baru (min. 6).');
+    const isStrongPassword = (pwd: string) => {
+      return pwd.length >= 8 && /[A-Za-z]/.test(pwd) && /\d/.test(pwd);
+    };
+
+    if (!currentPassword || !isStrongPassword(newPassword)) {
+      setError('Isi password lama & baru yang kuat (min. 8 karakter + huruf & angka).');
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -195,44 +214,12 @@ export function SettingsScreen({ navigation }: Props) {
       setPwOpen(false);
       showDialog({ variant: 'success', title: 'Password diubah', message, confirmLabel: 'Saya mengerti' });
     } catch (e: unknown) {
-      const message =
-        (e as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Gagal mengubah password.';
+      const message = authErrorMessage(e, AUTH_SAFE.changePasswordFailed);
       setError(message);
       showDialog({ variant: 'error', title: 'Gagal', message });
     } finally {
       setSavingPassword(false);
       savingPasswordRef.current = false;
-    }
-  };
-
-  const handleToggleRole = async () => {
-    if (!user?.id) return;
-    if (savingRoleRef.current) return;
-
-    const currentRole = user.role || 'USER';
-    const nextRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
-
-    savingRoleRef.current = true;
-    setSavingRole(true);
-    try {
-      await apiClient.patch(`/admin/users/${user.id}/role`, { role: nextRole });
-      const refreshed = await getMe();
-      setUser(refreshed);
-      showDialog({
-        variant: 'success',
-        title: 'Role diperbarui',
-        message: `Sekarang kamu: ${nextRole === 'ADMIN' ? 'Admin' : 'User'}.`,
-        confirmLabel: 'Saya mengerti',
-      });
-    } catch (e: unknown) {
-      const message =
-        (e as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Gagal mengubah role.';
-      showDialog({ variant: 'error', title: 'Gagal mengubah role', message, confirmLabel: 'Saya mengerti' });
-    } finally {
-      setSavingRole(false);
-      savingRoleRef.current = false;
     }
   };
 
@@ -311,44 +298,71 @@ export function SettingsScreen({ navigation }: Props) {
               onChangeText={setName}
               placeholder="Nama lengkap"
             />
-            <Text style={styles.label}>Role User</Text>
-            <Pressable
-              style={styles.roleToggle}
-              onPress={() => {
-                const currentRole = user?.role || 'USER';
-                const nextRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
-                showDialog({
-                  variant: 'confirm',
-                  title: 'Ubah Role User?',
-                  message: `Konfirmasi ubah role kamu menjadi ${nextRole === 'ADMIN' ? 'Admin' : 'User'}.`,
-                  showCancel: true,
-                  cancelLabel: 'Batal',
-                  confirmLabel: 'Ubah',
-                  onConfirm: handleToggleRole,
-                });
-              }}
-              disabled={savingRole}
-            >
-              {savingRole ? (
-                <ActivityIndicator color={colors.onBrand} />
-              ) : (
-                <View style={styles.roleToggleLeft}>
-                  <View style={styles.roleIconBox}>
-                    <Ionicons name="shield-checkmark-outline" size={18} color={colors.brand} />
-                  </View>
-                  <View>
-                    <Text style={styles.roleToggleTitle}>Role User</Text>
-                    <Text style={styles.roleToggleSub}>Sekarang: {user?.role || 'USER'}</Text>
-                  </View>
-                </View>
-              )}
-              {!savingRole ? (
-                <Ionicons name="arrow-forward" size={18} color={colors.muted} />
-              ) : null}
+
+            <Text style={styles.label}>Jenis kelamin</Text>
+            <View style={styles.genderRow}>
+              {GENDER_OPTIONS.map((opt) => {
+                const active = gender === opt.value;
+                return (
+                  <Pressable
+                    key={opt.value}
+                    onPress={() => setGender(opt.value)}
+                    style={[
+                      styles.genderChip,
+                      active && {
+                        borderColor: colors.brand,
+                        backgroundColor: colors.brandSoft,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.genderChipText,
+                        active && { color: colors.brand },
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Text style={styles.label}>Tanggal lahir</Text>
+            <Pressable style={styles.dateBtn} onPress={() => setShowBirthPicker(true)}>
+              <Ionicons name="calendar-outline" size={16} color={colors.faint} />
+              <Text style={[styles.dateBtnText, !birthDate && { color: colors.faint }]}>
+                {birthDate
+                  ? new Date(`${birthDate}T00:00:00`).toLocaleDateString('id-ID', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })
+                  : 'Pilih tanggal lahir'}
+              </Text>
             </Pressable>
-            <Text style={styles.roleQaHint}>
-              Untuk uji QA: tombol ini mengganti role tanpa logout.
-            </Text>
+            {showBirthPicker ? (
+              <DateTimePicker
+                value={birthDate ? new Date(`${birthDate}T00:00:00`) : new Date(2000, 0, 1)}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                maximumDate={new Date()}
+                onChange={(_e, date) => {
+                  if (Platform.OS !== 'ios') setShowBirthPicker(false);
+                  if (date) {
+                    const y = date.getFullYear();
+                    const m = String(date.getMonth() + 1).padStart(2, '0');
+                    const d = String(date.getDate()).padStart(2, '0');
+                    setBirthDate(`${y}-${m}-${d}`);
+                  }
+                }}
+              />
+            ) : null}
+            {Platform.OS === 'ios' && showBirthPicker ? (
+              <Pressable style={styles.dateDone} onPress={() => setShowBirthPicker(false)}>
+                <Text style={styles.dateDoneText}>Selesai</Text>
+              </Pressable>
+            ) : null}
           </View>
         </FadeInUp>
 
@@ -489,7 +503,7 @@ export function SettingsScreen({ navigation }: Props) {
               <Text style={styles.aboutTitle}>Tentang Aplikasi</Text>
               <View style={styles.aboutRow}>
                 <Text style={styles.aboutKey}>Nama</Text>
-                <Text style={styles.aboutVal}>DuitDiary</Text>
+                <Text style={styles.aboutVal}>Dompet Tenang</Text>
               </View>
               <View style={styles.aboutRow}>
                 <Text style={styles.aboutKey}>Versi</Text>
@@ -540,7 +554,7 @@ export function SettingsScreen({ navigation }: Props) {
               <PasswordInput
                 value={newPassword}
                 onChangeText={setNewPassword}
-                placeholder="Password baru (min. 6)"
+                placeholder="Password baru (min. 8 + huruf & angka)"
               />
               <PasswordInput
                 value={confirmPassword}
@@ -652,7 +666,7 @@ function FeedbackCard({
       showDialog({
         variant: 'success',
         title: 'Terima kasih!',
-        message: 'Suaramu sudah sampai ke tim kami. DuitDiary makin baik berkat masukanmu.',
+        message: 'Suaramu sudah sampai ke tim kami. Dompet Tenang makin baik berkat masukanmu.',
         confirmLabel: 'Saya mengerti',
         onConfirm: () => onSubmitted(),
       });
@@ -876,6 +890,31 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
       borderColor: colors.border,
     },
     emailText: { color: colors.muted, fontSize: 14, flex: 1, fontWeight: '600' },
+    genderRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+    genderChip: {
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      backgroundColor: colors.bg,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+    },
+    genderChipText: { color: colors.muted, fontWeight: '700', fontSize: 13 },
+    dateBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.bg,
+      borderRadius: 14,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      marginBottom: 4,
+    },
+    dateBtnText: { flex: 1, color: colors.text, fontWeight: '700', fontSize: 14 },
+    dateDone: { alignSelf: 'flex-end', paddingVertical: 6, paddingHorizontal: 4 },
+    dateDoneText: { color: colors.brand, fontWeight: '800', fontSize: 13 },
     currencyRow: {
       flexDirection: r.isCompact ? 'column' : 'row',
       gap: 10,
@@ -1041,37 +1080,6 @@ function createStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) 
       alignItems: 'center',
     },
     pwSaveText: { color: colors.onBrand, fontWeight: '800', fontSize: 14 },
-    roleToggle: {
-      marginTop: 8,
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 18,
-      paddingHorizontal: 12,
-      paddingVertical: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 10,
-    },
-    roleToggleLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-    roleIconBox: {
-      width: 36,
-      height: 36,
-      borderRadius: 14,
-      backgroundColor: colors.brandSoft,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    roleToggleTitle: { fontWeight: '800', color: colors.text, fontSize: 14 },
-    roleToggleSub: { color: colors.muted, fontSize: 11, fontWeight: '600', marginTop: 1 },
-    roleQaHint: {
-      marginTop: 8,
-      fontSize: 11,
-      fontWeight: '600',
-      color: colors.muted,
-      lineHeight: 16,
-    },
     error: {
       backgroundColor: colors.dangerBg,
       color: colors.dangerText,

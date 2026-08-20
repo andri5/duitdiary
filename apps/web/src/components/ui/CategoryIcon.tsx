@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Category Icon
+ * Dompet Tenang - Category Icon
  * Renders Lucide icons (theme) with emoji fallback for legacy data
  */
 

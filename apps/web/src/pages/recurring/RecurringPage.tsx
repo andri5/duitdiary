@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Recurring Transactions Page
+ * Dompet Tenang - Recurring Transactions Page
  */
 
 import { useEffect, useState } from 'react';

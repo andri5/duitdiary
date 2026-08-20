@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Zod Validation Schemas
+ * Dompet Tenang - Zod Validation Schemas
  */
 
 import { z } from 'zod';
@@ -11,13 +11,7 @@ export const loginSchema = z.object({
     .string()
     .min(1, 'Email wajib diisi')
     .email('Format email tidak valid'),
-  password: z
-    .string()
-    .min(1, 'Password wajib diisi')
-    .min(
-      VALIDATION.PASSWORD_MIN_LENGTH,
-      `Password minimal ${VALIDATION.PASSWORD_MIN_LENGTH} karakter`
-    ),
+  password: z.string().min(1, 'Password wajib diisi'),
 });
 
 export const registerSchema = z
@@ -43,8 +37,26 @@ export const registerSchema = z
       .min(
         VALIDATION.PASSWORD_MIN_LENGTH,
         `Password minimal ${VALIDATION.PASSWORD_MIN_LENGTH} karakter`
-      ),
+      )
+      .refine((pwd) => /[A-Za-z]/.test(pwd) && /\d/.test(pwd), {
+        message: 'Password harus mengandung huruf dan angka',
+      }),
     confirmPassword: z.string().min(1, 'Konfirmasi password wajib diisi'),
+    gender: z.enum(['MALE', 'FEMALE', 'OTHER'], {
+      message: 'Pilih jenis kelamin',
+    }),
+    birthDate: z
+      .string()
+      .min(1, 'Tanggal lahir wajib diisi')
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal lahir tidak valid')
+      .refine((value) => {
+        const d = new Date(`${value}T00:00:00`);
+        if (Number.isNaN(d.getTime())) return false;
+        const now = new Date();
+        const min = new Date(now.getFullYear() - 120, now.getMonth(), now.getDate());
+        const max = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
+        return d >= min && d <= max;
+      }, 'Usia harus antara 10–120 tahun'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Password tidak cocok',
@@ -66,7 +78,10 @@ export const resetPasswordSchema = z
       .min(
         VALIDATION.PASSWORD_MIN_LENGTH,
         `Password minimal ${VALIDATION.PASSWORD_MIN_LENGTH} karakter`
-      ),
+      )
+      .refine((pwd) => /[A-Za-z]/.test(pwd) && /\d/.test(pwd), {
+        message: 'Password harus mengandung huruf dan angka',
+      }),
     confirmPassword: z.string().min(1, 'Konfirmasi password wajib diisi'),
   })
   .refine((data) => data.password === data.confirmPassword, {

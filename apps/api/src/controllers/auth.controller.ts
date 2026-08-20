@@ -4,6 +4,11 @@ import { auditService } from '../services/audit.service.js';
 import { sendSuccess, sendCreated, sendError, sendUnauthorized } from '../utils/response.js';
 import { setAuthCookies, clearAuthCookies } from '../utils/cookies.js';
 import { config } from '../config/index.js';
+import { AUTH_SAFE } from '../constants/authMessages.js';
+import {
+  assertCaptchaIfRequired,
+  getCaptchaPublicConfig,
+} from '../services/turnstile.service.js';
 import type {
   RegisterInput,
   LoginInput,
@@ -11,6 +16,27 @@ import type {
   ResetPasswordInput,
 } from '../utils/validation.js';
 import type { AuthenticatedRequest } from '../types/index.js';
+
+const CAPTCHA_CLIENT_MSG = 'Verifikasi captcha gagal. Silakan coba lagi.';
+
+function captchaErrorResponse(res: Response, message: string): boolean {
+  if (
+    message === 'CAPTCHA_REQUIRED' ||
+    message === 'CAPTCHA_FAILED' ||
+    message === 'CAPTCHA_MISCONFIGURED'
+  ) {
+    sendError(
+      res,
+      message === 'CAPTCHA_MISCONFIGURED'
+        ? 'Captcha belum dikonfigurasi di server.'
+        : CAPTCHA_CLIENT_MSG,
+      message === 'CAPTCHA_MISCONFIGURED' ? 503 : 400,
+      'CAPTCHA_FAILED'
+    );
+    return true;
+  }
+  return false;
+}
 
 function readRefreshFromRequest(req: Request): string | undefined {
   const bodyToken = (req.body as { refreshToken?: string } | undefined)?.refreshToken;
@@ -21,9 +47,15 @@ function readRefreshFromRequest(req: Request): string | undefined {
 }
 
 export class AuthController {
+  async captchaConfig(_req: Request, res: Response): Promise<void> {
+    const data = await getCaptchaPublicConfig();
+    sendSuccess(res, data, 'OK');
+  }
+
   async register(req: Request, res: Response): Promise<void> {
     try {
       const data: RegisterInput = req.body;
+      await assertCaptchaIfRequired(data.captchaToken, req.ip);
       const result = await authService.register(data);
       setAuthCookies(res, {
         accessToken: result.accessToken,
@@ -31,18 +63,20 @@ export class AuthController {
       });
       sendCreated(res, result, 'Registration successful');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Registration failed';
-      if (message === 'Email already registered') {
-        sendError(res, message, 409, 'EMAIL_EXISTS');
-      } else {
-        sendError(res, message, 400, 'REGISTRATION_FAILED');
+      const message = error instanceof Error ? error.message : AUTH_SAFE.registerFailed;
+      if (captchaErrorResponse(res, message)) return;
+      // Always same status + message (anti email enumeration)
+      if (message !== AUTH_SAFE.registerFailed) {
+        console.error('Registration error:', message);
       }
+      sendError(res, AUTH_SAFE.registerFailed, 400, 'REGISTRATION_FAILED');
     }
   }
 
   async login(req: Request, res: Response): Promise<void> {
     try {
       const data: LoginInput = req.body;
+      await assertCaptchaIfRequired(data.captchaToken, req.ip);
       const result = await authService.login(data);
       setAuthCookies(res, {
         accessToken: result.accessToken,
@@ -50,17 +84,14 @@ export class AuthController {
       });
       sendSuccess(res, result, 'Login successful');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Login failed';
-      if (
-        message === 'Email atau password salah' ||
-        message === 'Invalid email or password'
-      ) {
-        sendUnauthorized(res, 'Email atau password salah');
+      const message = error instanceof Error ? error.message : AUTH_SAFE.loginFailed;
+      if (captchaErrorResponse(res, message)) return;
+      if (message === AUTH_SAFE.loginFailed) {
+        sendUnauthorized(res, AUTH_SAFE.loginFailed);
         return;
       }
-      // Avoid leaking Prisma/DB internals to clients
       console.error('Login error:', message);
-      sendError(res, 'Login gagal. Coba lagi sebentar.', 503, 'LOGIN_UNAVAILABLE');
+      sendError(res, AUTH_SAFE.loginUnavailable, 503, 'LOGIN_UNAVAILABLE');
     }
   }
 
@@ -74,7 +105,8 @@ export class AuthController {
     } catch (error) {
       clearAuthCookies(res);
       const message = error instanceof Error ? error.message : 'Logout failed';
-      sendError(res, message, 400, 'LOGOUT_FAILED');
+      console.error('Logout error:', message);
+      sendSuccess(res, null, 'Logout successful');
     }
   }
 
@@ -82,7 +114,7 @@ export class AuthController {
     try {
       const refreshToken = readRefreshFromRequest(req);
       if (!refreshToken) {
-        sendUnauthorized(res, 'Refresh token is required');
+        sendUnauthorized(res, AUTH_SAFE.sessionInvalid);
         return;
       }
       const result = await authService.refreshTokens(refreshToken);
@@ -90,19 +122,22 @@ export class AuthController {
       sendSuccess(res, result, 'Token refreshed successfully');
     } catch (error) {
       clearAuthCookies(res);
-      const message = error instanceof Error ? error.message : 'Token refresh failed';
-      sendUnauthorized(res, message);
+      sendUnauthorized(res, AUTH_SAFE.sessionInvalid);
     }
   }
 
   async forgotPassword(req: Request, res: Response): Promise<void> {
     try {
       const data: ForgotPasswordInput = req.body;
+      await assertCaptchaIfRequired(data.captchaToken, req.ip);
       const result = await authService.forgotPassword(data);
       sendSuccess(res, result, result.message);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Forgot password failed';
-      sendError(res, message, 400, 'FORGOT_PASSWORD_FAILED');
+      const message = error instanceof Error ? error.message : AUTH_SAFE.forgotPassword;
+      if (captchaErrorResponse(res, message)) return;
+      console.error('Forgot password error:', message);
+      // Still return generic success body to avoid enumeration on failures
+      sendSuccess(res, { message: AUTH_SAFE.forgotPassword }, AUTH_SAFE.forgotPassword);
     }
   }
 
@@ -113,8 +148,11 @@ export class AuthController {
       clearAuthCookies(res);
       sendSuccess(res, result, result.message);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Reset password failed';
-      sendError(res, message, 400, 'RESET_PASSWORD_FAILED');
+      const message = error instanceof Error ? error.message : AUTH_SAFE.resetInvalid;
+      if (message !== AUTH_SAFE.resetInvalid) {
+        console.error('Reset password error:', message);
+      }
+      sendError(res, AUTH_SAFE.resetInvalid, 400, 'RESET_PASSWORD_FAILED');
     }
   }
 
@@ -124,12 +162,7 @@ export class AuthController {
       const user = await authService.getMe(userId);
       sendSuccess(res, user, 'OK');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to load profile';
-      if (message === 'User not found') {
-        sendUnauthorized(res, message);
-      } else {
-        sendError(res, message, 400, 'PROFILE_FAILED');
-      }
+      sendUnauthorized(res, AUTH_SAFE.sessionInvalid);
     }
   }
 
@@ -152,7 +185,8 @@ export class AuthController {
       sendSuccess(res, user, 'Profil diperbarui');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update profile';
-      sendError(res, message, 400, 'PROFILE_UPDATE_FAILED');
+      console.error('Update profile error:', message);
+      sendError(res, 'Tidak dapat memperbarui profil. Coba lagi.', 400, 'PROFILE_UPDATE_FAILED');
     }
   }
 
@@ -163,16 +197,11 @@ export class AuthController {
       const result = await authService.changePassword(userId, data);
       sendSuccess(res, result, result.message);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Gagal mengubah password';
-      if (message === 'User not found') {
-        sendUnauthorized(res, message);
-        return;
+      const message = error instanceof Error ? error.message : AUTH_SAFE.changePasswordFailed;
+      if (message !== AUTH_SAFE.changePasswordFailed) {
+        console.error('Change password error:', message);
       }
-      if (message === 'Password saat ini salah') {
-        sendUnauthorized(res, message);
-        return;
-      }
-      sendError(res, message, 400, 'CHANGE_PASSWORD_FAILED');
+      sendError(res, AUTH_SAFE.changePasswordFailed, 400, 'CHANGE_PASSWORD_FAILED');
     }
   }
 }

@@ -72,7 +72,7 @@ export function HelpScreen() {
           <BrandMark size="sm" />
           <Text style={styles.heroTitle}>Pusat bantuan</Text>
           <Text style={styles.heroSub}>
-            Panduan singkat memakai DuitDiary di HP. Fitur lengkap juga tersedia di versi web.
+            Panduan singkat memakai Dompet Tenang di HP. Fitur lengkap juga tersedia di versi web.
           </Text>
           <View style={styles.heroMeta}>
             <View style={styles.metaPill}>
@@ -121,7 +121,7 @@ export function HelpScreen() {
           <View style={{ flex: 1 }}>
             <Text style={styles.footerTitle}>Butuh lebih lengkap?</Text>
             <Text style={styles.footerBody}>
-              Buka DuitDiary web untuk export laporan, insight lanjutan, dan fitur desktop.
+              Buka Dompet Tenang web untuk export laporan, insight lanjutan, dan fitur desktop.
             </Text>
           </View>
         </View>

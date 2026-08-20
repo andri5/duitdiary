@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Receipt file upload (image / PDF)
+ * Dompet Tenang - Receipt file upload (image / PDF)
  */
 
 import { useEffect, useRef, useState } from 'react';

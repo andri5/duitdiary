@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Button Component
+ * Dompet Tenang - Button Component
  */
 
 import { forwardRef } from 'react';

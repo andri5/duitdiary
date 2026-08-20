@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Notification Toast
+ * Dompet Tenang - Notification Toast
  */
 
 import { X, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react';

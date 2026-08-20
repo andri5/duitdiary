@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Dashboard Page
+ * Dompet Tenang - Dashboard Page
  */
 
 import { useEffect, useState } from 'react';
@@ -60,7 +60,7 @@ import { exportReportToExcel, exportReportToPdf } from '@/lib/exportReport';
 type Period = 'week' | 'month' | 'year';
 type ExportFormat = 'excel' | 'pdf';
 
-const DASHBOARD_AMOUNTS_VISIBLE_KEY = 'duitdiary_dashboard_amounts_visible';
+const DASHBOARD_AMOUNTS_VISIBLE_KEY = 'dompettenang_dashboard_amounts_visible';
 const HIDDEN_AMOUNT = '••••••';
 
 const tooltipStyle = {

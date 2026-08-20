@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Settings Page
+ * Dompet Tenang - Settings Page
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -9,7 +9,6 @@ import {
   Calendar,
   LogOut,
   Shield,
-  ShieldOff,
   Camera,
   Loader2,
   Check,
@@ -29,7 +28,9 @@ import { ROUTES, THEME_OPTIONS, type AppTheme } from '@/lib/constants';
 import { formatDate, cn } from '@/lib/utils';
 import { uploadAvatar } from '@/services/upload.service';
 import api from '@/lib/api';
-import { getCurrentUser, updateProfile, changePassword } from '@/services/auth.service';
+import { updateProfile, changePassword } from '@/services/auth.service';
+import { authErrorMessage, AUTH_SAFE } from '@/lib/authErrors';
+import { GENDER_OPTIONS, type Gender } from '@/lib/gender';
 
 const CURRENCIES = [
   { code: 'IDR' as const, label: 'Rupiah', hint: 'Indonesia', symbol: 'Rp' },
@@ -49,12 +50,13 @@ export function SettingsPage() {
   const { theme, setTheme } = useUIStore();
   const fileRef = useRef<HTMLInputElement>(null);
   const savingPasswordRef = useRef(false);
-  const savingRoleRef = useRef(false);
   const sendingFeedbackRef = useRef(false);
   const [isUploading, setIsUploading] = useState(false);
 
   const [name, setName] = useState(user?.name || '');
   const [currency, setCurrency] = useState(user?.currency || 'IDR');
+  const [gender, setGender] = useState<Gender | ''>(user?.gender || '');
+  const [birthDate, setBirthDate] = useState(user?.birthDate || '');
   const [savingProfile, setSavingProfile] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -64,7 +66,6 @@ export function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
-  const [savingRole, setSavingRole] = useState(false);
   const [feedbackVisible, setFeedbackVisible] = useState<boolean | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [feedbackRating, setFeedbackRating] = useState(0);
@@ -76,6 +77,8 @@ export function SettingsPage() {
       setName(user.name);
       const next = (user.currency || 'IDR').toUpperCase().slice(0, 3);
       setCurrency(next === 'USD' ? 'USD' : 'IDR');
+      setGender(user.gender || '');
+      setBirthDate(user.birthDate || '');
     }
   }, [user]);
 
@@ -153,11 +156,21 @@ export function SettingsPage() {
       toast.error('Nama minimal 2 karakter');
       return;
     }
+    if (!gender) {
+      toast.error('Pilih jenis kelamin');
+      return;
+    }
+    if (!birthDate) {
+      toast.error('Isi tanggal lahir');
+      return;
+    }
     setSavingProfile(true);
     try {
       const updated = await updateProfile({
         name: name.trim(),
-        currency: (currency === 'USD' ? 'USD' : 'IDR'),
+        currency: currency === 'USD' ? 'USD' : 'IDR',
+        gender,
+        birthDate,
       });
       setUser(updated);
       toast.success('Profil diperbarui');
@@ -171,8 +184,11 @@ export function SettingsPage() {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (savingPasswordRef.current) return;
-    if (newPassword.length < 6) {
-      toast.error('Password baru minimal 6 karakter');
+    const isStrongPassword = (pwd: string) => {
+      return pwd.length >= 8 && /[A-Za-z]/.test(pwd) && /\d/.test(pwd);
+    };
+    if (!isStrongPassword(newPassword)) {
+      toast.error('Password baru minimal 8 karakter dan mengandung huruf serta angka');
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -190,31 +206,11 @@ export function SettingsPage() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Gagal mengubah password');
+    } catch (err: unknown) {
+      toast.error(authErrorMessage(err, AUTH_SAFE.changePasswordFailed));
     } finally {
       setSavingPassword(false);
       savingPasswordRef.current = false;
-    }
-  };
-
-  const handleToggleRole = async () => {
-    if (!user?.id) return;
-    if (savingRoleRef.current) return;
-    const nextRole = (user.role === 'ADMIN' ? 'USER' : 'ADMIN') as 'USER' | 'ADMIN';
-
-    savingRoleRef.current = true;
-    setSavingRole(true);
-    try {
-      await api.patch(`/admin/users/${user.id}/role`, { role: nextRole });
-      const refreshed = await getCurrentUser();
-      setUser(refreshed);
-      toast.success('Role diperbarui');
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Gagal mengubah role');
-    } finally {
-      setSavingRole(false);
-      savingRoleRef.current = false;
     }
   };
 
@@ -234,7 +230,7 @@ export function SettingsPage() {
         message: feedbackMessage.trim(),
         rating: feedbackRating,
       });
-      toast.success('Suaramu sudah sampai ke tim kami. DuitDiary makin baik berkat masukanmu.');
+      toast.success('Suaramu sudah sampai ke tim kami. Dompet Tenang makin baik berkat masukanmu.');
       setFeedbackVisible(false);
       setFeedbackMessage('');
       setFeedbackRating(0);
@@ -306,7 +302,7 @@ export function SettingsPage() {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between py-1">
             <span className="text-muted">Nama</span>
-            <span className="font-semibold text-ink">DuitDiary</span>
+            <span className="font-semibold text-ink">Dompet Tenang</span>
           </div>
           <div className="flex justify-between py-1">
             <span className="text-muted">Versi</span>
@@ -474,6 +470,36 @@ export function SettingsPage() {
                   onChange={(e) => setName(e.target.value)}
                   leftIcon={<User className="h-4 w-4" />}
                 />
+                <div>
+                  <p className="mb-2 text-sm font-medium text-ink">Jenis kelamin</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {GENDER_OPTIONS.map((opt) => {
+                      const active = gender === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setGender(opt.value)}
+                          className={cn(
+                            'rounded-2xl border px-2 py-2.5 text-center text-xs font-semibold transition sm:text-sm',
+                            active
+                              ? 'border-accent bg-accent-soft text-accent'
+                              : 'border-line bg-surface text-muted hover:border-accent/40'
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <Input
+                  label="Tanggal lahir"
+                  type="date"
+                  value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  leftIcon={<Calendar className="h-4 w-4" />}
+                />
                 <div className="flex items-center gap-3 rounded-2xl bg-mist/70 p-3.5">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
                     <Mail className="h-5 w-5" />
@@ -527,41 +553,6 @@ export function SettingsPage() {
                       Aktif
                     </Badge>
                   </div>
-                </div>
-                <div className="rounded-2xl border border-line bg-surface p-3.5">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-sm text-muted">Role User</p>
-                      <div className="mt-1">
-                        <Badge
-                          variant={user?.role === 'ADMIN' ? 'accent' : 'default'}
-                          size="sm"
-                        >
-                          {user?.role || 'USER'}
-                        </Badge>
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="shrink-0"
-                      leftIcon={
-                        user?.role === 'ADMIN' ? (
-                          <ShieldOff className="h-4 w-4" />
-                        ) : (
-                          <Shield className="h-4 w-4" />
-                        )
-                      }
-                      isLoading={savingRole}
-                      onClick={handleToggleRole}
-                    >
-                      {user?.role === 'ADMIN' ? 'Jadikan User' : 'Jadikan Admin'}
-                    </Button>
-                  </div>
-                  <p className="mt-3 text-xs text-muted">
-                    Untuk uji QA: tombol ini mengganti role tanpa logout.
-                  </p>
                 </div>
                 <Button type="submit" variant="gradient" className="w-full" isLoading={savingProfile}>
                   Simpan Profil

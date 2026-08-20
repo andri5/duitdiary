@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Auth Service
+ * Dompet Tenang - Auth Service
  * Web: HttpOnly cookies via withCredentials
  * Mobile: store access/refresh from JSON body in SecureStore (Bearer)
  */
@@ -59,11 +59,12 @@ export async function getCurrentUser(): Promise<User> {
 }
 
 export async function forgotPassword(
-  email: string
+  email: string,
+  captchaToken?: string
 ): Promise<{ message: string; resetUrl?: string }> {
   const response = await api.post<ApiResponse<{ message: string; resetUrl?: string }>>(
     '/auth/forgot-password',
-    { email }
+    { email, ...(captchaToken ? { captchaToken } : {}) }
   );
   return response.data.data;
 }
@@ -82,6 +83,8 @@ export async function resetPassword(
 export async function updateProfile(data: {
   name?: string;
   currency?: string;
+  gender?: 'MALE' | 'FEMALE' | 'OTHER' | null;
+  birthDate?: string | null;
 }): Promise<User> {
   const response = await api.put<ApiResponse<User>>('/auth/profile', data);
   const user = response.data.data;

@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Categories Page
+ * Dompet Tenang - Categories Page
  */
 
 import { useState } from 'react';

@@ -1,6 +1,6 @@
-# 🤝 Contributing to DuitDiary
+# 🤝 Contributing to Dompet Tenang
 
-Terima kasih atas minat Anda untuk berkontribusi ke DuitDiary! Dokumen ini berisi panduan untuk developer yang akan bekerja pada proyek ini.
+Terima kasih atas minat Anda untuk berkontribusi ke Dompet Tenang! Dokumen ini berisi panduan untuk developer yang akan bekerja pada proyek ini.
 
 ---
 
@@ -158,11 +158,11 @@ interface IAuthService { }
 ```typescript
 /**
  * ============================================
- * DuitDiary API - [Module Name]
+ * Dompet Tenang API - [Module Name]
  * ============================================
  * [Brief description of the file's purpose]
  * 
- * @author DuitDiary Team
+ * @author Dompet Tenang Team
  * @see [Related documentation]
  * ============================================
  */

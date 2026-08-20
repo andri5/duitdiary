@@ -33,6 +33,18 @@ export async function addSavingsAmount(goalId: string, amount: number): Promise<
   return res.data?.data;
 }
 
+export async function updateSavingsGoal(
+  goalId: string,
+  input: Partial<{
+    name: string;
+    targetAmount: number;
+    deadline: string | null;
+  }>
+): Promise<SavingsGoal> {
+  const res = await apiClient.put(`/savings/${goalId}`, input);
+  return res.data?.data;
+}
+
 export async function deleteSavingsGoal(goalId: string): Promise<void> {
   await apiClient.delete(`/savings/${goalId}`);
 }

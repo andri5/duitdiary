@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>DuitDiary — Scan Expo Go</title>
+    <title>Dompet Tenang — Scan Expo Go</title>
     <style>
       body {
         margin: 0;
@@ -37,20 +37,25 @@
         word-break: break-all;
       }
       .hint { margin-top: 16px; font-size: 0.9rem; }
+      .warn { margin-top: 10px; font-size: 0.85rem; color: #b45309; }
     </style>
   </head>
   <body>
     <div class="card">
       <h1>Scan dengan Expo Go</h1>
-      <p>Buka di Chrome/Edge (bukan tab Cursor). Pastikan Expo Go <strong>SDK 57</strong>.</p>
+      <p>
+        Buka di Chrome/Edge. Expo Go <strong>SDK 57</strong>.
+        Mode <strong>LAN</strong> — HP harus satu Wi‑Fi dengan PC.
+      </p>
       <img
         alt="QR Expo"
         width="260"
         height="260"
-        src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=exp%3A%2F%2F10.44.202.50%3A8081"
+        src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=exp%3A%2F%2F10.44.28.114%3A8081"
       />
-      <div><code>exp://10.44.202.50:8081</code></div>
-      <p class="hint">API: http://10.44.202.50:3001/api/v1</p>
+      <div><code>exp://10.44.28.114:8081</code></div>
+      <p class="hint">API: http://10.44.28.114:3001/api/v1</p>
+      <p class="warn">Jangan pakai data seluler. Kalau login gagal, pastikan API `npm run dev` di apps/api masih jalan.</p>
     </div>
   </body>
 </html>

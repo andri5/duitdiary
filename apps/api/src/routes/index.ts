@@ -19,7 +19,7 @@ const router = Router();
 router.get('/health', (req, res) => {
   res.json({
     success: true,
-    message: 'DuitDiary API is running',
+    message: 'Dompet Tenang API is running',
     timestamp: new Date().toISOString(),
   });
 });

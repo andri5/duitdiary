@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "DuitDiary",
-    "slug": "duitdiary",
+    "name": "Dompet Tenang",
+    "slug": "dompettenang",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
@@ -11,14 +11,14 @@
       "resizeMode": "contain",
       "backgroundColor": "#07111f"
     },
-    "scheme": "duitdiary",
+    "scheme": "dompettenang",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.duitdiary.app"
+      "bundleIdentifier": "com.dompettenang.app"
     },
     "android": {
-      "package": "com.duitdiary.app",
-      "label": "DuitDiary",
+      "package": "com.dompettenang.app",
+      "label": "Dompet Tenang",
       "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#0f9b8e",
@@ -43,8 +43,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Izinkan DuitDiary mengakses foto untuk struk dan avatar.",
-          "cameraPermission": "Izinkan DuitDiary memakai kamera untuk foto struk."
+          "photosPermission": "Izinkan Dompet Tenang mengakses foto untuk struk dan avatar.",
+          "cameraPermission": "Izinkan Dompet Tenang memakai kamera untuk foto struk."
         }
       ],
       [

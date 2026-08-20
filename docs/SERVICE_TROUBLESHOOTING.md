@@ -1,4 +1,4 @@
-# 🔧 DuitDiary Service Troubleshooting Guide
+# 🔧 Dompet Tenang Service Troubleshooting Guide
 
 **Last Updated:** December 31, 2025  
 **Status:** Production Ready  
@@ -44,17 +44,17 @@ tasklist | findstr "node"
 Get-NetFirewallProfile | Select Name, Enabled
 
 # 4. If no output, services crashed - restart them
-cd D:\duitdiary\apps\api
+cd D:\Dompet Tenang\apps\api
 npm run dev
 
 # 5. In another terminal, start frontend
-cd D:\duitdiary\apps\web
+cd D:\Dompet Tenang\apps\web
 npm run dev
 ```
 
 **Expected Output:**
 ```
-Backend: 🚀 DuitDiary API Server - Running on: http://localhost:3000
+Backend: 🚀 Dompet Tenang API Server - Running on: http://localhost:3000
 Frontend: ➜ Local: http://localhost:5173/
 ```
 
@@ -100,7 +100,7 @@ npm run dev
 
 ```powershell
 # 1. Environment variables
-cd D:\duitdiary\apps\api
+cd D:\Dompet Tenang\apps\api
 dir .env  # Should exist
 
 # 2. Database connection
@@ -166,12 +166,12 @@ If ports are always occupied, use different ports:
 
 ```powershell
 # Backend on different port
-cd D:\duitdiary\apps\api
+cd D:\Dompet Tenang\apps\api
 $env:PORT = 3001
 npm run dev
 
 # Frontend on different port  
-cd D:\duitdiary\apps\web
+cd D:\Dompet Tenang\apps\web
 $env:VITE_API_URL = "http://localhost:3001"
 npm run dev -- --port 5174
 ```
@@ -184,7 +184,7 @@ npm run dev -- --port 5174
 
 ```powershell
 # 1. Check configuration
-cd D:\duitdiary\apps\api
+cd D:\Dompet Tenang\apps\api
 cat .env
 
 # 2. Verify dependencies
@@ -205,7 +205,7 @@ npm run dev -- --verbose
 
 ```powershell
 # 1. Clear cache and reinstall
-cd D:\duitdiary\apps\web
+cd D:\Dompet Tenang\apps\web
 rm -r node_modules package-lock.json
 npm install
 
@@ -238,24 +238,24 @@ Start-Service PostgreSQL
 # Test connection
 psql -U postgres -c "SELECT 1"
 
-# Check if duitdiary database exists
-psql -U postgres -l | findstr duitdiary
+# Check if Dompet Tenang database exists
+psql -U postgres -l | findstr Dompet Tenang
 
 # Verify connection string in .env
-cat D:\duitdiary\apps\api\.env | findstr DATABASE_URL
+cat D:\Dompet Tenang\apps\api\.env | findstr DATABASE_URL
 ```
 
 ### Reset Database
 
 ```powershell
-cd D:\duitdiary\apps\api
+cd D:\Dompet Tenang\apps\api
 
 # 1. Reset Prisma database (WARNING: Deletes all data)
 npx prisma migrate reset --force
 
 # 2. Or manually reset
-psql -U postgres -c "DROP DATABASE IF EXISTS duitdiary;"
-psql -U postgres -c "CREATE DATABASE duitdiary;"
+psql -U postgres -c "DROP DATABASE IF EXISTS Dompet Tenang;"
+psql -U postgres -c "CREATE DATABASE Dompet Tenang;"
 
 # 3. Re-run migrations
 npx prisma migrate deploy
@@ -301,7 +301,7 @@ The `service-monitor.ps1` script provides automated monitoring and auto-restart 
 ### Start Services with Monitor
 
 ```powershell
-cd D:\duitdiary\scripts
+cd D:\Dompet Tenang\scripts
 
 # Start services with auto-monitoring (recommended)
 .\service-monitor.ps1 -Action start
@@ -332,7 +332,7 @@ cd D:\duitdiary\scripts
 - Detailed logging to service-monitor.log
 
 ✅ **Detailed Logging**  
-- All events logged to `D:\duitdiary\service-monitor.log`
+- All events logged to `D:\Dompet Tenang\service-monitor.log`
 - Timestamps for all operations
 - Success, warning, and error messages
 
@@ -343,10 +343,10 @@ cd D:\duitdiary\scripts
 .\service-monitor.ps1 -Action start -CheckInterval 10
 
 # View monitor logs
-Get-Content D:\duitdiary\service-monitor.log -Tail 50  # Last 50 lines
+Get-Content D:\Dompet Tenang\service-monitor.log -Tail 50  # Last 50 lines
 
 # Real-time log monitoring
-Get-Content D:\duitdiary\service-monitor.log -Wait
+Get-Content D:\Dompet Tenang\service-monitor.log -Wait
 ```
 
 ---
@@ -368,7 +368,7 @@ Start-Sleep -Seconds 3
 tasklist | findstr node
 
 # Start fresh
-cd D:\duitdiary\apps\api && npm run dev
+cd D:\Dompet Tenang\apps\api && npm run dev
 ```
 
 ### Emergency Restart Script
@@ -401,11 +401,11 @@ if($processes) {
 Start-Sleep -Seconds 2
 
 # Restart
-cd D:\duitdiary\apps\api
+cd D:\Dompet Tenang\apps\api
 Start-Job { npm run dev }
 Start-Sleep -Seconds 4
 
-cd D:\duitdiary\apps\web
+cd D:\Dompet Tenang\apps\web
 Start-Job { npm run dev }
 
 Write-Host "Services restarted!" -ForegroundColor Green
@@ -416,7 +416,7 @@ Write-Host "Services restarted!" -ForegroundColor Green
 ```powershell
 # Only use if nothing else works
 
-cd D:\duitdiary
+cd D:\Dompet Tenang
 
 # 1. Clear all Node processes
 taskkill /F /IM node.exe /T
@@ -462,15 +462,15 @@ cd ..\web && npm run dev
 
 ```powershell
 # 1. Use the service monitor
-cd D:\duitdiary\scripts
+cd D:\Dompet Tenang\scripts
 .\service-monitor.ps1 -Action start
 
 # 2. Or manual startup
-cd D:\duitdiary\apps\api
+cd D:\Dompet Tenang\apps\api
 npm run dev
 
 # In another terminal:
-cd D:\duitdiary\apps\web
+cd D:\Dompet Tenang\apps\web
 npm run dev
 
 # 3. Verify both running
@@ -491,13 +491,13 @@ netstat -ano | findstr "3000|5173"
 
 ```powershell
 # Prevent port conflicts
-netstat -ano | findstr "3000|5173" > D:\duitdiary\port-check.txt
+netstat -ano | findstr "3000|5173" > D:\Dompet Tenang\port-check.txt
 
 # Monitor disk space
 Get-Volume | Where-Object {$_.DriveLetter -eq 'D'} | Select-Object SizeRemaining
 
 # Keep logs rotated
-Get-ChildItem D:\duitdiary\service-monitor.log | Where-Object {$_.Length -gt 10MB} | Remove-Item
+Get-ChildItem D:\Dompet Tenang\service-monitor.log | Where-Object {$_.Length -gt 10MB} | Remove-Item
 
 # Automated cleanup (Task Scheduler)
 # Create scheduled task to run emergency-restart.ps1 daily at midnight
@@ -509,7 +509,7 @@ Get-ChildItem D:\duitdiary\service-monitor.log | Where-Object {$_.Length -gt 10M
 
 - **Backend Logs:** Check terminal running `npm run dev` in apps/api
 - **Frontend Logs:** Check terminal running `npm run dev` in apps/web
-- **Monitor Log:** `D:\duitdiary\service-monitor.log`
+- **Monitor Log:** `D:\Dompet Tenang\service-monitor.log`
 - **Database Logs:** PostgreSQL service logs
 
 ## 🎯 Quick Reference

@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Pages Index
+ * Dompet Tenang - Pages Index
  */
 
 export { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage } from './auth';

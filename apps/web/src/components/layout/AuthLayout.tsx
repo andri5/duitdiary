@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Auth Layout
+ * Dompet Tenang - Auth Layout
  * Brand-forward atmospheric shell
  */
 
@@ -51,7 +51,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
             </div>
             <div className="text-left">
               <p className="font-display text-xl font-bold tracking-[-0.04em] text-white/80">
-                DuitDiary
+                Dompet Tenang
               </p>
               <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/55">
                 Finance OS
@@ -99,7 +99,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
             {children}
           </div>
           <p className="mt-4 pb-[var(--safe-bottom)] text-center text-xs text-white/45">
-            DuitDiary © {new Date().getFullYear()} — catat lebih cerdas
+            Dompet Tenang © {new Date().getFullYear()} — catat lebih cerdas
           </p>
         </motion.div>
       </div>

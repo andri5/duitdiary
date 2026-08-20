@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Input Component
+ * Dompet Tenang - Input Component
  */
 
 import { forwardRef, useState } from 'react';

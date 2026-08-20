@@ -48,13 +48,13 @@ export async function sendPasswordResetEmail(params: {
   const text = [
     `Halo ${safeName},`,
     '',
-    'Kami menerima permintaan reset password untuk akun DuitDiary kamu.',
+    'Kami menerima permintaan reset password untuk akun Dompet Tenang kamu.',
     'Buka tautan berikut (berlaku 1 jam):',
     resetUrl,
     '',
     'Jika kamu tidak meminta reset, abaikan email ini.',
     '',
-    '— Tim DuitDiary',
+    '— Tim Dompet Tenang',
   ].join('\n');
 
   const html = `
@@ -67,7 +67,7 @@ export async function sendPasswordResetEmail(params: {
         <table role="presentation" width="100%" style="max-width:520px;background:#ffffff;border:1px solid #d7e0ea;border-radius:20px;padding:28px;">
           <tr>
             <td>
-              <p style="margin:0 0 8px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#64748b;">DuitDiary</p>
+              <p style="margin:0 0 8px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#64748b;">Dompet Tenang</p>
               <h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;">Reset password</h1>
               <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#475569;">
                 Halo <strong>${escapeHtml(safeName)}</strong>, kami menerima permintaan untuk mengatur ulang password akunmu.
@@ -97,7 +97,7 @@ export async function sendPasswordResetEmail(params: {
   await tx.sendMail({
     from: config.smtp.from,
     to,
-    subject: 'Reset password DuitDiary',
+    subject: 'Reset password Dompet Tenang',
     text,
     html,
   });

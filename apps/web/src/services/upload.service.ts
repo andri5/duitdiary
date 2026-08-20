@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Upload Service
+ * Dompet Tenang - Upload Service
  */
 
 import api from '@/lib/api';

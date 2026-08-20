@@ -14,6 +14,8 @@ import {
 
 const router = Router();
 
+router.get('/captcha-config', (req, res) => authController.captchaConfig(req, res));
+
 router.post(
   '/register',
   validate(registerSchema),

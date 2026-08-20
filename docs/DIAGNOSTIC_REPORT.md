@@ -1,4 +1,4 @@
-# 🔍 DuitDiary Service Diagnostic Report
+# 🔍 Dompet Tenang Service Diagnostic Report
 
 **Date:** December 31, 2025  
 **Issue:** Services not running properly after initial setup  
@@ -38,7 +38,7 @@ Error: listen EADDRINUSE: address already in use :::3000
 taskkill /F /IM node.exe /T
 
 # Use workspace-specific commands instead of root "npm run dev"
-cd D:\duitdiary
+cd D:\Dompet Tenang
 npm run api   # Start backend only
 npm run web   # Start frontend separately
 ```
@@ -51,7 +51,7 @@ npm run web   # Start frontend separately
 
 **Problem:**
 ```
-Error: ENOENT: no such file or directory, open 'D:\duitdiary\apps\web\node_modules\date-fns\index.js'
+Error: ENOENT: no such file or directory, open 'D:\Dompet Tenang\apps\web\node_modules\date-fns\index.js'
 ```
 
 **Root Cause:**
@@ -61,7 +61,7 @@ Error: ENOENT: no such file or directory, open 'D:\duitdiary\apps\web\node_modul
 
 **Solution Applied:**
 ```powershell
-cd D:\duitdiary\apps\web
+cd D:\Dompet Tenang\apps\web
 
 # Clean reinstall
 Remove-Item -Path node_modules -Recurse -Force
@@ -224,7 +224,7 @@ Get-Process -Id 12345
 
 ### Check Dependencies
 ```powershell
-cd D:\duitdiary\apps\web
+cd D:\Dompet Tenang\apps\web
 npm list              # Show dependency tree
 npm list --depth=0   # Show only direct dependencies
 npm ls date-fns      # Check specific package
@@ -280,7 +280,7 @@ npm run web
 ## 🛠️ Available Tools
 
 ### 1. Service Monitor Script
-**Location:** `D:\duitdiary\scripts\service-monitor.ps1`
+**Location:** `D:\Dompet Tenang\scripts\service-monitor.ps1`
 
 **Features:**
 - Automatic health checks every 5 seconds
@@ -297,7 +297,7 @@ npm run web
 ```
 
 ### 2. Comprehensive Troubleshooting Guide
-**Location:** `D:\duitdiary\SERVICE_TROUBLESHOOTING.md`
+**Location:** `D:\Dompet Tenang\SERVICE_TROUBLESHOOTING.md`
 
 **Contains:**
 - 60+ KB of troubleshooting procedures
@@ -321,13 +321,13 @@ npm run web
 ### For Frontend Issue
 **Option 1: Use Service Monitor (Recommended)**
 ```powershell
-cd D:\duitdiary
+cd D:\Dompet Tenang
 .\scripts\service-monitor.ps1 -Action start
 ```
 
 **Option 2: Manual Startup with Debugging**
 ```powershell
-cd D:\duitdiary\apps\web
+cd D:\Dompet Tenang\apps\web
 npm run dev -- --debug
 
 # In another terminal, check port binding
@@ -336,7 +336,7 @@ netstat -ano | findstr "5173"
 
 **Option 3: Check Vite Logs**
 ```powershell
-cd D:\duitdiary\apps\web
+cd D:\Dompet Tenang\apps\web
 npm run dev 2>&1 | Tee-Object -FilePath vite.log
 
 # Wait 10 seconds then check log
@@ -361,7 +361,7 @@ Get-Content vite.log
 
 **Project Structure:**
 ```
-D:\duitdiary/
+D:\Dompet Tenang/
 ├── apps/
 │   ├── api/           (Backend - Node.js + Express) ✅ WORKING
 │   ├── web/           (Frontend - React + Vite) 🔄 TROUBLESHOOTING

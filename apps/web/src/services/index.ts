@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Services Index
+ * Dompet Tenang - Services Index
  * Central export for all services
  */
 

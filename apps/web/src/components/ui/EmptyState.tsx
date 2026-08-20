@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Empty State Component
+ * Dompet Tenang - Empty State Component
  */
 
 import type { ReactNode } from 'react';

@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Budget Management Page
+ * Dompet Tenang - Budget Management Page
  */
 
 import { useEffect, useMemo, useState } from 'react';

@@ -5,7 +5,7 @@ test.describe('Authentication - CRUD Operations', () => {
     await page.goto('/register');
     
     // Wait for page to load
-    await expect(page).toHaveTitle(/DuitDiary/);
+    await expect(page).toHaveTitle(/Dompet Tenang/);
     
     // Fill registration form
     const uniqueEmail = `test_${Date.now()}@example.com`;

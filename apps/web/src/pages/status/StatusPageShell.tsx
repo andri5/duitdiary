@@ -60,7 +60,7 @@ export function StatusPageShell({
           </span>
           <span className="text-left">
             <span className="block font-display text-base font-bold tracking-[-0.03em] text-ink">
-              DuitDiary
+              Dompet Tenang
             </span>
             <span className="block font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
               Finance OS

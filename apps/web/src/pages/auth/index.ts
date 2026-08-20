@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Auth Pages Index
+ * Dompet Tenang - Auth Pages Index
  */
 
 export { LoginPage } from './LoginPage';

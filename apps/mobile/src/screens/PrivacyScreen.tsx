@@ -15,7 +15,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Privacy'>;
 const SECTIONS = [
   {
     title: 'Data yang kami simpan',
-    body: 'DuitDiary menyimpan data akun (nama, email, preferensi) dan data keuangan yang Anda catat (transaksi, kategori, unggahan struk/avatar) untuk menyediakan fitur aplikasi.',
+    body: 'Dompet Tenang menyimpan data akun (nama, email, preferensi) dan data keuangan yang Anda catat (transaksi, kategori, unggahan struk/avatar) untuk menyediakan fitur aplikasi.',
     icon: 'server-outline' as const,
     tint: '#0f9b8e',
     soft: '#d9f5f1',
@@ -70,7 +70,7 @@ export function PrivacyScreen({ navigation }: Props) {
           <Text style={styles.badge}>Privasi</Text>
           <Text style={styles.title}>Kebijakan Privasi</Text>
           <Text style={styles.lead}>
-            Bagaimana DuitDiary menjaga data akun dan catatan keuanganmu.
+            Bagaimana Dompet Tenang menjaga data akun dan catatan keuanganmu.
           </Text>
         </View>
       </FadeInUp>

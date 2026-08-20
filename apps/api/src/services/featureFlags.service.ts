@@ -6,7 +6,8 @@ export type FeatureFlagKey =
   | 'recurring_transactions'
   | 'feedback_form'
   | 'budget_alerts'
-  | 'admin_panel';
+  | 'admin_panel'
+  | 'captcha_auth';
 
 const DEFAULT_FLAGS: Array<{
   key: FeatureFlagKey;
@@ -50,6 +51,13 @@ const DEFAULT_FLAGS: Array<{
     description: 'Aktifkan dashboard panel admin.',
     isEnabled: true,
   },
+  {
+    key: 'captcha_auth',
+    label: 'Captcha Auth (Turnstile)',
+    description:
+      'Wajibkan Cloudflare Turnstile di login, register & lupa password. Default OFF untuk lokal.',
+    isEnabled: false,
+  },
 ];
 
 export async function ensureDefaultFeatureFlags() {
@@ -85,5 +93,14 @@ export async function setFeatureFlag(key: string, isEnabled: boolean, updatedByI
     data: { isEnabled, updatedById: updatedById ?? null },
     select: { key: true, label: true, isEnabled: true, updatedAt: true },
   });
+}
+
+export async function isFeatureEnabled(key: FeatureFlagKey): Promise<boolean> {
+  await ensureDefaultFeatureFlags();
+  const flag = await prisma.featureFlag.findUnique({
+    where: { key },
+    select: { isEnabled: true },
+  });
+  return flag?.isEnabled ?? false;
 }
 

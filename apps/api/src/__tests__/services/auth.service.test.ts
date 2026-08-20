@@ -62,7 +62,17 @@ const mockUser = {
   name: 'Test User',
   avatar: null,
   currency: 'IDR',
+  gender: 'MALE' as const,
+  birthDate: new Date('1995-05-15'),
   createdAt: new Date('2026-01-01'),
+};
+
+const registerPayload = {
+  name: 'Test User',
+  email: 'test@example.com',
+  password: 'Strong1!',
+  gender: 'MALE' as const,
+  birthDate: '1995-05-15',
 };
 
 describe('Auth Service', () => {
@@ -77,21 +87,23 @@ describe('Auth Service', () => {
       (prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
       (prisma.user.create as ReturnType<typeof vi.fn>).mockResolvedValue({ ...mockUser, password: 'hashed' });
 
-      const result = await auth.register({ name: 'Test User', email: 'test@example.com', password: 'Strong1!' });
+      const result = await auth.register(registerPayload);
 
       expect(prisma.user.create).toHaveBeenCalledOnce();
       expect(result.accessToken).toBe('mock-access-token');
       expect(result.refreshToken).toBe('mock-refresh-token');
       expect(result.user.email).toBe('test@example.com');
-      expect((result.user as Record<string, unknown>).password).toBeUndefined();
+      expect((result.user as unknown as Record<string, unknown>).password).toBeUndefined();
     });
 
     it('should fail if email already exists', async () => {
       (prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser);
 
       await expect(
-        auth.register({ name: 'A', email: 'test@example.com', password: 'Strong1!' })
-      ).rejects.toThrow('Email already registered');
+        auth.register({ ...registerPayload, name: 'A' })
+      ).rejects.toThrow(
+        'Tidak dapat membuat akun. Coba email lain atau masuk jika sudah punya akun.'
+      );
       expect(prisma.user.create).not.toHaveBeenCalled();
     });
 
@@ -105,7 +117,12 @@ describe('Auth Service', () => {
         return { ...mockUser, password: data.password };
       });
 
-      await auth.register({ name: 'A', email: 'new@example.com', password: plaintext });
+      await auth.register({
+        ...registerPayload,
+        name: 'A',
+        email: 'new@example.com',
+        password: plaintext,
+      });
       expect(prisma.user.create).toHaveBeenCalledOnce();
     });
   });
@@ -175,7 +192,9 @@ describe('Auth Service', () => {
     it('should fail for invalid refresh token', async () => {
       (verifyRefreshToken as ReturnType<typeof vi.fn>).mockReturnValue(null);
 
-      await expect(auth.refreshTokens('bad-token')).rejects.toThrow('Invalid refresh token');
+      await expect(auth.refreshTokens('bad-token')).rejects.toThrow(
+        'Sesi tidak valid. Silakan masuk lagi.'
+      );
     });
 
     it('should fail for expired refresh token', async () => {
@@ -187,7 +206,9 @@ describe('Auth Service', () => {
         expiresAt: new Date(Date.now() - 1000),
       });
 
-      await expect(auth.refreshTokens('expired-rt')).rejects.toThrow('Refresh token expired');
+      await expect(auth.refreshTokens('expired-rt')).rejects.toThrow(
+        'Sesi tidak valid. Silakan masuk lagi.'
+      );
     });
   });
 
@@ -205,7 +226,9 @@ describe('Auth Service', () => {
     it('should fail for non-existent userId', async () => {
       (prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
-      await expect(auth.getMe('nobody')).rejects.toThrow('User not found');
+      await expect(auth.getMe('nobody')).rejects.toThrow(
+        'Sesi tidak valid. Silakan masuk lagi.'
+      );
     });
   });
 });

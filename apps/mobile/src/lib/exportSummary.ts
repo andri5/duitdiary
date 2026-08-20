@@ -13,7 +13,7 @@ export function buildSummaryShareText(
   period: keyof typeof PERIOD_LABEL
 ): string {
   const lines = [
-    `DuitDiary — Ringkasan ${PERIOD_LABEL[period]}`,
+    `Dompet Tenang — Ringkasan ${PERIOD_LABEL[period]}`,
     `${formatDateShort(summary.periodStart)} – ${formatDateShort(summary.periodEnd)}`,
     '',
     `Pemasukan: ${formatIDR(summary.totalIncome)}`,
@@ -39,7 +39,7 @@ export async function shareSummaryReport(
 ): Promise<void> {
   await Share.share({
     message: buildSummaryShareText(summary, period),
-    title: 'Ringkasan DuitDiary',
+    title: 'Ringkasan Dompet Tenang',
   });
 }
 
@@ -53,7 +53,7 @@ export async function exportTransactionsCsv(
   );
 
   const lines = [
-    `DuitDiary — Laporan ${PERIOD_LABEL[period]}`,
+    `Dompet Tenang — Laporan ${PERIOD_LABEL[period]}`,
     `${summary.periodStart} s/d ${summary.periodEnd}`,
     '',
     `Pemasukan: ${formatIDR(summary.totalIncome)}`,
@@ -74,6 +74,6 @@ export async function exportTransactionsCsv(
 
   await Share.share({
     message: lines.join('\n'),
-    title: 'Laporan DuitDiary',
+    title: 'Laporan Dompet Tenang',
   });
 }

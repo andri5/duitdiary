@@ -1,6 +1,6 @@
 /**
  * ============================================
- * DuitDiary API - Validation Schemas
+ * Dompet Tenang API - Validation Schemas
  * ============================================
  * Zod validation schemas for request validation.
  * Used with validate middleware to validate request body/query.
@@ -12,6 +12,29 @@
 import { z } from 'zod';
 
 // ==================== AUTH SCHEMAS ====================
+const strongPassword = z
+  .string()
+  .min(8, 'Password minimal 8 karakter')
+  .max(100, 'Password must be less than 100 characters')
+  .refine((value) => /[A-Za-z]/.test(value) && /\d/.test(value), {
+    message: 'Password harus mengandung huruf dan angka',
+  });
+
+const genderSchema = z.enum(['MALE', 'FEMALE', 'OTHER'], {
+  message: 'Jenis kelamin tidak valid',
+});
+
+const birthDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal lahir: YYYY-MM-DD')
+  .refine((value) => {
+    const d = new Date(`${value}T00:00:00.000Z`);
+    if (Number.isNaN(d.getTime())) return false;
+    const now = new Date();
+    const min = new Date(now.getFullYear() - 120, now.getMonth(), now.getDate());
+    const max = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
+    return d >= min && d <= max;
+  }, 'Tanggal lahir tidak valid (usia 10–120 tahun)');
 
 export const registerSchema = z.object({
   name: z
@@ -24,13 +47,20 @@ export const registerSchema = z.object({
     .max(255, 'Email must be less than 255 characters'),
   password: z
     .string()
-    .min(6, 'Password must be at least 6 characters')
-    .max(100, 'Password must be less than 100 characters'),
+    .min(8, 'Password minimal 8 karakter')
+    .max(100, 'Password must be less than 100 characters')
+    .refine((value) => /[A-Za-z]/.test(value) && /\d/.test(value), {
+      message: 'Password harus mengandung huruf dan angka',
+    }),
+  gender: genderSchema,
+  birthDate: birthDateSchema,
+  captchaToken: z.string().max(2048).optional(),
 });
 
 export const loginSchema = z.object({
   email: z.string().email('Invalid email format'),
   password: z.string().min(1, 'Password is required'),
+  captchaToken: z.string().max(2048).optional(),
 });
 
 export const refreshTokenSchema = z.object({
@@ -48,26 +78,23 @@ export const updateProfileSchema = z.object({
     .string()
     .length(3, 'Currency must be exactly 3 characters')
     .optional(),
+  gender: genderSchema.optional().nullable(),
+  birthDate: birthDateSchema.optional().nullable(),
 });
 
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z
-    .string()
-    .min(6, 'New password must be at least 6 characters')
-    .max(100, 'New password must be less than 100 characters'),
+  newPassword: strongPassword,
 });
 
 export const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email format'),
+  captchaToken: z.string().max(2048).optional(),
 });
 
 export const resetPasswordSchema = z.object({
   token: z.string().min(1, 'Reset token is required'),
-  password: z
-    .string()
-    .min(6, 'New password must be at least 6 characters')
-    .max(100, 'New password must be less than 100 characters'),
+  password: strongPassword,
 });
 
 export const transactionTypeSchema = z.enum(['EXPENSE', 'INCOME']);

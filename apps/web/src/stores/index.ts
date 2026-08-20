@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Stores Index
+ * Dompet Tenang - Stores Index
  * Central export for all stores
  */
 

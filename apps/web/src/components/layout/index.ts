@@ -1,5 +1,5 @@
 /**
- * DuitDiary - Layout Components Index
+ * Dompet Tenang - Layout Components Index
  */
 
 export { MainLayout } from './MainLayout';

@@ -1,4 +1,4 @@
-# DuitDiary — Catat Keuangan
+# Dompet Tenang — Catat Keuangan
 
 Aplikasi pencatatan keuangan pribadi (pemasukan & pengeluaran) dengan dashboard, kategori, upload struk, dan saran finansial otomatis.
 
@@ -37,8 +37,8 @@ Monorepo:
 ### Installation
 
 ```bash
-git clone https://github.com/andri5/duitdiary.git
-cd duitdiary
+git clone https://github.com/andri5/Dompet Tenang.git
+cd Dompet Tenang
 npm install
 ```
 
@@ -118,4 +118,4 @@ MIT — see [LICENSE](./LICENSE)
 
 ## Support
 
-Buka issue di [GitHub Issues](https://github.com/andri5/duitdiary/issues).
+Buka issue di [GitHub Issues](https://github.com/andri5/Dompet Tenang/issues).

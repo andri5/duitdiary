@@ -16,6 +16,7 @@ import type {
   ResetPasswordInput,
 } from '../utils/validation.js';
 import type { AuthResponse, UserResponse } from '../types/index.js';
+import { AUTH_SAFE, LOGIN_DUMMY_HASH } from '../constants/authMessages.js';
 
 export class AuthService {
   async register(data: RegisterInput): Promise<AuthResponse> {
@@ -24,7 +25,8 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new Error('Email already registered');
+      // Same public message as other register failures (anti-enumeration)
+      throw new Error(AUTH_SAFE.registerFailed);
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 12);
@@ -34,6 +36,8 @@ export class AuthService {
         name: data.name,
         email: data.email,
         password: hashedPassword,
+        gender: data.gender,
+        birthDate: new Date(`${data.birthDate}T00:00:00.000Z`),
       },
     });
 
@@ -55,14 +59,12 @@ export class AuthService {
       where: { email: data.email },
     });
 
-    if (!user) {
-      throw new Error('Email atau password salah');
-    }
+    // Dummy compare when user missing — reduces timing side-channels
+    const hash = user?.password ?? LOGIN_DUMMY_HASH;
+    const isPasswordValid = await bcrypt.compare(data.password, hash);
 
-    const isPasswordValid = await bcrypt.compare(data.password, user.password);
-
-    if (!isPasswordValid) {
-      throw new Error('Email atau password salah');
+    if (!user || !isPasswordValid) {
+      throw new Error(AUTH_SAFE.loginFailed);
     }
 
     const tokenPayload = { userId: user.id, email: user.email, role: user.role };
@@ -97,7 +99,7 @@ export class AuthService {
     const payload = verifyRefreshToken(refreshToken);
 
     if (!payload) {
-      throw new Error('Invalid refresh token');
+      throw new Error(AUTH_SAFE.sessionInvalid);
     }
 
     const storedToken = await prisma.refreshToken.findUnique({
@@ -105,12 +107,12 @@ export class AuthService {
     });
 
     if (!storedToken) {
-      throw new Error('Refresh token not found');
+      throw new Error(AUTH_SAFE.sessionInvalid);
     }
 
     if (new Date() > storedToken.expiresAt) {
       await prisma.refreshToken.delete({ where: { id: storedToken.id } });
-      throw new Error('Refresh token expired');
+      throw new Error(AUTH_SAFE.sessionInvalid);
     }
 
     const user = await prisma.user.findUnique({
@@ -118,7 +120,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new Error(AUTH_SAFE.sessionInvalid);
     }
 
     await prisma.refreshToken.delete({ where: { id: storedToken.id } });
@@ -147,8 +149,7 @@ export class AuthService {
     const user = await prisma.user.findUnique({ where: { email } });
 
     const generic = {
-      message:
-        'Jika email terdaftar, tautan reset password akan dikirim. Periksa kotak masuk atau folder spam.',
+      message: AUTH_SAFE.forgotPassword,
     };
 
     if (!user) {
@@ -209,7 +210,7 @@ export class AuthService {
     });
 
     if (!record || record.usedAt || record.expiresAt < new Date()) {
-      throw new Error('Token reset tidak valid atau sudah kedaluwarsa');
+      throw new Error(AUTH_SAFE.resetInvalid);
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 12);
@@ -246,13 +247,15 @@ export class AuthService {
         email: true,
         avatar: true,
         currency: true,
+        gender: true,
+        birthDate: true,
         role: true,
         createdAt: true,
       },
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new Error(AUTH_SAFE.sessionInvalid);
     }
 
     return this.formatUser(user);
@@ -260,13 +263,27 @@ export class AuthService {
 
   async updateProfile(
     userId: string,
-    data: { name?: string; currency?: string }
+    data: {
+      name?: string;
+      currency?: string;
+      gender?: 'MALE' | 'FEMALE' | 'OTHER' | null;
+      birthDate?: string | null;
+    }
   ): Promise<UserResponse> {
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.currency !== undefined ? { currency: data.currency } : {}),
+        ...(data.gender !== undefined ? { gender: data.gender } : {}),
+        ...(data.birthDate !== undefined
+          ? {
+              birthDate:
+                data.birthDate === null
+                  ? null
+                  : new Date(`${data.birthDate}T00:00:00.000Z`),
+            }
+          : {}),
       },
       select: {
         id: true,
@@ -274,6 +291,8 @@ export class AuthService {
         email: true,
         avatar: true,
         currency: true,
+        gender: true,
+        birthDate: true,
         role: true,
         createdAt: true,
       },
@@ -292,16 +311,16 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new Error(AUTH_SAFE.changePasswordFailed);
     }
 
     const isValid = await bcrypt.compare(data.currentPassword, user.password);
     if (!isValid) {
-      throw new Error('Password saat ini salah');
+      throw new Error(AUTH_SAFE.changePasswordFailed);
     }
 
     if (data.currentPassword === data.newPassword) {
-      throw new Error('Password baru harus berbeda dari password saat ini');
+      throw new Error(AUTH_SAFE.changePasswordFailed);
     }
 
     const hashedPassword = await bcrypt.hash(data.newPassword, 12);
@@ -331,6 +350,8 @@ export class AuthService {
     email: string;
     avatar: string | null;
     currency: string;
+    gender?: 'MALE' | 'FEMALE' | 'OTHER' | null;
+    birthDate?: Date | null;
     role?: string;
     createdAt: Date;
   }): UserResponse {
@@ -340,6 +361,10 @@ export class AuthService {
       email: user.email,
       avatar: user.avatar,
       currency: user.currency,
+      gender: user.gender ?? null,
+      birthDate: user.birthDate
+        ? user.birthDate.toISOString().slice(0, 10)
+        : null,
       role: user.role || 'USER',
       createdAt: user.createdAt,
     };

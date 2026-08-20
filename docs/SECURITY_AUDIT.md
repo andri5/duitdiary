@@ -1,4 +1,4 @@
-# DuitDiary Security Audit Checklist
+# Dompet Tenang Security Audit Checklist
 
 **Last updated:** August 2026  
 **Scope:** API, Web, Mobile  

@@ -1,4 +1,4 @@
-# 🚀 DuitDiary - Master Project Plan
+# 🚀 Dompet Tenang - Master Project Plan
 
 **Version**: 2.0.0  
 **Date**: December 31, 2025  
@@ -116,7 +116,7 @@ Estimated Time: 5-8 hours
 ```bash
 # 1. Connect GitHub repo to Vercel
 # 2. Set environment variable:
-VITE_API_URL=https://api.duitdiary.app
+VITE_API_URL=https://api.Dompet Tenang.app
 
 # 3. Auto-deploys on git push to main
 ```
@@ -176,7 +176,7 @@ NODE_ENV=production
 ## 📋 File Structure
 
 ```
-duitdiary/
+Dompet Tenang/
 ├── apps/
 │   ├── api/                # Backend API (COMPLETE ✅)
 │   │   ├── src/

@@ -167,8 +167,8 @@ export const useAuthStore = create<AuthStore>(
 ```typescript
 // Production: .env
 # ✅ HTTPS REQUIRED for all external communication
-API_URL=https://api.duitdiary.com
-# NOT: http://api.duitdiary.com
+API_URL=https://api.Dompet Tenang.com
+# NOT: http://api.Dompet Tenang.com
 ```
 
 **Testing Checklist:**
@@ -524,8 +524,8 @@ import QRCode from 'qrcode';
 
 export const generateMFASecret = async (email: string) => {
   const secret = speakeasy.generateSecret({
-    name: `DuitDiary (${email})`,
-    issuer: 'DuitDiary',
+    name: `Dompet Tenang (${email})`,
+    issuer: 'Dompet Tenang',
   });
   
   const qrCode = await QRCode.toDataURL(secret.otpauth_url);
@@ -680,10 +680,10 @@ app.use(helmet()); // Sets all security headers:
 ```bash
 # .env.example (never commit actual .env)
 JWT_SECRET=your-secret-key-here-min-32-characters
-DATABASE_URL=postgresql://user:pass@localhost:5432/duitdiary
+DATABASE_URL=postgresql://user:pass@localhost:5432/Dompet Tenang
 NODE_ENV=production
 API_PORT=3000
-ALLOWED_ORIGINS=https://app.duitdiary.com,https://admin.duitdiary.com
+ALLOWED_ORIGINS=https://app.Dompet Tenang.com,https://admin.Dompet Tenang.com
 ```
 
 ✅ **Dependency Versions**
