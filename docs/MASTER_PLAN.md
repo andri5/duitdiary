@@ -2,8 +2,8 @@
 
 **Version**: 2.0.0  
 **Date**: December 31, 2025  
-**Status**: 🎉 Phase 4B Complete - Ready for Deployment  
-**Overall Progress**: 95% (Deployment Phase Next)
+**Status**: MVP feature-complete (web + mobile) — Deployment Phase Next  
+**Overall Progress**: ~95% (fitur inti siap; staging/production belum)
 
 ---
 
@@ -12,14 +12,20 @@
 | Phase | Task | Status | Completion |
 |-------|------|--------|-----------|
 | **Phase 1: Setup** | Project initialization | ✅ COMPLETE | 100% |
-| **Phase 2: Backend** | API development (12 endpoints) | ✅ COMPLETE | 100% |
+| **Phase 2: Backend** | API development | ✅ COMPLETE | 100% |
 | **Phase 3: Frontend Web** | React + Vite application | ✅ COMPLETE | 100% |
-| **Phase 4A: Security** | OWASP compliance (95/100 score) | ✅ COMPLETE | 100% |
-| **Phase 4B: UI/UX** | Tiket.com-style redesign + 98 tests | ✅ COMPLETE | 100% |
-| **Phase 5: Mobile** | React Native app | ✅ COMPLETE | 100% |
-| **Phase 6: Deployment** | Production ready | ⏳ NEXT | 0% |
+| **Phase 4A: Security** | OWASP baseline | ✅ COMPLETE | 100% |
+| **Phase 4B: UI/UX** | Redesign + tests | ✅ COMPLETE | 100% |
+| **Phase 5: Mobile** | React Native / Expo (fitur inti + offline queue) | ✅ COMPLETE | 100% |
+| **Phase 6: Deployment** | Staging / production | ⏳ NEXT | 0% |
 
-**Total Project**: **95% Complete** (5/6 phases done)
+**Catatan produk:**
+- Admin penuh = **web**; mobile admin = stats / users / feedback / legal (S&K + Privasi).
+- Feature flags dihormati di web & mobile (savings, recurring, market, feedback, captcha).
+- Offline mobile: create/update transaksi masuk antrian & flush saat online.
+- Visit analytics: web + mobile.
+- Mobile admin: stats, users (role + hapus), feedback, legal (S&K + Privasi).
+- Deploy/monitoring/store submission ditunda sampai lingkungan staging tersedia.
 
 ---
 

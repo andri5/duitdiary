@@ -25,8 +25,9 @@ import { PasswordInput, AppTextInput } from '../components/ui';
 import { FadeInUp, ScalePress, PopIn } from '../components/motion';
 import { useDialog } from '../components/AppDialog';
 import { THEME_OPTIONS, radii, type ThemeColors } from '../theme';
-import { useColors, useTheme } from '../themeContext';
+import { useTheme, useColors } from '../themeContext';
 import { useResponsive } from '../hooks/useResponsive';
+import { useFeatureEnabled } from '../lib/featureFlags';
 import type { MainStackParamList } from '../navigation/types';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -61,6 +62,7 @@ export function SettingsScreen({ navigation }: Props) {
   const { theme, setTheme } = useTheme();
   const r = useResponsive();
   const styles = useMemo(() => createStyles(colors, r), [colors, r]);
+  const showFeedback = useFeatureEnabled('feedback_form');
   const savingPasswordRef = useRef(false);
   const [name, setName] = useState(user?.name || '');
   const [currency, setCurrency] = useState(
@@ -387,7 +389,7 @@ export function SettingsScreen({ navigation }: Props) {
           </View>
         </FadeInUp>
 
-        {user?.role !== 'ADMIN' ? (
+        {user?.role !== 'ADMIN' && showFeedback ? (
           <FadeInUp delay={120}>
             <FeedbackSection colors={colors} r={r} userName={user?.name} showDialog={showDialog} />
           </FadeInUp>

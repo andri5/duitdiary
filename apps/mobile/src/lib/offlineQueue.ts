@@ -4,6 +4,7 @@
  */
 
 import * as SecureStore from 'expo-secure-store';
+import NetInfo from '@react-native-community/netinfo';
 import { createTransaction, updateTransaction } from './finance';
 
 const QUEUE_KEY = 'dt_offline_queue';
@@ -36,6 +37,13 @@ export type OfflineAction =
       };
       createdAt: string;
     };
+
+export async function isDeviceOnline(): Promise<boolean> {
+  const state = await NetInfo.fetch();
+  if (state.isConnected === false) return false;
+  if (state.isInternetReachable === false) return false;
+  return true;
+}
 
 async function readQueue(): Promise<OfflineAction[]> {
   try {

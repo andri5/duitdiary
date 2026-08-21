@@ -23,6 +23,7 @@ import {
 import { getBudgetStatus, type BudgetStatus } from '../lib/budget';
 import { checkAndNotifyBudgetAlert } from '../lib/notifications';
 import { runRecurringDue } from '../lib/recurring';
+import { useFeatureEnabled } from '../lib/featureFlags';
 import { exportTransactionsCsv } from '../lib/exportSummary';
 import { buildDashboardInsights, getInsightToneColor } from '../lib/dashboardInsights';
 import { formatIDR, formatIDRCompact, formatDateShort } from '../lib/format';
@@ -117,6 +118,8 @@ export function DashboardScreen({ user }: { user: User }) {
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<'week' | 'month' | 'year'>('month');
   const [amountsVisible, setAmountsVisible] = useState(true);
+  const showMarket = useFeatureEnabled('market_widget');
+  const showRecurring = useFeatureEnabled('recurring_transactions');
 
   const showAmount = (n: number) => (amountsVisible ? formatIDR(n) : HIDDEN_AMOUNT);
   const formatIHSG = (n: number) =>
@@ -129,15 +132,16 @@ export function DashboardScreen({ user }: { user: User }) {
       if (!silent) setLoading(true);
       setError(null);
       try {
-        // Auto-create recurring transactions (P3)
-        try {
-          await runRecurringDue();
-        } catch {
-          // ignore: dashboard should still load
+        if (showRecurring) {
+          try {
+            await runRecurringDue();
+          } catch {
+            // ignore: dashboard should still load
+          }
         }
         const [data, quotes, budget] = await Promise.all([
           getDashboardSummary(period),
-          getMarketQuotes(),
+          showMarket ? getMarketQuotes() : Promise.resolve(null),
           getBudgetStatus(),
         ]);
         setSummary(data);
@@ -151,7 +155,7 @@ export function DashboardScreen({ user }: { user: User }) {
         setRefreshing(false);
       }
     },
-    [period]
+    [period, showMarket, showRecurring]
   );
 
   useFocusEffect(
@@ -234,7 +238,7 @@ export function DashboardScreen({ user }: { user: User }) {
         </View>
       </FadeInUp>
 
-      {(market?.usdIdr || market?.gold || market?.biRate || market?.ihsg) && (
+      {(showMarket && (market?.usdIdr || market?.gold || market?.biRate || market?.ihsg)) && (
         <FadeInUp delay={40}>
           <View style={styles.marketCard}>
             <View style={styles.marketHeader}>

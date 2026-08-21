@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
+import { NavigationContainer, LinkingOptions, type NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { RegisterScreen } from './src/screens/RegisterScreen';
 import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen';
@@ -24,6 +24,7 @@ import { DialogProvider } from './src/components/AppDialog';
 import { ThemeProvider, useTheme } from './src/themeContext';
 import type { ThemeColors } from './src/theme';
 import { AuthContext, type RootStackParamList } from './src/authContext';
+import { trackNavigationState } from './src/lib/visitAnalytics';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -53,6 +54,7 @@ function AppInner() {
   const [booting, setBooting] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [maintenance, setMaintenance] = useState(isMaintenanceMode);
+  const navRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
 
   useEffect(() => {
     if (maintenance) {
@@ -116,7 +118,16 @@ function AppInner() {
       <DialogProvider>
         <AppStatusProvider>
           <StatusBar style={colors.statusBar} />
-          <NavigationContainer linking={linking}>
+          <NavigationContainer
+            ref={navRef}
+            linking={linking}
+            onReady={() => {
+              trackNavigationState(navRef.current?.getRootState());
+            }}
+            onStateChange={(state) => {
+              trackNavigationState(state);
+            }}
+          >
             {user ? (
               <MainNavigator user={user} onLogout={() => setUser(null)} />
             ) : (

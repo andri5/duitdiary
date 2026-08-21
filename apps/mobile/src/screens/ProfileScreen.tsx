@@ -14,6 +14,7 @@ import { useDialog } from '../components/AppDialog';
 import { radii, spacing, type ThemeColors } from '../theme';
 import { useColors } from '../themeContext';
 import { useResponsive } from '../hooks/useResponsive';
+import { useFeatureEnabled } from '../lib/featureFlags';
 import type { MainStackParamList } from '../navigation/types';
 
 export function ProfileScreen({
@@ -29,6 +30,8 @@ export function ProfileScreen({
   const insets = useSafeAreaInsets();
   const { showDialog } = useDialog();
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
+  const showSavings = useFeatureEnabled('savings_goals');
+  const showRecurring = useFeatureEnabled('recurring_transactions');
 
   const handleLogout = () => {
     showDialog({
@@ -46,14 +49,16 @@ export function ProfileScreen({
   };
 
   const menus = [
-    {
-      key: 'recurring',
-      title: 'Transaksi Otomatis',
-      sub: 'Atur pengeluaran & pemasukan rutin',
-      icon: 'repeat-outline' as const,
-      soft: true,
-      onPress: () => navigation.navigate('Recurring'),
-    },
+    showRecurring
+      ? {
+          key: 'recurring',
+          title: 'Transaksi Otomatis',
+          sub: 'Atur pengeluaran & pemasukan rutin',
+          icon: 'repeat-outline' as const,
+          soft: true,
+          onPress: () => navigation.navigate('Recurring'),
+        }
+      : null,
     {
       key: 'budget',
       title: 'Budget',
@@ -62,14 +67,16 @@ export function ProfileScreen({
       soft: true,
       onPress: () => navigation.navigate('Budget'),
     },
-    {
-      key: 'savings',
-      title: 'Target Tabungan',
-      sub: 'Atur target saving & pantau progres',
-      icon: 'flag-outline' as const,
-      soft: true,
-      onPress: () => navigation.navigate('Savings'),
-    },
+    showSavings
+      ? {
+          key: 'savings',
+          title: 'Target Tabungan',
+          sub: 'Atur target saving & pantau progres',
+          icon: 'flag-outline' as const,
+          soft: true,
+          onPress: () => navigation.navigate('Savings'),
+        }
+      : null,
     {
       key: 'settings',
       title: 'Pengaturan',
@@ -94,7 +101,14 @@ export function ProfileScreen({
       soft: false,
       onPress: () => navigation.navigate('Help'),
     },
-  ];
+  ].filter(Boolean) as Array<{
+    key: string;
+    title: string;
+    sub: string;
+    icon: keyof typeof Ionicons.glyphMap;
+    soft: boolean;
+    onPress: () => void;
+  }>;
 
   return (
     <ScrollView
@@ -181,7 +195,7 @@ export function ProfileScreen({
 
       {user.role === 'ADMIN' && (
         <FadeInUp delay={250}>
-          <AdminSection colors={colors} r={r} />
+          <AdminSection colors={colors} r={r} currentUserId={user.id} />
         </FadeInUp>
       )}
 
@@ -296,16 +310,28 @@ interface FeedbackItem {
   createdAt: string;
 }
 
-function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof useResponsive> }) {
+function AdminSection({
+  colors,
+  r,
+  currentUserId,
+}: {
+  colors: ThemeColors;
+  r: ReturnType<typeof useResponsive>;
+  currentUserId: string;
+}) {
   const { showDialog } = useDialog();
   const [tab, setTab] = useState<'stats' | 'users' | 'feedback' | 'legal'>('stats');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [traffic, setTraffic] = useState<{ activeUsersToday: number; totalVisits: number } | null>(null);
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
+  const [legalKey, setLegalKey] = useState<'terms' | 'privacy'>('terms');
   const [legalTitle, setLegalTitle] = useState('');
   const [legalBody, setLegalBody] = useState('');
   const [legalUpdatedAt, setLegalUpdatedAt] = useState<string | null>(null);
+  const [legalDocs, setLegalDocs] = useState<
+    Record<string, { title: string; body: string; updatedAt: string }>
+  >({});
   const [savingLegal, setSavingLegal] = useState(false);
   const [loading, setLoading] = useState(true);
   const as = useMemo(() => adminStyles(colors, r), [colors, r]);
@@ -335,17 +361,31 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
             body: string;
             updatedAt: string;
           }>;
-          const terms = docs.find((d) => d.key === 'terms');
-          if (terms) {
-            setLegalTitle(terms.title);
-            setLegalBody(terms.body);
-            setLegalUpdatedAt(terms.updatedAt);
+          const map: Record<string, { title: string; body: string; updatedAt: string }> = {};
+          for (const d of docs) {
+            map[d.key] = { title: d.title, body: d.body, updatedAt: d.updatedAt };
+          }
+          setLegalDocs(map);
+          const current = map[legalKey] || map.terms;
+          if (current) {
+            setLegalTitle(current.title);
+            setLegalBody(current.body);
+            setLegalUpdatedAt(current.updatedAt);
           }
         }
       } catch { /* ignore */ }
       setLoading(false);
     })();
   }, [tab]);
+
+  useEffect(() => {
+    if (tab !== 'legal') return;
+    const current = legalDocs[legalKey];
+    if (!current) return;
+    setLegalTitle(current.title);
+    setLegalBody(current.body);
+    setLegalUpdatedAt(current.updatedAt);
+  }, [legalKey, legalDocs, tab]);
 
   const toggleRole = async (id: string, currentRole: string) => {
     const newRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
@@ -360,6 +400,41 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
         confirmLabel: 'Saya mengerti',
       });
     }
+  };
+
+  const deleteUser = (u: AdminUserItem) => {
+    if (u.id === currentUserId) {
+      showDialog({
+        variant: 'warning',
+        title: 'Tidak diizinkan',
+        message: 'Tidak bisa menghapus akun sendiri.',
+      });
+      return;
+    }
+    showDialog({
+      variant: 'danger',
+      title: 'Hapus user?',
+      message: `Hapus ${u.name} (${u.email})? Semua data user ini akan hilang permanen.`,
+      showCancel: true,
+      cancelLabel: 'Batal',
+      confirmLabel: 'Hapus',
+      onConfirm: async () => {
+        try {
+          await apiClient.delete(`/admin/users/${u.id}`);
+          setUsers((prev) => prev.filter((x) => x.id !== u.id));
+          showDialog({
+            variant: 'success',
+            title: 'User dihapus',
+            message: `${u.email} sudah dihapus.`,
+          });
+        } catch (e: unknown) {
+          const message =
+            (e as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+            'Gagal menghapus user.';
+          showDialog({ variant: 'error', title: 'Gagal hapus', message });
+        }
+      },
+    });
   };
 
   const deleteFeedback = async (id: string) => {
@@ -396,16 +471,30 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
     }
     setSavingLegal(true);
     try {
-      const res = await apiClient.put('/admin/legal/terms', {
+      const res = await apiClient.put(`/admin/legal/${legalKey}`, {
         title: legalTitle.trim(),
         body: legalBody.trim(),
       });
-      const updated = res.data?.data as { updatedAt?: string } | undefined;
-      setLegalUpdatedAt(updated?.updatedAt || new Date().toISOString());
+      const updated = res.data?.data as
+        | { title?: string; body?: string; updatedAt?: string }
+        | undefined;
+      const nextUpdatedAt = updated?.updatedAt || new Date().toISOString();
+      setLegalUpdatedAt(nextUpdatedAt);
+      setLegalDocs((prev) => ({
+        ...prev,
+        [legalKey]: {
+          title: updated?.title || legalTitle.trim(),
+          body: updated?.body || legalBody.trim(),
+          updatedAt: nextUpdatedAt,
+        },
+      }));
       showDialog({
         variant: 'success',
         title: 'Tersimpan',
-        message: 'Syarat & Ketentuan berhasil diperbarui.',
+        message:
+          legalKey === 'privacy'
+            ? 'Kebijakan Privasi berhasil diperbarui.'
+            : 'Syarat & Ketentuan berhasil diperbarui.',
       });
     } catch (e: unknown) {
       const message =
@@ -421,7 +510,7 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
     { key: 'stats', label: 'Stats', icon: 'stats-chart' },
     { key: 'users', label: 'Users', icon: 'people' },
     { key: 'feedback', label: 'Feedback', icon: 'chatbubbles' },
-    { key: 'legal', label: 'S&K', icon: 'document-text' },
+    { key: 'legal', label: 'Legal', icon: 'document-text' },
   ];
 
   return (
@@ -481,6 +570,11 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
                   {u.role}
                 </Text>
               </Pressable>
+              {u.id !== currentUserId ? (
+                <Pressable onPress={() => deleteUser(u)} hitSlop={8} style={as.deleteUserBtn}>
+                  <Ionicons name="trash-outline" size={14} color={colors.dangerText} />
+                </Pressable>
+              ) : null}
             </View>
           ))}
         </View>
@@ -529,8 +623,26 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
         </View>
       ) : tab === 'legal' ? (
         <View>
+          <View style={as.legalTabs}>
+            {(
+              [
+                { key: 'terms' as const, label: 'S&K' },
+                { key: 'privacy' as const, label: 'Privasi' },
+              ] as const
+            ).map((t) => (
+              <Pressable
+                key={t.key}
+                onPress={() => setLegalKey(t.key)}
+                style={[as.legalTab, legalKey === t.key && as.legalTabOn]}
+              >
+                <Text style={[as.legalTabText, legalKey === t.key && as.legalTabTextOn]}>
+                  {t.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
           <Text style={as.legalHint}>
-            Edit Syarat & Ketentuan yang tampil di halaman publik. Pisahkan paragraf dengan baris kosong.
+            Edit dokumen legal yang tampil di halaman publik. Pisahkan paragraf dengan baris kosong.
           </Text>
           {legalUpdatedAt ? (
             <Text style={as.fbName}>
@@ -549,7 +661,7 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
             value={legalTitle}
             onChangeText={setLegalTitle}
             style={as.legalInput}
-            placeholder="Syarat & Ketentuan"
+            placeholder={legalKey === 'privacy' ? 'Kebijakan Privasi' : 'Syarat & Ketentuan'}
             placeholderTextColor={colors.faint}
           />
           <Text style={as.legalLabel}>Isi</Text>
@@ -563,7 +675,13 @@ function AdminSection({ colors, r }: { colors: ThemeColors; r: ReturnType<typeof
             placeholderTextColor={colors.faint}
           />
           <PrimaryButton
-            label={savingLegal ? 'Menyimpan…' : 'Simpan S&K'}
+            label={
+              savingLegal
+                ? 'Menyimpan…'
+                : legalKey === 'privacy'
+                  ? 'Simpan Privasi'
+                  : 'Simpan S&K'
+            }
             icon="save-outline"
             onPress={saveLegal}
             loading={savingLegal}
@@ -627,6 +745,11 @@ function adminStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
     roleBadgeAdmin: { backgroundColor: '#7c3aed20' },
     roleText: { fontSize: 10, fontWeight: '700', color: colors.muted },
     roleTextAdmin: { color: '#7c3aed' },
+    deleteUserBtn: {
+      padding: 6,
+      borderRadius: 8,
+      backgroundColor: colors.bg,
+    },
     emptyText: { fontSize: 12, color: colors.muted, textAlign: 'center', paddingVertical: 16 },
     fbItem: {
       flexDirection: 'row', alignItems: 'flex-start', gap: 8,
@@ -661,6 +784,18 @@ function adminStyles(colors: ThemeColors, r: ReturnType<typeof useResponsive>) {
       lineHeight: 16,
       marginBottom: 8,
     },
+    legalTabs: { flexDirection: 'row', gap: 6, marginBottom: 8 },
+    legalTab: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 8,
+      backgroundColor: colors.bg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    legalTabOn: { backgroundColor: '#7c3aed', borderColor: '#7c3aed' },
+    legalTabText: { fontSize: 11, fontWeight: '800', color: colors.muted },
+    legalTabTextOn: { color: '#fff' },
     legalLabel: {
       marginTop: 8,
       marginBottom: 4,

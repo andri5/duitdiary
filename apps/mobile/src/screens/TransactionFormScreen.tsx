@@ -24,6 +24,7 @@ import {
 } from '../lib/finance';
 import { authImageSource, uploadReceipt } from '../lib/upload';
 import { formatDateShort, todayISO } from '../lib/format';
+import { enqueueOfflineAction, isDeviceOnline } from '../lib/offlineQueue';
 import { Ionicons } from '@expo/vector-icons';
 import { AmountCalculator } from '../components/AmountCalculator';
 import { CategoryIcon } from '../components/CategoryIcon';
@@ -263,6 +264,31 @@ export function TransactionFormScreen({ navigation, route }: Props) {
         description: note.trim() || undefined,
         receiptUrl,
       };
+
+      const online = await isDeviceOnline();
+      if (!online) {
+        if (isEdit && editId) {
+          await enqueueOfflineAction({
+            type: 'UPDATE_TRANSACTION',
+            payload: { transactionId: editId, ...payload },
+          });
+        } else {
+          await enqueueOfflineAction({
+            type: 'CREATE_TRANSACTION',
+            payload,
+          });
+        }
+        showDialog({
+          variant: 'success',
+          title: 'Disimpan offline',
+          message:
+            'Tidak ada internet. Transaksi masuk antrian dan akan dikirim otomatis saat koneksi kembali.',
+          confirmLabel: 'Saya mengerti',
+          onConfirm: () => navigation.goBack(),
+        });
+        return;
+      }
+
       if (isEdit && editId) {
         await updateTransaction(editId, payload);
         showDialog({

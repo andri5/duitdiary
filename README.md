@@ -10,7 +10,7 @@ Monorepo:
 |------|-----------|
 | [apps/api](./apps/api) | Backend API (Node.js + Express + TypeScript + Prisma + PostgreSQL) |
 | [apps/web](./apps/web) | Web frontend (React + Vite + TypeScript + Tailwind CSS) |
-| [apps/mobile](./apps/mobile) | Mobile app (React Native + Expo) — WIP |
+| [apps/mobile](./apps/mobile) | Mobile app (React Native + Expo) — fitur inti siap; admin penuh di web |
 | [packages/shared](./packages/shared) | Shared utilities & types |
 
 ## Features
@@ -19,11 +19,16 @@ Monorepo:
 - **Transaksi** — Pemasukan & pengeluaran (menu Transaksi dengan submenu)
 - **Kategori** — Default + kustom, ikon Lucide, kategori default terkunci
 - **Dashboard** — Ringkasan saldo, grafik perbandingan, breakdown per kategori, AI saran & notice
-- **Struk** — Upload gambar/PDF sebagai bukti transaksi (akses privat ber-auth)
+- **Budget / Recurring / Savings** — Limit bulanan, transaksi otomatis, target tabungan (bisa di-gate feature flag)
+- **Struk** — Upload gambar/PDF sebagai bukti transaksi (akses privat ber-auth; mobile + kamera)
 - **Kalkulator** — Hitung nominal cepat di form transaksi
-- **Profil** — Upload foto profil, 3 tema (Neo Ledger, Midnight, Ocean Mist)
-- **Mobile** — Expo app (auth fase 1) di `apps/mobile`
+- **Profil** — Upload foto profil, gender & tanggal lahir, 3 tema
+- **Legal dinamis** — Syarat & Ketentuan / Privasi dikelola admin
+- **Mobile offline** — Simpan transaksi ke antrian saat offline, sync otomatis saat online
+- **Admin** — Panel penuh di web (flags, traffic, activity, legal); ringkas di mobile
 - **Responsif** — Desktop sidebar + mobile bottom nav
+
+> **Catatan:** Staging/production deploy belum disiapkan di lingkungan ini. Admin lengkap (flags, activity, traffic detail) fokus di web; mobile admin mencakup stats, users (role + hapus), feedback, dan legal. Visit analytics aktif di web & mobile.
 
 ## Quick Start
 
